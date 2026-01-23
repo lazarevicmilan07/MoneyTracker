@@ -1,0 +1,33 @@
+# Add project specific ProGuard rules here.
+
+# Keep data classes for Room
+-keep class com.expensetracker.app.data.local.entity.** { *; }
+
+# Keep Kotlin serialization
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Keep Hilt
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.lifecycle.HiltViewModel { *; }
+
+# iText PDF
+-keep class com.itextpdf.** { *; }
+-dontwarn com.itextpdf.**
+
+# Google Play Billing
+-keep class com.android.vending.billing.**
+
+# AdMob
+-keep class com.google.android.gms.ads.** { *; }
+
+# Vico Charts
+-keep class com.patrykandpatrick.vico.** { *; }
