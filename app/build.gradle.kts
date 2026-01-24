@@ -30,8 +30,8 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-3940256099942544~3347511713\"")
             buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
+            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
         }
         release {
             isMinifyEnabled = true
@@ -41,8 +41,8 @@ android {
                 "proguard-rules.pro"
             )
             // Replace with your actual AdMob IDs for production
-            buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX\"")
             buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX\"")
+            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX"
         }
     }
 
