@@ -1,6 +1,7 @@
 package com.expensetracker.app.ui.dashboard
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -332,27 +335,25 @@ fun SimplePieChart(
     breakdown: List<CategoryBreakdown>,
     modifier: Modifier = Modifier
 ) {
-    val total = breakdown.sumOf { it.amount.toFloat().toDouble() }.toFloat()
+    val total = breakdown.sumOf { it.amount }.toFloat()
 
     Canvas(modifier = modifier) {
         val canvasSize = size.minDimension
-        val radius = canvasSize / 2 * 0.8f
-        val center = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
+        val radius = canvasSize / 2f * 0.8f
+        val centerX = size.width / 2f
+        val centerY = size.height / 2f
 
         var startAngle = -90f
 
         breakdown.forEach { item ->
-            val sweepAngle = if (total > 0) (item.amount / total * 360).toFloat() else 0f
+            val sweepAngle = if (total > 0f) (item.amount.toFloat() / total * 360f) else 0f
             drawArc(
                 color = item.category?.color ?: Color.Gray,
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
                 useCenter = true,
-                topLeft = androidx.compose.ui.geometry.Offset(
-                    center.x - radius,
-                    center.y - radius
-                ),
-                size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2)
+                topLeft = Offset(centerX - radius, centerY - radius),
+                size = Size(radius * 2f, radius * 2f)
             )
             startAngle += sweepAngle
         }
