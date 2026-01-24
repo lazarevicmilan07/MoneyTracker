@@ -1,13 +1,18 @@
 package com.expensetracker.app.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.expensetracker.app.ui.accounts.AccountsScreen
 import com.expensetracker.app.ui.categories.CategoriesScreen
 import com.expensetracker.app.ui.dashboard.DashboardScreen
+import com.expensetracker.app.ui.dashboard.DashboardViewModel
 import com.expensetracker.app.ui.premium.PremiumScreen
 import com.expensetracker.app.ui.settings.SettingsScreen
 import com.expensetracker.app.ui.transaction.TransactionScreen
@@ -19,6 +24,7 @@ sealed class Screen(val route: String) {
         fun createRoute(expenseId: Long) = "edit_transaction/$expenseId"
     }
     data object Categories : Screen("categories")
+    data object Accounts : Screen("accounts")
     data object Settings : Screen("settings")
     data object Premium : Screen("premium")
 }
@@ -41,6 +47,9 @@ fun NavGraph(
                 },
                 onNavigateToCategories = {
                     navController.navigate(Screen.Categories.route)
+                },
+                onNavigateToAccounts = {
+                    navController.navigate(Screen.Accounts.route)
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
@@ -69,6 +78,15 @@ fun NavGraph(
             CategoriesScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onShowPremium = { navController.navigate(Screen.Premium.route) }
+            )
+        }
+
+        composable(Screen.Accounts.route) {
+            val dashboardViewModel: DashboardViewModel = hiltViewModel()
+            val currency by dashboardViewModel.currency.collectAsState()
+            AccountsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                currency = currency
             )
         }
 

@@ -8,6 +8,7 @@ data class Expense(
     val amount: Double,
     val note: String,
     val categoryId: Long?,
+    val accountId: Long?,
     val type: TransactionType,
     val date: LocalDate,
     val createdAt: Long = System.currentTimeMillis()

@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -34,6 +36,7 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Currency
 import java.util.Locale
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +44,7 @@ fun DashboardScreen(
     onAddTransaction: () -> Unit,
     onEditTransaction: (Long) -> Unit,
     onNavigateToCategories: () -> Unit,
+    onNavigateToAccounts: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
@@ -49,11 +53,17 @@ fun DashboardScreen(
     val currency by viewModel.currency.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
 
+    // State for delete confirmation dialog
+    var transactionToDelete by remember { mutableStateOf<ExpenseWithCategory?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Expense Tracker") },
                 actions = {
+                    IconButton(onClick = onNavigateToAccounts) {
+                        Icon(Icons.Default.AccountBalance, contentDescription = "Accounts")
+                    }
                     IconButton(onClick = onNavigateToCategories) {
                         Icon(Icons.Default.Category, contentDescription = "Categories")
                     }
@@ -82,10 +92,34 @@ fun DashboardScreen(
                 CircularProgressIndicator()
             }
         } else {
+            // Swipe gesture for month navigation
+            val swipeThreshold = 100f
+            var totalDragAmount by remember { mutableFloatStateOf(0f) }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                if (totalDragAmount > swipeThreshold) {
+                                    viewModel.previousMonth()
+                                } else if (totalDragAmount < -swipeThreshold) {
+                                    if (selectedMonth < YearMonth.now()) {
+                                        viewModel.nextMonth()
+                                    }
+                                }
+                                totalDragAmount = 0f
+                            },
+                            onDragCancel = {
+                                totalDragAmount = 0f
+                            },
+                            onHorizontalDrag = { _, dragAmount ->
+                                totalDragAmount += dragAmount
+                            }
+                        )
+                    },
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -132,10 +166,11 @@ fun DashboardScreen(
                         items = uiState.recentTransactions,
                         key = { it.expense.id }
                     ) { transaction ->
-                        TransactionItem(
+                        SwipeableTransactionItem(
                             transaction = transaction,
                             currency = currency,
-                            onClick = { onEditTransaction(transaction.expense.id) }
+                            onClick = { onEditTransaction(transaction.expense.id) },
+                            onDelete = { transactionToDelete = transaction }
                         )
                     }
                 } else {
@@ -145,6 +180,40 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+
+    // Delete Confirmation Dialog
+    transactionToDelete?.let { transaction ->
+        AlertDialog(
+            onDismissRequest = { transactionToDelete = null },
+            icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+            title = { Text("Delete Transaction") },
+            text = {
+                Text(
+                    "Are you sure you want to delete this ${
+                        if (transaction.expense.type == TransactionType.EXPENSE) "expense" else "income"
+                    } of ${formatCurrency(transaction.expense.amount, currency)}?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteExpense(transaction.expense.id)
+                        transactionToDelete = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { transactionToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -357,6 +426,54 @@ fun SimplePieChart(
             )
             startAngle += sweepAngle
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SwipeableTransactionItem(
+    transaction: ExpenseWithCategory,
+    currency: String,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                false // Don't actually dismiss, let the dialog handle it
+            } else {
+                false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        },
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = true
+    ) {
+        TransactionItem(
+            transaction = transaction,
+            currency = currency,
+            onClick = onClick
+        )
     }
 }
 

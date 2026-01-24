@@ -3,6 +3,7 @@ package com.expensetracker.app.di
 import android.content.Context
 import androidx.room.Room
 import com.expensetracker.app.data.local.ExpenseDatabase
+import com.expensetracker.app.data.local.dao.AccountDao
 import com.expensetracker.app.data.local.dao.CategoryDao
 import com.expensetracker.app.data.local.dao.ExpenseDao
 import dagger.Module
@@ -25,7 +26,9 @@ object AppModule {
             context,
             ExpenseDatabase::class.java,
             ExpenseDatabase.DATABASE_NAME
-        ).build()
+        )
+            .addMigrations(ExpenseDatabase.MIGRATION_1_2)
+            .build()
     }
 
     @Provides
@@ -38,5 +41,11 @@ object AppModule {
     @Singleton
     fun provideCategoryDao(database: ExpenseDatabase): CategoryDao {
         return database.categoryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountDao(database: ExpenseDatabase): AccountDao {
+        return database.accountDao()
     }
 }

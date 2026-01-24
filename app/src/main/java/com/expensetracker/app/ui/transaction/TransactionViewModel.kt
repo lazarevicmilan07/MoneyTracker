@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.data.repository.AccountRepository
 import com.expensetracker.app.data.repository.CategoryRepository
 import com.expensetracker.app.data.repository.ExpenseRepository
+import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.domain.model.Expense
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +26,7 @@ import javax.inject.Inject
 class TransactionViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
+    private val accountRepository: AccountRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -35,12 +38,25 @@ class TransactionViewModel @Inject constructor(
     val categories: StateFlow<List<Category>> = categoryRepository.getAllCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val accounts: StateFlow<List<Account>> = accountRepository.getAllAccounts()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     private val _events = MutableSharedFlow<TransactionEvent>()
     val events = _events.asSharedFlow()
 
     init {
         if (expenseId != null) {
             loadExpense(expenseId)
+        } else {
+            loadDefaultAccount()
+        }
+    }
+
+    private fun loadDefaultAccount() {
+        viewModelScope.launch {
+            accountRepository.getDefaultAccount()?.let { account ->
+                _uiState.value = _uiState.value.copy(selectedAccountId = account.id)
+            }
         }
     }
 
@@ -51,6 +67,7 @@ class TransactionViewModel @Inject constructor(
                     amount = expense.amount.toString(),
                     note = expense.note,
                     selectedCategoryId = expense.categoryId,
+                    selectedAccountId = expense.accountId,
                     transactionType = expense.type,
                     selectedDate = expense.date,
                     isEditing = true
@@ -72,6 +89,10 @@ class TransactionViewModel @Inject constructor(
 
     fun selectCategory(categoryId: Long?) {
         _uiState.value = _uiState.value.copy(selectedCategoryId = categoryId)
+    }
+
+    fun selectAccount(accountId: Long?) {
+        _uiState.value = _uiState.value.copy(selectedAccountId = accountId)
     }
 
     fun selectTransactionType(type: TransactionType) {
@@ -97,6 +118,7 @@ class TransactionViewModel @Inject constructor(
                 amount = amount,
                 note = state.note,
                 categoryId = state.selectedCategoryId,
+                accountId = state.selectedAccountId,
                 type = state.transactionType,
                 date = state.selectedDate
             )
@@ -116,6 +138,7 @@ data class TransactionUiState(
     val amount: String = "",
     val note: String = "",
     val selectedCategoryId: Long? = null,
+    val selectedAccountId: Long? = null,
     val transactionType: TransactionType = TransactionType.EXPENSE,
     val selectedDate: LocalDate = LocalDate.now(),
     val isEditing: Boolean = false

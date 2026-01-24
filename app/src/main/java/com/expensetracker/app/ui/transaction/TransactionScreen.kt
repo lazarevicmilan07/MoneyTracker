@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.Account
+import com.expensetracker.app.domain.model.AccountTypeNames
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.ui.components.CategoryIcon
 import com.expensetracker.app.ui.theme.ExpenseRed
@@ -43,6 +45,7 @@ fun TransactionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
     val context = LocalContext.current
 
     var showDatePicker by remember { mutableStateOf(false) }
@@ -119,6 +122,13 @@ fun TransactionScreen(
                 leadingIcon = {
                     Icon(Icons.Default.Notes, contentDescription = null)
                 }
+            )
+
+            // Account Selector
+            AccountSelector(
+                accounts = accounts,
+                selectedAccountId = uiState.selectedAccountId,
+                onAccountSelected = viewModel::selectAccount
             )
 
             // Category Selector
@@ -375,5 +385,77 @@ fun DatePickerDialog(
         }
     ) {
         DatePicker(state = datePickerState)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AccountSelector(
+    accounts: List<Account>,
+    selectedAccountId: Long?,
+    onAccountSelected: (Long?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedAccount = accounts.find { it.id == selectedAccountId }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            value = selectedAccount?.name ?: "Select Account",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Account") },
+            leadingIcon = {
+                if (selectedAccount != null) {
+                    CategoryIcon(
+                        icon = selectedAccount.icon,
+                        color = selectedAccount.color,
+                        size = 24.dp,
+                        iconSize = 14.dp
+                    )
+                } else {
+                    Icon(Icons.Default.AccountBalance, contentDescription = null)
+                }
+            },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            accounts.forEach { account ->
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CategoryIcon(
+                                icon = account.icon,
+                                color = account.color,
+                                size = 32.dp,
+                                iconSize = 16.dp
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(account.name)
+                                Text(
+                                    text = AccountTypeNames[account.type] ?: account.type.name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        onAccountSelected(account.id)
+                        expanded = false
+                    },
+                    leadingIcon = null
+                )
+            }
+        }
     }
 }

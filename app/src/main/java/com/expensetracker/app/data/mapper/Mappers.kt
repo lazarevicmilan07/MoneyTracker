@@ -1,8 +1,10 @@
 package com.expensetracker.app.data.mapper
 
 import androidx.compose.ui.graphics.Color
+import com.expensetracker.app.data.local.entity.AccountEntity
 import com.expensetracker.app.data.local.entity.CategoryEntity
 import com.expensetracker.app.data.local.entity.ExpenseEntity
+import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.domain.model.Expense
 import java.time.Instant
@@ -32,6 +34,7 @@ fun ExpenseEntity.toDomain(): Expense = Expense(
     amount = amount,
     note = note,
     categoryId = categoryId,
+    accountId = accountId,
     type = type,
     date = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDate(),
     createdAt = createdAt
@@ -42,7 +45,30 @@ fun Expense.toEntity(): ExpenseEntity = ExpenseEntity(
     amount = amount,
     note = note,
     categoryId = categoryId,
+    accountId = accountId,
     type = type,
     date = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+    createdAt = createdAt
+)
+
+fun AccountEntity.toDomain(): Account = Account(
+    id = id,
+    name = name,
+    type = type,
+    icon = icon,
+    color = Color(color.toULong()),
+    initialBalance = initialBalance,
+    isDefault = isDefault,
+    createdAt = createdAt
+)
+
+fun Account.toEntity(): AccountEntity = AccountEntity(
+    id = id,
+    name = name,
+    type = type,
+    icon = icon,
+    color = color.value.toLong(),
+    initialBalance = initialBalance,
+    isDefault = isDefault,
     createdAt = createdAt
 )
