@@ -34,7 +34,9 @@ import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.ui.components.CategoryIcon
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -421,8 +423,11 @@ fun DatePickerDialog(
     onDateSelected: (LocalDate) -> Unit,
     onDismiss: () -> Unit
 ) {
+    // Convert LocalDate to UTC millis for DatePicker (which uses UTC)
+    val initialMillis = selectedDate.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000
+        initialSelectedDateMillis = initialMillis
     )
 
     DatePickerDialog(
@@ -431,7 +436,10 @@ fun DatePickerDialog(
             TextButton(
                 onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val date = LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
+                        // Convert UTC millis back to LocalDate (DatePicker returns UTC)
+                        val date = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.of("UTC"))
+                            .toLocalDate()
                         onDateSelected(date)
                     }
                 }
