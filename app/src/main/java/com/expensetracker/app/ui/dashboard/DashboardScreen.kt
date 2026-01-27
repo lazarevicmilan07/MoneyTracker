@@ -162,7 +162,7 @@ fun DashboardScreen(
                         )
                     },
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 140.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Month Selector
                 item {
@@ -197,7 +197,7 @@ fun DashboardScreen(
                     ) { (_, state) ->
                         Column(
                             modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) },
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             // Summary Card
                             SummaryCard(
