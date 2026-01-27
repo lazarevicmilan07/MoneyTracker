@@ -115,7 +115,7 @@ class DashboardViewModel @Inject constructor(
                 balance = totalIncome - totalExpense,
                 categoryBreakdown = breakdown
             ),
-            recentTransactions = expensesWithCategory.take(10),
+            recentTransactions = expensesWithCategory,
             categories = categories
         )
     }
