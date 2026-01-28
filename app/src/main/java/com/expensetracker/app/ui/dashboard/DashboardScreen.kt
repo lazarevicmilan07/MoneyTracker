@@ -199,7 +199,7 @@ fun DashboardScreen(
                                     text = date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d")),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                                    modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
                                 )
 
                                 transactions.forEach { transaction ->
@@ -474,74 +474,53 @@ fun CompactTransactionItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Middle section: left = category/subcategory, right = note/account
-            Column(modifier = Modifier.weight(1f)) {
-                // Top row: category (left) and note (right)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            // Middle section: fixed-proportion columns so note/account always align
+            // Left column: category/subcategory
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = if (hasSubcategory) Arrangement.Top else Arrangement.Center
+            ) {
+                Text(
+                    text = transaction.category?.name ?: "Uncategorized",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (hasSubcategory) {
                     Text(
-                        text = transaction.category?.name ?: "Uncategorized",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
+                        text = transaction.subcategory!!.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        overflow = TextOverflow.Ellipsis
                     )
-                    if (hasNote && (hasSubcategory || accountName != null)) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = transaction.expense.note,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
                 }
-                // Bottom row: subcategory (left) and account (right)
-                // Only show if there's something for a second row
-                if (hasSubcategory || accountName != null || (hasNote && !hasSubcategory && accountName == null)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Left side of bottom row
-                        if (hasSubcategory) {
-                            Text(
-                                text = transaction.subcategory!!.name,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                        } else if (hasNote && accountName == null) {
-                            // No subcategory, no account — put note on bottom left
-                            Text(
-                                text = transaction.expense.note,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                        if (accountName != null) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = accountName,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                                maxLines = 1
-                            )
-                        }
-                    }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Right column: note/account — same fixed weight so position is consistent
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = if (hasNote) Arrangement.Top else Arrangement.Center
+            ) {
+                if (hasNote) {
+                    Text(
+                        text = transaction.expense.note,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                if (accountName != null) {
+                    Text(
+                        text = accountName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        maxLines = 1
+                    )
                 }
             }
 
