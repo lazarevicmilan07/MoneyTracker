@@ -5,11 +5,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
@@ -22,6 +26,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -181,77 +186,121 @@ fun ReportsSummaryCard(
     balance: Double,
     currency: String
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
+    val balanceColor = when {
+        balance > 0 -> IncomeGreen
+        balance < 0 -> ExpenseRed
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Balance",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = formatCurrency(balance, currency),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = balanceColor
             )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(16.dp),
+                color = IncomeGreen.copy(alpha = 0.1f),
+                tonalElevation = 0.dp
             ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(IncomeGreen)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = IncomeGreen.copy(alpha = 0.2f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowDownward,
+                                contentDescription = null,
+                                tint = IncomeGreen,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    Column {
                         Text(
                             text = "Income",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = formatCurrency(income, currency),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = IncomeGreen,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Text(
-                        text = formatCurrency(income, currency),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = IncomeGreen
-                    )
                 }
+            }
 
-                Column(horizontalAlignment = Alignment.End) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(ExpenseRed)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(16.dp),
+                color = ExpenseRed.copy(alpha = 0.1f),
+                tonalElevation = 0.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = ExpenseRed.copy(alpha = 0.2f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowUpward,
+                                contentDescription = null,
+                                tint = ExpenseRed,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    Column {
                         Text(
                             text = "Expenses",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = formatCurrency(expense, currency),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ExpenseRed,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Text(
-                        text = formatCurrency(expense, currency),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = ExpenseRed
-                    )
                 }
             }
         }
@@ -278,6 +327,8 @@ fun BreakdownCard(
             // Pie Chart
             PieChart(
                 breakdown = breakdown,
+                currency = currency,
+                accentColor = color,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
@@ -325,29 +376,77 @@ fun BreakdownCard(
 @Composable
 fun PieChart(
     breakdown: List<CategoryBreakdown>,
+    currency: String,
+    accentColor: Color = Color.Unspecified,
     modifier: Modifier = Modifier
 ) {
     val total = breakdown.sumOf { it.amount }.toFloat()
+    var selectedIndex by remember { mutableIntStateOf(-1) }
 
-    Canvas(modifier = modifier) {
-        val canvasSize = size.minDimension
-        val radius = canvasSize / 2f * 0.8f
-        val centerX = size.width / 2f
-        val centerY = size.height / 2f
+    val sliceAngles = remember(breakdown, total) {
+        var cumulative = -90f
+        breakdown.map { item ->
+            val sweep = if (total > 0f) (item.amount.toFloat() / total * 360f) else 0f
+            val start = cumulative
+            cumulative += sweep
+            start to sweep
+        }
+    }
 
-        var startAngle = -90f
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(contentAlignment = Alignment.Center) {
+            Canvas(
+                modifier = modifier.pointerInput(breakdown) {
+                    detectTapGestures { offset ->
+                        val cx = size.width / 2f
+                        val cy = size.height / 2f
+                        val dx = offset.x - cx
+                        val dy = offset.y - cy
+                        val dist = kotlin.math.sqrt(dx * dx + dy * dy)
+                        val r = minOf(size.width, size.height) / 2f * 0.8f
+                        if (dist <= r) {
+                            var angle = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
+                            if (angle < -90f) angle += 360f
+                            val tapped = sliceAngles.indexOfFirst { (start, sweep) ->
+                                angle >= start && angle < start + sweep
+                            }
+                            selectedIndex = if (tapped == selectedIndex) -1 else tapped
+                        } else {
+                            selectedIndex = -1
+                        }
+                    }
+                }
+            ) {
+                val canvasSize = size.minDimension
+                val radius = canvasSize / 2f * 0.8f
+                val centerX = size.width / 2f
+                val centerY = size.height / 2f
 
-        breakdown.forEach { item ->
-            val sweepAngle = if (total > 0f) (item.amount.toFloat() / total * 360f) else 0f
-            drawArc(
-                color = item.category?.color ?: Color.Gray,
-                startAngle = startAngle,
-                sweepAngle = sweepAngle,
-                useCenter = true,
-                topLeft = Offset(centerX - radius, centerY - radius),
-                size = Size(radius * 2f, radius * 2f)
+                sliceAngles.forEachIndexed { index, (start, sweep) ->
+                    val sliceColor = breakdown[index].category?.color ?: Color.Gray
+                    val isSelected = index == selectedIndex
+                    val sliceRadius = if (isSelected) radius * 1.06f else radius
+                    drawArc(
+                        color = sliceColor,
+                        startAngle = start,
+                        sweepAngle = sweep,
+                        useCenter = true,
+                        topLeft = Offset(centerX - sliceRadius, centerY - sliceRadius),
+                        size = Size(sliceRadius * 2f, sliceRadius * 2f)
+                    )
+                }
+            }
+        }
+
+        if (selectedIndex in breakdown.indices) {
+            val item = breakdown[selectedIndex]
+            Text(
+                text = "${item.category?.name ?: "Uncategorized"}: ${formatCurrency(item.amount, currency)} (${item.percentage.toInt()}%)",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = if (accentColor != Color.Unspecified) accentColor else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(top = 8.dp)
             )
-            startAngle += sweepAngle
         }
     }
 }

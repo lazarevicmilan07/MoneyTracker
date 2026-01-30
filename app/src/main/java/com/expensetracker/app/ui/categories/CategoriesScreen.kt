@@ -226,13 +226,6 @@ fun CategoryListItem(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium
                 )
-                if (category.isDefault) {
-                    Text(
-                        text = "Default",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
 
             // Add subcategory button
