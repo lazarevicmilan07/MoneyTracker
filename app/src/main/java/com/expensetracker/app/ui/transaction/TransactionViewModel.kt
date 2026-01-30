@@ -77,7 +77,7 @@ class TransactionViewModel @Inject constructor(
         viewModelScope.launch {
             expenseRepository.getExpenseById(id)?.let { expense ->
                 _uiState.value = _uiState.value.copy(
-                    amount = expense.amount.toString(),
+                    amount = String.format("%.2f", expense.amount),
                     note = expense.note,
                     selectedCategoryId = expense.subcategoryId ?: expense.categoryId,
                     selectedParentCategoryId = expense.categoryId,
@@ -104,6 +104,14 @@ class TransactionViewModel @Inject constructor(
         val filtered = amount.filter { it.isDigit() || it == '.' }
         if (filtered.count { it == '.' } <= 1) {
             _uiState.value = _uiState.value.copy(amount = filtered)
+        }
+    }
+
+    fun formatAmount() {
+        val current = _uiState.value.amount
+        val value = current.toDoubleOrNull()
+        if (value != null) {
+            _uiState.value = _uiState.value.copy(amount = String.format("%.2f", value))
         }
     }
 
@@ -187,10 +195,30 @@ class TransactionViewModel @Inject constructor(
                 return@launch
             }
 
-            // When a subcategory is selected, parentCategoryId is the root category
-            // and selectedCategoryId is the subcategory. Otherwise both point to the same category.
             val parentId = state.selectedParentCategoryId
             val childId = state.selectedCategoryId
+
+            if (parentId == null && childId == null) {
+                _events.emit(TransactionEvent.ShowError("Please select a category"))
+                return@launch
+            }
+
+            // If parent category has subcategories, one must be selected
+            if (state.showSubcategorySelector && _availableSubcategories.value.isNotEmpty()) {
+                val hasSubcategorySelected = parentId != null && childId != null && parentId != childId
+                if (!hasSubcategorySelected) {
+                    _events.emit(TransactionEvent.ShowError("Please select a subcategory"))
+                    return@launch
+                }
+            }
+
+            if (state.selectedAccountId == null) {
+                _events.emit(TransactionEvent.ShowError("Please select an account"))
+                return@launch
+            }
+
+            // When a subcategory is selected, parentCategoryId is the root category
+            // and selectedCategoryId is the subcategory. Otherwise both point to the same category.
             val hasSubcategory = parentId != null && childId != null && parentId != childId
 
             val expense = Expense(

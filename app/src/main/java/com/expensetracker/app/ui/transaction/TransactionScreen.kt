@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -13,7 +14,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -23,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -111,6 +117,7 @@ fun TransactionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -126,6 +133,7 @@ fun TransactionScreen(
             AmountInput(
                 amount = uiState.amount,
                 onAmountChange = viewModel::updateAmount,
+                onAmountFocusLost = viewModel::formatAmount,
                 transactionType = uiState.transactionType
             )
 
@@ -245,12 +253,37 @@ fun TransactionTypeToggle(
 fun AmountInput(
     amount: String,
     onAmountChange: (String) -> Unit,
+    onAmountFocusLost: () -> Unit = {},
     transactionType: TransactionType
 ) {
     val textColor by animateColorAsState(
         targetValue = if (transactionType == TransactionType.EXPENSE) ExpenseRed else IncomeGreen,
         label = "amount_color"
     )
+
+    var currentValue by remember { mutableStateOf(TextFieldValue(text = amount)) }
+    val focusManager = LocalFocusManager.current
+    var pendingSelectAll by remember { mutableStateOf(false) }
+
+    // Sync external amount changes (e.g. formatAmount on focus loss) without resetting selection
+    LaunchedEffect(amount) {
+        if (amount != currentValue.text) {
+            currentValue = TextFieldValue(
+                text = amount,
+                selection = TextRange(amount.length)
+            )
+        }
+    }
+
+    // Apply select-all after composition so it isn't overwritten by the TextField's focus handling
+    LaunchedEffect(pendingSelectAll) {
+        if (pendingSelectAll) {
+            currentValue = currentValue.copy(
+                selection = TextRange(0, currentValue.text.length)
+            )
+            pendingSelectAll = false
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -266,15 +299,32 @@ fun AmountInput(
                 fontWeight = FontWeight.Bold
             )
             OutlinedTextField(
-                value = amount,
-                onValueChange = onAmountChange,
-                modifier = Modifier.width(200.dp),
+                value = currentValue,
+                onValueChange = { newValue ->
+                    currentValue = newValue
+                    onAmountChange(newValue.text)
+                },
+                modifier = Modifier
+                    .width(200.dp)
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            pendingSelectAll = true
+                        } else {
+                            onAmountFocusLost()
+                        }
+                    },
                 textStyle = MaterialTheme.typography.headlineLarge.copy(
                     color = textColor,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Start
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
                 singleLine = true,
                 placeholder = {
                     Text(

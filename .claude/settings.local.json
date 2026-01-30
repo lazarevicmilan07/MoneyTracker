@@ -6,7 +6,9 @@
       "Bash(python3:*)",
       "Bash(python:*)",
       "Bash(py -c:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "Bash(node -e:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
