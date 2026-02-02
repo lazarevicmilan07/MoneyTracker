@@ -47,6 +47,17 @@ class AccountRepository @Inject constructor(
         }
     }
 
+    suspend fun setDefaultAccount(accountId: Long) {
+        accountDao.clearAllDefaults()
+        val account = accountDao.getAccountById(accountId)
+        account?.let { accountDao.updateAccount(it.copy(isDefault = true)) }
+    }
+
+    suspend fun clearDefaultAccount(accountId: Long) {
+        val account = accountDao.getAccountById(accountId)
+        account?.let { accountDao.updateAccount(it.copy(isDefault = false)) }
+    }
+
     fun getAccountBalance(accountId: Long): Flow<Double> =
         accountDao.getAccountBalance(accountId)
 

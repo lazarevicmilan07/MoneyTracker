@@ -189,14 +189,14 @@ fun CategoryListItem(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 10.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Expand/collapse button for categories that have or can have subcategories
             IconButton(
                 onClick = { onToggleExpand() },
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(24.dp)
             ) {
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ExpandMore else Icons.Default.ChevronRight,
@@ -205,25 +205,25 @@ fun CategoryListItem(
                         MaterialTheme.colorScheme.onSurface
                     else
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(4.dp))
 
             CategoryIcon(
                 icon = category.icon,
                 color = category.color,
-                size = 36.dp,
-                iconSize = 18.dp
+                size = 30.dp,
+                iconSize = 15.dp
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = category.name,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -231,13 +231,13 @@ fun CategoryListItem(
             // Add subcategory button
             IconButton(
                 onClick = { onAddSubcategory() },
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp)
             ) {
                 Icon(
                     Icons.Default.AddCircleOutline,
                     contentDescription = "Add Subcategory",
                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(15.dp)
                 )
             }
         }
@@ -259,7 +259,7 @@ fun SubcategoryListItem(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 8.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -267,23 +267,23 @@ fun SubcategoryListItem(
                 Icons.Default.SubdirectoryArrowRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(15.dp)
             )
 
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(4.dp))
 
             CategoryIcon(
                 icon = category.icon,
                 color = category.color,
-                size = 32.dp,
-                iconSize = 16.dp
+                size = 26.dp,
+                iconSize = 13.dp
             )
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             Text(
                 text = category.name,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f)
             )

@@ -31,6 +31,10 @@ class TransactionViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val expenseId: Long? = savedStateHandle.get<Long>("expenseId")?.takeIf { it != -1L }
+    private val copyFromId: Long? = if (savedStateHandle.get<Boolean>("useToday") != null) expenseId else null
+    private val useToday: Boolean = savedStateHandle.get<Boolean>("useToday") ?: false
+
+    val expenseIdForCopy: Long? = if (copyFromId == null) expenseId else null
 
     private val _uiState = MutableStateFlow(TransactionUiState())
     val uiState: StateFlow<TransactionUiState> = _uiState.asStateFlow()
@@ -58,7 +62,9 @@ class TransactionViewModel @Inject constructor(
     val events = _events.asSharedFlow()
 
     init {
-        if (expenseId != null) {
+        if (copyFromId != null) {
+            loadCopy(copyFromId, useToday)
+        } else if (expenseId != null) {
             loadExpense(expenseId)
         } else {
             loadDefaultAccount()
@@ -87,6 +93,32 @@ class TransactionViewModel @Inject constructor(
                     isEditing = true
                 )
                 // If subcategoryId is set, load subcategories and show selector
+                if (expense.subcategoryId != null && expense.categoryId != null) {
+                    _selectedParentCategoryId.value = expense.categoryId
+                    categoryRepository.getSubcategories(expense.categoryId).collect { subcategories ->
+                        _availableSubcategories.value = subcategories
+                        if (subcategories.isNotEmpty()) {
+                            _uiState.value = _uiState.value.copy(showSubcategorySelector = true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadCopy(id: Long, useToday: Boolean) {
+        viewModelScope.launch {
+            expenseRepository.getExpenseById(id)?.let { expense ->
+                _uiState.value = _uiState.value.copy(
+                    amount = String.format("%.2f", expense.amount),
+                    note = expense.note,
+                    selectedCategoryId = expense.subcategoryId ?: expense.categoryId,
+                    selectedParentCategoryId = expense.categoryId,
+                    selectedAccountId = expense.accountId,
+                    transactionType = expense.type,
+                    selectedDate = if (useToday) LocalDate.now() else expense.date,
+                    isEditing = false
+                )
                 if (expense.subcategoryId != null && expense.categoryId != null) {
                     _selectedParentCategoryId.value = expense.categoryId
                     categoryRepository.getSubcategories(expense.categoryId).collect { subcategories ->

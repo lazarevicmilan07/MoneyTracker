@@ -36,6 +36,9 @@ sealed class Screen(val route: String) {
     data object Accounts : Screen("accounts")
     data object Settings : Screen("settings")
     data object Premium : Screen("premium")
+    data object CopyTransaction : Screen("copy_transaction/{expenseId}/{useToday}") {
+        fun createRoute(expenseId: Long, useToday: Boolean) = "copy_transaction/$expenseId/$useToday"
+    }
 }
 
 @Composable
@@ -78,6 +81,21 @@ fun NavGraph(
             route = Screen.EditTransaction.route,
             arguments = listOf(
                 navArgument("expenseId") { type = NavType.LongType }
+            )
+        ) {
+            TransactionScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onCopyTransaction = { expenseId, useToday ->
+                    navController.navigate(Screen.CopyTransaction.createRoute(expenseId, useToday))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.CopyTransaction.route,
+            arguments = listOf(
+                navArgument("expenseId") { type = NavType.LongType },
+                navArgument("useToday") { type = NavType.BoolType }
             )
         ) {
             TransactionScreen(

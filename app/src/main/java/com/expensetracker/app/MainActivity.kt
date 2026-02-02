@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val isDarkMode by preferencesManager.isDarkMode.collectAsState(initial = false)
+            val isDarkMode by preferencesManager.isDarkMode.collectAsState(initial = true)
 
             ExpenseTrackerTheme(darkTheme = isDarkMode) {
                 val navController = rememberNavController()

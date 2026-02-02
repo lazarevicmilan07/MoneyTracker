@@ -52,6 +52,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TransactionScreen(
     onNavigateBack: () -> Unit,
+    onCopyTransaction: ((Long, Boolean) -> Unit)? = null,
     viewModel: TransactionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -62,6 +63,7 @@ fun TransactionScreen(
     val context = LocalContext.current
 
     var showDatePicker by remember { mutableStateOf(false) }
+    var showCopyDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -96,6 +98,15 @@ fun TransactionScreen(
                     }
                 },
                 actions = {
+                    if (uiState.isEditing && onCopyTransaction != null) {
+                        IconButton(onClick = { showCopyDialog = true }) {
+                            Icon(
+                                Icons.Default.ContentCopy,
+                                contentDescription = "Copy Transaction",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                     if (uiState.isEditing) {
                         IconButton(onClick = { viewModel.deleteTransaction() }) {
                             Icon(
@@ -214,6 +225,33 @@ fun TransactionScreen(
             },
             onDismiss = { showDatePicker = false }
         )
+    }
+
+    if (showCopyDialog && onCopyTransaction != null) {
+        val expenseId = viewModel.expenseIdForCopy
+        if (expenseId != null) {
+            AlertDialog(
+                onDismissRequest = { showCopyDialog = false },
+                title = { Text("Copy Transaction") },
+                text = { Text("Which date should the copy use?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showCopyDialog = false
+                        onCopyTransaction(expenseId, true)
+                    }) {
+                        Text("Today's Date")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showCopyDialog = false
+                        onCopyTransaction(expenseId, false)
+                    }) {
+                        Text("Original Date")
+                    }
+                }
+            )
+        }
     }
 }
 

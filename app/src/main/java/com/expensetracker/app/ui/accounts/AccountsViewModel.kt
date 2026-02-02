@@ -129,6 +129,16 @@ class AccountsViewModel @Inject constructor(
         }
     }
 
+    fun toggleDefault(account: Account) {
+        viewModelScope.launch {
+            if (account.isDefault) {
+                accountRepository.clearDefaultAccount(account.id)
+            } else {
+                accountRepository.setDefaultAccount(account.id)
+            }
+        }
+    }
+
     fun deleteAccount(account: Account) {
         viewModelScope.launch {
             val accountCount = accountRepository.getAccountCount()

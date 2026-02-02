@@ -23,14 +23,14 @@ class PreferencesManager @Inject constructor(
 
     val userPreferences: Flow<UserPreferences> = dataStore.data.map { preferences ->
         UserPreferences(
-            isDarkMode = preferences[PreferencesKeys.DARK_MODE] ?: false,
+            isDarkMode = preferences[PreferencesKeys.DARK_MODE] ?: true,
             currency = preferences[PreferencesKeys.CURRENCY] ?: "USD",
             isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: false
         )
     }
 
     val isDarkMode: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.DARK_MODE] ?: false
+        preferences[PreferencesKeys.DARK_MODE] ?: true
     }
 
     val currency: Flow<String> = dataStore.data.map { preferences ->
@@ -67,7 +67,7 @@ class PreferencesManager @Inject constructor(
 }
 
 data class UserPreferences(
-    val isDarkMode: Boolean = false,
+    val isDarkMode: Boolean = true,
     val currency: String = "USD",
     val isPremium: Boolean = false
 )

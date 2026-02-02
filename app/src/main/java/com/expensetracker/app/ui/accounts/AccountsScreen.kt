@@ -112,7 +112,8 @@ fun AccountsScreen(
                 AccountListItem(
                     account = account,
                     currency = currency,
-                    onClick = { viewModel.showEditDialog(account) }
+                    onClick = { viewModel.showEditDialog(account) },
+                    onToggleDefault = { viewModel.toggleDefault(account) }
                 )
             }
         }
@@ -208,7 +209,8 @@ fun TotalBalanceCard(
 fun AccountListItem(
     account: Account,
     currency: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onToggleDefault: () -> Unit = {}
 ) {
     Surface(
         modifier = Modifier
@@ -220,28 +222,28 @@ fun AccountListItem(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 10.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             CategoryIcon(
                 icon = account.icon,
                 color = account.color,
-                size = 36.dp,
-                iconSize = 18.dp
+                size = 30.dp,
+                iconSize = 15.dp
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = account.name,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium
                     )
                     if (account.isDefault) {
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Default",
                             style = MaterialTheme.typography.labelSmall,
@@ -252,19 +254,31 @@ fun AccountListItem(
                 Text(
                     text = AccountTypeNames[account.type] ?: account.type.name,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
                 )
             }
 
             Text(
                 text = formatCurrency(account.initialBalance, currency),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = if (account.initialBalance >= 0)
                     MaterialTheme.colorScheme.primary
                 else
                     MaterialTheme.colorScheme.error
             )
+
+            IconButton(
+                onClick = onToggleDefault,
+                modifier = Modifier.size(30.dp)
+            ) {
+                Icon(
+                    imageVector = if (account.isDefault) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription = if (account.isDefault) "Remove default" else "Set as default",
+                    tint = if (account.isDefault) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
