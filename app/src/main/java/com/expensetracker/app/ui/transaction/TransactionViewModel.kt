@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.data.preferences.PreferencesManager
 import com.expensetracker.app.data.repository.AccountRepository
 import com.expensetracker.app.data.repository.CategoryRepository
 import com.expensetracker.app.data.repository.ExpenseRepository
@@ -27,6 +28,7 @@ class TransactionViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
     private val accountRepository: AccountRepository,
+    preferencesManager: PreferencesManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -41,6 +43,9 @@ class TransactionViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(TransactionUiState())
     val uiState: StateFlow<TransactionUiState> = _uiState.asStateFlow()
+
+    val currency: StateFlow<String> = preferencesManager.currency
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "USD")
 
     // All categories for lookup
     private val allCategories: StateFlow<List<Category>> = categoryRepository.getAllCategories()

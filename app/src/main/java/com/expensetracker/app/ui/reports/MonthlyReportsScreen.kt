@@ -33,13 +33,11 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.domain.model.CategoryBreakdown
+import com.expensetracker.app.ui.components.formatCurrency
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
-import java.text.NumberFormat
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.util.Currency
-import java.util.Locale
 
 @Composable
 fun MonthlyReportsScreen(
@@ -150,7 +148,7 @@ fun MonthSelector(
     val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -485,12 +483,3 @@ fun EmptyReportsState() {
     }
 }
 
-private fun formatCurrency(amount: Double, currencyCode: String): String {
-    return try {
-        val format = NumberFormat.getCurrencyInstance(Locale.getDefault())
-        format.currency = Currency.getInstance(currencyCode)
-        format.format(amount)
-    } catch (e: Exception) {
-        "$${String.format("%.2f", amount)}"
-    }
-}

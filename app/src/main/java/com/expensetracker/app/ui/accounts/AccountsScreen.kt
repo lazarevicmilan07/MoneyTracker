@@ -28,11 +28,12 @@ import com.expensetracker.app.data.local.entity.AccountType
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.AccountTypeNames
 import com.expensetracker.app.ui.components.AvailableColors
+import com.expensetracker.app.ui.components.formatCurrency
+import com.expensetracker.app.ui.theme.ExpenseRed
+import com.expensetracker.app.ui.theme.IncomeGreen
 import com.expensetracker.app.ui.components.AvailableIcons
 import com.expensetracker.app.ui.components.CategoryIcon
 import com.expensetracker.app.ui.components.getIconForName
-import java.text.NumberFormat
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -177,30 +178,68 @@ fun TotalBalanceCard(
     totalBalance: Double,
     currency: String
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
+    val balanceColor = when {
+        totalBalance > 0 -> IncomeGreen
+        totalBalance < 0 -> ExpenseRed
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Balance hero
         Column(
             modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Total Balance",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = formatCurrency(totalBalance, currency),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = balanceColor
             )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Wallet accent pill
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+            tonalElevation = 0.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Filled.AccountBalance,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "All Accounts",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -484,8 +523,3 @@ fun AccountDialog(
     )
 }
 
-private fun formatCurrency(amount: Double, currency: String): String {
-    val format = NumberFormat.getCurrencyInstance(Locale.getDefault())
-    format.currency = java.util.Currency.getInstance(currency)
-    return format.format(amount)
-}

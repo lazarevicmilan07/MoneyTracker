@@ -20,12 +20,10 @@ import com.expensetracker.app.data.local.entity.TransactionType
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.domain.model.ExpenseWithCategory
 import com.expensetracker.app.ui.components.CategoryIcon
+import com.expensetracker.app.ui.components.formatCurrency
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
-import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
-import java.util.Currency
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -280,12 +278,3 @@ fun DetailRow(
     }
 }
 
-private fun formatCurrency(amount: Double, currencyCode: String): String {
-    return try {
-        val format = NumberFormat.getCurrencyInstance(Locale.getDefault())
-        format.currency = Currency.getInstance(currencyCode)
-        format.format(amount)
-    } catch (e: Exception) {
-        "$${String.format("%.2f", amount)}"
-    }
-}

@@ -353,26 +353,96 @@ fun CurrencyPickerDialog(
     onDismiss: () -> Unit
 ) {
     val currencies = listOf(
+        // Major
         "USD" to "US Dollar",
         "EUR" to "Euro",
         "GBP" to "British Pound",
         "JPY" to "Japanese Yen",
-        "CAD" to "Canadian Dollar",
-        "AUD" to "Australian Dollar",
         "CHF" to "Swiss Franc",
-        "CNY" to "Chinese Yuan",
-        "INR" to "Indian Rupee",
+        // Americas
+        "CAD" to "Canadian Dollar",
         "MXN" to "Mexican Peso",
         "BRL" to "Brazilian Real",
-        "KRW" to "South Korean Won"
+        "ARS" to "Argentine Peso",
+        "CLP" to "Chilean Peso",
+        "COP" to "Colombian Peso",
+        "PEN" to "Peruvian Sol",
+        "UYU" to "Uruguayan Peso",
+        // Asia-Pacific
+        "CNY" to "Chinese Yuan",
+        "INR" to "Indian Rupee",
+        "KRW" to "South Korean Won",
+        "AUD" to "Australian Dollar",
+        "NZD" to "New Zealand Dollar",
+        "SGD" to "Singapore Dollar",
+        "HKD" to "Hong Kong Dollar",
+        "TWD" to "New Taiwan Dollar",
+        "THB" to "Thai Baht",
+        "MYR" to "Malaysian Ringgit",
+        "IDR" to "Indonesian Rupiah",
+        "PHP" to "Philippine Peso",
+        "VND" to "Vietnamese Dong",
+        "PKR" to "Pakistani Rupee",
+        "BDT" to "Bangladeshi Taka",
+        "LKR" to "Sri Lankan Rupee",
+        // Europe (non-Euro)
+        "SEK" to "Swedish Krona",
+        "NOK" to "Norwegian Krone",
+        "DKK" to "Danish Krone",
+        "PLN" to "Polish Zloty",
+        "CZK" to "Czech Koruna",
+        "HUF" to "Hungarian Forint",
+        "RON" to "Romanian Leu",
+        "BGN" to "Bulgarian Lev",
+        "HRK" to "Croatian Kuna",
+        "RSD" to "Serbian Dinar",
+        "UAH" to "Ukrainian Hryvnia",
+        "ISK" to "Icelandic Krona",
+        "TRY" to "Turkish Lira",
+        "RUB" to "Russian Ruble",
+        "GEL" to "Georgian Lari",
+        // Middle East & Africa
+        "ILS" to "Israeli Shekel",
+        "AED" to "UAE Dirham",
+        "SAR" to "Saudi Riyal",
+        "QAR" to "Qatari Riyal",
+        "KWD" to "Kuwaiti Dinar",
+        "BHD" to "Bahraini Dinar",
+        "OMR" to "Omani Rial",
+        "JOD" to "Jordanian Dinar",
+        "EGP" to "Egyptian Pound",
+        "MAD" to "Moroccan Dirham",
+        "ZAR" to "South African Rand",
+        "NGN" to "Nigerian Naira",
+        "KES" to "Kenyan Shilling",
+        "GHS" to "Ghanaian Cedi",
+        "TZS" to "Tanzanian Shilling"
     )
+
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredCurrencies = remember(searchQuery) {
+        if (searchQuery.isBlank()) currencies
+        else currencies.filter { (code, name) ->
+            code.contains(searchQuery, ignoreCase = true) ||
+                name.contains(searchQuery, ignoreCase = true)
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Select Currency") },
         text = {
-            LazyColumn {
-                items(currencies) { (code, name) ->
+            Column {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search currency...") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyColumn {
+                items(filteredCurrencies) { (code, name) ->
                     ListItem(
                         headlineContent = { Text(code) },
                         supportingContent = { Text(name) },
@@ -388,6 +458,7 @@ fun CurrencyPickerDialog(
                         modifier = Modifier.clickable { onCurrencySelected(code) }
                     )
                 }
+            }
             }
         },
         confirmButton = {

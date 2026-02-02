@@ -41,6 +41,7 @@ import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.AccountTypeNames
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.ui.components.CategoryIcon
+import com.expensetracker.app.ui.components.getCurrencySymbol
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import java.time.Instant
@@ -56,6 +57,7 @@ fun TransactionScreen(
     viewModel: TransactionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currency by viewModel.currency.collectAsState()
     val rootCategories by viewModel.rootCategories.collectAsState()
     val availableSubcategories by viewModel.availableSubcategories.collectAsState()
     val allCategories by viewModel.categories.collectAsState()
@@ -161,7 +163,8 @@ fun TransactionScreen(
                 amount = uiState.amount,
                 onAmountChange = viewModel::updateAmount,
                 onAmountFocusLost = viewModel::formatAmount,
-                transactionType = uiState.transactionType
+                transactionType = uiState.transactionType,
+                currencyCode = currency
             )
 
             // 3. Date Selector
@@ -330,7 +333,8 @@ fun AmountInput(
     amount: String,
     onAmountChange: (String) -> Unit,
     onAmountFocusLost: () -> Unit = {},
-    transactionType: TransactionType
+    transactionType: TransactionType,
+    currencyCode: String = "USD"
 ) {
     val textColor by animateColorAsState(
         targetValue = if (transactionType == TransactionType.EXPENSE) ExpenseRed else IncomeGreen,
@@ -369,7 +373,7 @@ fun AmountInput(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (transactionType == TransactionType.EXPENSE) "-$" else "+$",
+                text = if (transactionType == TransactionType.EXPENSE) "-${getCurrencySymbol(currencyCode)}" else "+${getCurrencySymbol(currencyCode)}",
                 style = MaterialTheme.typography.headlineLarge,
                 color = textColor,
                 fontWeight = FontWeight.Bold

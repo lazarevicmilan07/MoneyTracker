@@ -23,10 +23,8 @@ import androidx.compose.ui.unit.dp
 import com.expensetracker.app.ui.reports.MonthData
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
-import java.text.NumberFormat
 import java.time.Month
 import java.time.format.TextStyle
-import java.util.Currency
 import java.util.Locale
 
 @Composable
@@ -163,12 +161,12 @@ fun MonthlyBarChart(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Text(
-                        text = "Income: ${formatBarCurrency(data.income, currency)}",
+                        text = "Income: ${formatCurrency(data.income, currency)}",
                         style = MaterialTheme.typography.labelMedium,
                         color = IncomeGreen
                     )
                     Text(
-                        text = "Expense: ${formatBarCurrency(data.expense, currency)}",
+                        text = "Expense: ${formatCurrency(data.expense, currency)}",
                         style = MaterialTheme.typography.labelMedium,
                         color = ExpenseRed
                     )
@@ -213,12 +211,3 @@ fun MonthlyBarChart(
     }
 }
 
-private fun formatBarCurrency(amount: Double, currencyCode: String): String {
-    return try {
-        val format = NumberFormat.getCurrencyInstance(Locale.getDefault())
-        format.currency = Currency.getInstance(currencyCode)
-        format.format(amount)
-    } catch (e: Exception) {
-        "$${String.format("%.2f", amount)}"
-    }
-}

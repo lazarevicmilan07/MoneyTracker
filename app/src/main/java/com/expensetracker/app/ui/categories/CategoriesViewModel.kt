@@ -82,7 +82,8 @@ class CategoriesViewModel @Inject constructor(
             editingCategory = category,
             dialogName = category.name,
             dialogIcon = category.icon,
-            dialogColor = category.color
+            dialogColor = category.color,
+            parentCategoryId = null
         )
     }
 
