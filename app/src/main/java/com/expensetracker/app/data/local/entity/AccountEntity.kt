@@ -1,5 +1,6 @@
 package com.expensetracker.app.data.local.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -24,3 +25,8 @@ enum class AccountType {
     INVESTMENT,
     OTHER
 }
+
+data class AccountWithBalanceEntity(
+    @Embedded val account: AccountEntity,
+    val currentBalance: Double
+)

@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.data.local.entity.AccountType
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.AccountTypeNames
+import com.expensetracker.app.domain.model.AccountWithBalance
 import com.expensetracker.app.ui.components.AvailableColors
 import com.expensetracker.app.ui.components.formatCurrency
 import com.expensetracker.app.ui.theme.ExpenseRed
@@ -108,13 +109,13 @@ fun AccountsScreen(
 
             items(
                 items = accountsState.accounts,
-                key = { it.id }
-            ) { account ->
+                key = { it.account.id }
+            ) { accountWithBalance ->
                 AccountListItem(
-                    account = account,
+                    accountWithBalance = accountWithBalance,
                     currency = currency,
-                    onClick = { viewModel.showEditDialog(account) },
-                    onToggleDefault = { viewModel.toggleDefault(account) }
+                    onClick = { viewModel.showEditDialog(accountWithBalance.account) },
+                    onToggleDefault = { viewModel.toggleDefault(accountWithBalance.account) }
                 )
             }
         }
@@ -246,11 +247,14 @@ fun TotalBalanceCard(
 
 @Composable
 fun AccountListItem(
-    account: Account,
+    accountWithBalance: AccountWithBalance,
     currency: String,
     onClick: () -> Unit,
     onToggleDefault: () -> Unit = {}
 ) {
+    val account = accountWithBalance.account
+    val currentBalance = accountWithBalance.currentBalance
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -298,10 +302,10 @@ fun AccountListItem(
             }
 
             Text(
-                text = formatCurrency(account.initialBalance, currency),
+                text = formatCurrency(currentBalance, currency),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
-                color = if (account.initialBalance >= 0)
+                color = if (currentBalance >= 0)
                     MaterialTheme.colorScheme.primary
                 else
                     MaterialTheme.colorScheme.error

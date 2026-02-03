@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -28,11 +27,11 @@ class AccountsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AccountsUiState())
     val uiState: StateFlow<AccountsUiState> = _uiState.asStateFlow()
 
-    val accountsState: StateFlow<AccountsListState> = accountRepository.getAllAccounts()
-        .combine(accountRepository.getTotalBalance()) { accounts, totalBalance ->
+    val accountsState: StateFlow<AccountsListState> = accountRepository.getAllAccountsWithBalances()
+        .map { accountsWithBalances ->
             AccountsListState(
-                accounts = accounts,
-                totalBalance = totalBalance ?: 0.0
+                accounts = accountsWithBalances,
+                totalBalance = accountsWithBalances.sumOf { it.currentBalance }
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccountsListState())
@@ -163,7 +162,7 @@ data class AccountsUiState(
 )
 
 data class AccountsListState(
-    val accounts: List<Account> = emptyList(),
+    val accounts: List<AccountWithBalance> = emptyList(),
     val totalBalance: Double = 0.0
 )
 

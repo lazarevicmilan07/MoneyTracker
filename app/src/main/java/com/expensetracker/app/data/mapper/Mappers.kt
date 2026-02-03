@@ -2,9 +2,11 @@ package com.expensetracker.app.data.mapper
 
 import androidx.compose.ui.graphics.Color
 import com.expensetracker.app.data.local.entity.AccountEntity
+import com.expensetracker.app.data.local.entity.AccountWithBalanceEntity
 import com.expensetracker.app.data.local.entity.CategoryEntity
 import com.expensetracker.app.data.local.entity.ExpenseEntity
 import com.expensetracker.app.domain.model.Account
+import com.expensetracker.app.domain.model.AccountWithBalance
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.domain.model.Expense
 import java.time.Instant
@@ -75,4 +77,9 @@ fun Account.toEntity(): AccountEntity = AccountEntity(
     initialBalance = initialBalance,
     isDefault = isDefault,
     createdAt = createdAt
+)
+
+fun AccountWithBalanceEntity.toDomain(): AccountWithBalance = AccountWithBalance(
+    account = account.toDomain(),
+    currentBalance = currentBalance
 )

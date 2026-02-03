@@ -4,6 +4,7 @@ import com.expensetracker.app.data.local.dao.AccountDao
 import com.expensetracker.app.data.mapper.toDomain
 import com.expensetracker.app.data.mapper.toEntity
 import com.expensetracker.app.domain.model.Account
+import com.expensetracker.app.domain.model.AccountWithBalance
 import com.expensetracker.app.domain.model.DefaultAccount
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -17,6 +18,11 @@ class AccountRepository @Inject constructor(
 
     fun getAllAccounts(): Flow<List<Account>> =
         accountDao.getAllAccounts().map { entities ->
+            entities.map { it.toDomain() }
+        }
+
+    fun getAllAccountsWithBalances(): Flow<List<AccountWithBalance>> =
+        accountDao.getAllAccountsWithBalances().map { entities ->
             entities.map { it.toDomain() }
         }
 

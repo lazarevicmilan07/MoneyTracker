@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.expensetracker.app.data.local.entity.AccountEntity
+import com.expensetracker.app.data.local.entity.AccountWithBalanceEntity
 import com.expensetracker.app.data.local.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
 
@@ -68,4 +69,16 @@ interface AccountDao {
         FROM accounts a
     """)
     fun getTotalBalance(): Flow<Double?>
+
+    @Query("""
+        SELECT a.*,
+            COALESCE(a.initialBalance, 0.0) +
+            COALESCE(
+                (SELECT SUM(CASE WHEN e.type = 'INCOME' THEN e.amount ELSE -e.amount END)
+                 FROM expenses e WHERE e.accountId = a.id), 0.0
+            ) as currentBalance
+        FROM accounts a
+        ORDER BY a.isDefault DESC, a.name ASC
+    """)
+    fun getAllAccountsWithBalances(): Flow<List<AccountWithBalanceEntity>>
 }
