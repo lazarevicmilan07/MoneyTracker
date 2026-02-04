@@ -19,7 +19,8 @@ fun AdBanner(
 ) {
     val isPremium by preferencesManager.isPremium.collectAsState(initial = false)
 
-    if (!isPremium) {
+    // TODO: Change back to `if (!isPremium)` before release
+    if (true) {
         AndroidView(
             modifier = modifier.fillMaxWidth(),
             factory = { context ->

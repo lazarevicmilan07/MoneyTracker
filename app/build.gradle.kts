@@ -125,8 +125,8 @@ dependencies {
     // PDF Generation
     implementation("com.itextpdf:itext7-core:7.2.5")
 
-    // CSV Export
-    implementation("org.apache.commons:commons-csv:1.10.0")
+    // Excel Export (lightweight library for Android)
+    implementation("org.dhatim:fastexcel:0.15.7")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

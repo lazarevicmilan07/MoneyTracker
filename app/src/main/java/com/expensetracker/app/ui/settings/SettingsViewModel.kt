@@ -55,17 +55,17 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(showCurrencyPicker = false)
     }
 
-    fun exportToCsv(context: Context, uri: Uri) {
+    fun exportToExcel(context: Context, uri: Uri) {
         viewModelScope.launch {
             if (!userPreferences.value.isPremium) {
-                _events.emit(SettingsEvent.ShowPremiumRequired("Export to CSV"))
+                _events.emit(SettingsEvent.ShowPremiumRequired("Export to Excel"))
                 return@launch
             }
             _uiState.value = _uiState.value.copy(isExporting = true)
-            val result = exportUseCase.exportToCsv(context, uri)
+            val result = exportUseCase.exportToExcel(context, uri)
             _uiState.value = _uiState.value.copy(isExporting = false)
             if (result.isSuccess) {
-                _events.emit(SettingsEvent.ExportSuccess("CSV"))
+                _events.emit(SettingsEvent.ExportSuccess("Excel"))
             } else {
                 _events.emit(SettingsEvent.ShowError(result.exceptionOrNull()?.message ?: "Export failed"))
             }

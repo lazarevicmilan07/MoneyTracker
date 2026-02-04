@@ -23,6 +23,10 @@
 -keep class com.itextpdf.** { *; }
 -dontwarn com.itextpdf.**
 
+# FastExcel
+-keep class org.dhatim.fastexcel.** { *; }
+-dontwarn org.dhatim.fastexcel.**
+
 # Google Play Billing
 -keep class com.android.vending.billing.**
 

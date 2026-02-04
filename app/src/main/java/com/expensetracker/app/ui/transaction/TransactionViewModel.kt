@@ -176,10 +176,11 @@ class TransactionViewModel @Inject constructor(
                         showSubcategorySelector = false
                     )
                 } else {
-                    // Show subcategory selector
+                    // Show subcategory selector, but subcategory is optional
+                    // Set selectedCategoryId to parent so transaction can be saved without subcategory
                     _uiState.value = _uiState.value.copy(
                         selectedParentCategoryId = categoryId,
-                        selectedCategoryId = null, // Clear until subcategory is selected
+                        selectedCategoryId = categoryId, // Use parent by default, subcategory is optional
                         showSubcategorySelector = true
                     )
                 }
@@ -251,14 +252,7 @@ class TransactionViewModel @Inject constructor(
                 return@launch
             }
 
-            // If parent category has subcategories, one must be selected
-            if (state.showSubcategorySelector && _availableSubcategories.value.isNotEmpty()) {
-                val hasSubcategorySelected = parentId != null && childId != null && parentId != childId
-                if (!hasSubcategorySelected) {
-                    _events.emit(TransactionEvent.ShowError("Please select a subcategory"))
-                    return@launch
-                }
-            }
+            // Subcategory is optional - no validation required
 
             if (state.selectedAccountId == null) {
                 _events.emit(TransactionEvent.ShowError("Please select an account"))

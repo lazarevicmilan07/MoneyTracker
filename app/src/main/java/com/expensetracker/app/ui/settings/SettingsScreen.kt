@@ -31,10 +31,10 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    val csvExportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("text/csv")
+    val excelExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     ) { uri ->
-        uri?.let { viewModel.exportToCsv(context, it) }
+        uri?.let { viewModel.exportToExcel(context, it) }
     }
 
     val pdfExportLauncher = rememberLauncherForActivityResult(
@@ -133,9 +133,9 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.TableChart,
-                    title = "Export to CSV",
+                    title = "Export to Excel",
                     subtitle = if (userPreferences.isPremium) "Export all transactions" else "Premium feature",
-                    onClick = { csvExportLauncher.launch("expenses_${System.currentTimeMillis()}.csv") },
+                    onClick = { excelExportLauncher.launch("expenses_${System.currentTimeMillis()}.xlsx") },
                     isPremium = !userPreferences.isPremium
                 )
             }

@@ -124,13 +124,8 @@ fun PremiumScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     PremiumFeatureItem(
-                        icon = Icons.Default.Category,
-                        title = "Unlimited Categories",
-                        description = "Create as many categories as you need"
-                    )
-                    PremiumFeatureItem(
                         icon = Icons.Default.TableChart,
-                        title = "Export to CSV",
+                        title = "Export to Excel",
                         description = "Export all your data to spreadsheets"
                     )
                     PremiumFeatureItem(
