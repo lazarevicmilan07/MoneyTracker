@@ -11,7 +11,13 @@
       "Bash(npm install:*)",
       "Bash(ls -la \"Z:\\\\Claude\\\\SimpleExpenseTracker\\\\app\\\\src\\\\main\\\\res\\\\mipmap-anydpi-v26\"\" 2>&1 || echo \"Directory not found \")",
       "Bash(dir:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(pip show:*)",
+      "Bash(findstr:*)",
+      "Bash(npm init:*)",
+      "Bash(node resize-icons.js:*)",
+      "Bash(node get-color.js:*)",
+      "Bash(node get-color2.js:*)"
     ]
   }
 }
