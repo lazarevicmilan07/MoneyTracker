@@ -18,7 +18,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.expensetracker.app.data.preferences.UserPreferences
+import com.expensetracker.app.domain.usecase.ExportPeriodParams
+
+enum class PendingExportAction {
+    EXCEL, PDF, BACKUP
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,22 +35,55 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
+    // Track which action is pending and the selected period
+    var pendingAction by remember { mutableStateOf<PendingExportAction?>(null) }
+    var selectedPeriod by remember { mutableStateOf<ExportPeriod?>(null) }
+    var showPeriodDialog by remember { mutableStateOf(false) }
+    var periodDialogTitle by remember { mutableStateOf("") }
+
     val excelExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     ) { uri ->
-        uri?.let { viewModel.exportToExcel(context, it) }
+        uri?.let {
+            selectedPeriod?.let { period ->
+                viewModel.exportToExcel(
+                    context,
+                    it,
+                    ExportPeriodParams(period.year, period.month)
+                )
+            }
+        }
+        selectedPeriod = null
     }
 
     val pdfExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/pdf")
     ) { uri ->
-        uri?.let { viewModel.exportToPdf(context, it) }
+        uri?.let {
+            selectedPeriod?.let { period ->
+                viewModel.exportToPdf(
+                    context,
+                    it,
+                    ExportPeriodParams(period.year, period.month)
+                )
+            }
+        }
+        selectedPeriod = null
     }
 
     val backupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
-        uri?.let { viewModel.backup(context, it) }
+        uri?.let {
+            selectedPeriod?.let { period ->
+                viewModel.backup(
+                    context,
+                    it,
+                    ExportPeriodParams(period.year, period.month)
+                )
+            }
+        }
+        selectedPeriod = null
     }
 
     val restoreLauncher = rememberLauncherForActivityResult(
@@ -74,6 +111,25 @@ fun SettingsScreen(
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    // Handle period selection result
+    LaunchedEffect(selectedPeriod, pendingAction) {
+        if (selectedPeriod != null && pendingAction != null) {
+            when (pendingAction) {
+                PendingExportAction.EXCEL -> {
+                    excelExportLauncher.launch(selectedPeriod!!.getFileName("expenses", "xlsx"))
+                }
+                PendingExportAction.PDF -> {
+                    pdfExportLauncher.launch(selectedPeriod!!.getFileName("expense_report", "pdf"))
+                }
+                PendingExportAction.BACKUP -> {
+                    backupLauncher.launch(selectedPeriod!!.getFileName("backup", "json"))
+                }
+                null -> {}
+            }
+            pendingAction = null
         }
     }
 
@@ -135,7 +191,11 @@ fun SettingsScreen(
                     icon = Icons.Default.TableChart,
                     title = "Export to Excel",
                     subtitle = if (userPreferences.isPremium) "Export all transactions" else "Premium feature",
-                    onClick = { excelExportLauncher.launch("expenses_${System.currentTimeMillis()}.xlsx") },
+                    onClick = {
+                        pendingAction = PendingExportAction.EXCEL
+                        periodDialogTitle = "Export to Excel"
+                        showPeriodDialog = true
+                    },
                     isPremium = !userPreferences.isPremium
                 )
             }
@@ -145,7 +205,11 @@ fun SettingsScreen(
                     icon = Icons.Default.PictureAsPdf,
                     title = "Export to PDF",
                     subtitle = if (userPreferences.isPremium) "Generate expense report" else "Premium feature",
-                    onClick = { pdfExportLauncher.launch("expense_report_${System.currentTimeMillis()}.pdf") },
+                    onClick = {
+                        pendingAction = PendingExportAction.PDF
+                        periodDialogTitle = "Export to PDF"
+                        showPeriodDialog = true
+                    },
                     isPremium = !userPreferences.isPremium
                 )
             }
@@ -155,7 +219,11 @@ fun SettingsScreen(
                     icon = Icons.Default.Backup,
                     title = "Backup",
                     subtitle = if (userPreferences.isPremium) "Create data backup" else "Premium feature",
-                    onClick = { backupLauncher.launch("expense_backup_${System.currentTimeMillis()}.json") },
+                    onClick = {
+                        pendingAction = PendingExportAction.BACKUP
+                        periodDialogTitle = "Backup Data"
+                        showPeriodDialog = true
+                    },
                     isPremium = !userPreferences.isPremium
                 )
             }
@@ -188,6 +256,21 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+
+    // Period Selection Dialog
+    if (showPeriodDialog) {
+        PeriodSelectionDialog(
+            title = periodDialogTitle,
+            onDismiss = {
+                showPeriodDialog = false
+                pendingAction = null
+            },
+            onPeriodSelected = { period ->
+                showPeriodDialog = false
+                selectedPeriod = period
+            }
+        )
     }
 
     // Currency Picker Dialog

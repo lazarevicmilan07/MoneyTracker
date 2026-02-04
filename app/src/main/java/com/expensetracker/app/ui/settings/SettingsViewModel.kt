@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.expensetracker.app.data.preferences.PreferencesManager
 import com.expensetracker.app.data.preferences.UserPreferences
 import com.expensetracker.app.domain.usecase.BackupRestoreUseCase
+import com.expensetracker.app.domain.usecase.ExportPeriodParams
 import com.expensetracker.app.domain.usecase.ExportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -55,14 +56,14 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(showCurrencyPicker = false)
     }
 
-    fun exportToExcel(context: Context, uri: Uri) {
+    fun exportToExcel(context: Context, uri: Uri, period: ExportPeriodParams) {
         viewModelScope.launch {
             if (!userPreferences.value.isPremium) {
                 _events.emit(SettingsEvent.ShowPremiumRequired("Export to Excel"))
                 return@launch
             }
             _uiState.value = _uiState.value.copy(isExporting = true)
-            val result = exportUseCase.exportToExcel(context, uri)
+            val result = exportUseCase.exportToExcel(context, uri, period)
             _uiState.value = _uiState.value.copy(isExporting = false)
             if (result.isSuccess) {
                 _events.emit(SettingsEvent.ExportSuccess("Excel"))
@@ -72,14 +73,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun exportToPdf(context: Context, uri: Uri) {
+    fun exportToPdf(context: Context, uri: Uri, period: ExportPeriodParams) {
         viewModelScope.launch {
             if (!userPreferences.value.isPremium) {
                 _events.emit(SettingsEvent.ShowPremiumRequired("Export to PDF"))
                 return@launch
             }
             _uiState.value = _uiState.value.copy(isExporting = true)
-            val result = exportUseCase.exportToPdf(context, uri)
+            val result = exportUseCase.exportToPdf(context, uri, period)
             _uiState.value = _uiState.value.copy(isExporting = false)
             if (result.isSuccess) {
                 _events.emit(SettingsEvent.ExportSuccess("PDF"))
@@ -89,14 +90,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun backup(context: Context, uri: Uri) {
+    fun backup(context: Context, uri: Uri, period: ExportPeriodParams) {
         viewModelScope.launch {
             if (!userPreferences.value.isPremium) {
                 _events.emit(SettingsEvent.ShowPremiumRequired("Backup"))
                 return@launch
             }
             _uiState.value = _uiState.value.copy(isBackingUp = true)
-            val result = backupRestoreUseCase.backup(context, uri)
+            val result = backupRestoreUseCase.backup(context, uri, period)
             _uiState.value = _uiState.value.copy(isBackingUp = false)
             if (result.isSuccess) {
                 _events.emit(SettingsEvent.BackupSuccess)

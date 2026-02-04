@@ -30,15 +30,30 @@ class BackupRestoreUseCase @Inject constructor(
         ignoreUnknownKeys = true
     }
 
-    suspend fun backup(context: Context, uri: Uri): Result<Unit> = runCatching {
-        val expenses = expenseRepository.getAllExpensesSync()
+    private fun filterExpensesByPeriod(expenses: List<Expense>, period: ExportPeriodParams): List<Expense> {
+        val startDate = period.getStartDate()
+        val endDate = period.getEndDate()
+        return expenses.filter { expense ->
+            !expense.date.isBefore(startDate) && !expense.date.isAfter(endDate)
+        }
+    }
+
+    suspend fun backup(context: Context, uri: Uri, period: ExportPeriodParams): Result<Unit> = runCatching {
+        val allExpenses = expenseRepository.getAllExpensesSync()
+        val expenses = filterExpensesByPeriod(allExpenses, period)
         val categories = categoryRepository.getAllCategories().first()
+
+        // Get only categories that are used in the filtered expenses
+        val usedCategoryIds = expenses.flatMap { listOfNotNull(it.categoryId, it.subcategoryId) }.toSet()
+        val usedCategories = categories.filter { it.id in usedCategoryIds }
 
         val backupData = BackupData(
             version = BACKUP_VERSION,
             timestamp = System.currentTimeMillis(),
+            periodYear = period.year,
+            periodMonth = period.month,
             expenses = expenses.map { it.toBackupExpense() },
-            categories = categories.map { it.toBackupCategory() }
+            categories = usedCategories.map { it.toBackupCategory() }
         )
 
         context.contentResolver.openOutputStream(uri)?.use { outputStream ->
@@ -87,6 +102,8 @@ class BackupRestoreUseCase @Inject constructor(
 data class BackupData(
     val version: Int,
     val timestamp: Long,
+    val periodYear: Int? = null,
+    val periodMonth: Int? = null,
     val expenses: List<BackupExpense>,
     val categories: List<BackupCategory>
 )
