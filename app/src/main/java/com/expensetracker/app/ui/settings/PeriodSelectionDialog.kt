@@ -82,8 +82,8 @@ fun PeriodSelectionDialog(
                 Text(
                     text = when (step) {
                         1 -> title
-                        2 -> if (selectedType == PeriodType.MONTH) "Select Year" else "Select Year"
-                        3 -> "Select Month"
+                        2 -> if (selectedType == PeriodType.MONTH) "Select Month" else "Select Year"
+                        3 -> "Select Year"
                         else -> title
                     }
                 )
@@ -126,7 +126,70 @@ fun PeriodSelectionDialog(
                 }
 
                 2 -> {
-                    // Step 2: Select year
+                    if (selectedType == PeriodType.MONTH) {
+                        // Step 2 for monthly: Select month first
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 300.dp)
+                        ) {
+                            items(Month.entries.toList()) { month ->
+                                val monthName = month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                                ListItem(
+                                    headlineContent = {
+                                        Text(
+                                            text = monthName,
+                                            fontWeight = if (month.value == selectedMonth) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    },
+                                    trailingContent = {
+                                        if (month.value == selectedMonth) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.clickable {
+                                        selectedMonth = month.value
+                                        step = 3
+                                    }
+                                )
+                            }
+                        }
+                    } else {
+                        // Step 2 for yearly: Select year
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 300.dp)
+                        ) {
+                            items(years) { year ->
+                                ListItem(
+                                    headlineContent = {
+                                        Text(
+                                            text = year.toString(),
+                                            fontWeight = if (year == selectedYear) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    },
+                                    trailingContent = {
+                                        if (year == selectedYear) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.clickable {
+                                        selectedYear = year
+                                        onPeriodSelected(ExportPeriod(PeriodType.YEAR, year))
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                3 -> {
+                    // Step 3 for monthly: Select year (after month)
                     LazyColumn(
                         modifier = Modifier.heightIn(max = 300.dp)
                     ) {
@@ -149,44 +212,8 @@ fun PeriodSelectionDialog(
                                 },
                                 modifier = Modifier.clickable {
                                     selectedYear = year
-                                    if (selectedType == PeriodType.YEAR) {
-                                        onPeriodSelected(ExportPeriod(PeriodType.YEAR, year))
-                                    } else {
-                                        step = 3
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                3 -> {
-                    // Step 3: Select month (only for monthly export)
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 300.dp)
-                    ) {
-                        items(Month.entries.toList()) { month ->
-                            val monthName = month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        text = monthName,
-                                        fontWeight = if (month.value == selectedMonth) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                },
-                                trailingContent = {
-                                    if (month.value == selectedMonth) {
-                                        Icon(
-                                            Icons.Default.Check,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.clickable {
-                                    selectedMonth = month.value
                                     onPeriodSelected(
-                                        ExportPeriod(PeriodType.MONTH, selectedYear, month.value)
+                                        ExportPeriod(PeriodType.MONTH, year, selectedMonth)
                                     )
                                 }
                             )

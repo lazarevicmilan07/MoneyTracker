@@ -5,6 +5,7 @@ import com.expensetracker.app.data.mapper.toDomain
 import com.expensetracker.app.data.mapper.toEntity
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.domain.model.DefaultCategories
+import com.expensetracker.app.domain.model.DefaultSubcategories
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -54,9 +55,31 @@ class CategoryRepository @Inject constructor(
     suspend fun initializeDefaultCategories() {
         if (!categoryDao.hasCategories()) {
             categoryDao.insertCategories(DefaultCategories.map { it.toEntity() })
+
+            // Seed default subcategories for each parent category
+            for (defaultCategory in DefaultCategories) {
+                val subcategoryDefs = DefaultSubcategories[defaultCategory.name] ?: continue
+                val parentEntity = categoryDao.getCategoryByName(defaultCategory.name) ?: continue
+                val subcategories = subcategoryDefs.map { (name, icon, color) ->
+                    Category(
+                        name = name,
+                        icon = icon,
+                        color = color,
+                        isDefault = true,
+                        parentCategoryId = parentEntity.id
+                    ).toEntity()
+                }
+                categoryDao.insertCategories(subcategories)
+            }
         }
     }
 
     suspend fun insertCategories(categories: List<Category>) =
         categoryDao.insertCategories(categories.map { it.toEntity() })
+
+    suspend fun deleteAllCategories() =
+        categoryDao.deleteAllCategories()
+
+    suspend fun getAllCategoriesSync(): List<Category> =
+        categoryDao.getAllCategoriesSync().map { it.toDomain() }
 }

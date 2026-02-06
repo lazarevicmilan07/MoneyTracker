@@ -41,6 +41,12 @@ interface AccountDao {
     @Query("DELETE FROM accounts WHERE id = :id")
     suspend fun deleteAccountById(id: Long)
 
+    @Query("DELETE FROM accounts")
+    suspend fun deleteAllAccounts()
+
+    @Query("SELECT * FROM accounts ORDER BY isDefault DESC, name ASC")
+    suspend fun getAllAccountsSync(): List<AccountEntity>
+
     @Query("UPDATE accounts SET isDefault = 0")
     suspend fun clearAllDefaults()
 

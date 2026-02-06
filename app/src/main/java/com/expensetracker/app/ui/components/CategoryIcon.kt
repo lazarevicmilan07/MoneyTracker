@@ -66,6 +66,37 @@ fun getIconForName(name: String): ImageVector {
         "account_balance", "bank" -> Icons.Default.AccountBalance
         "work", "business" -> Icons.Default.Work
         "category" -> Icons.Default.Category
+        "local_grocery_store", "grocery" -> Icons.Default.LocalGroceryStore
+        "fastfood", "fast_food" -> Icons.Default.Fastfood
+        "delivery_dining", "delivery" -> Icons.Default.DeliveryDining
+        "local_gas_station", "gas", "fuel" -> Icons.Default.LocalGasStation
+        "train", "transit" -> Icons.Default.Train
+        "local_parking", "parking" -> Icons.Default.LocalParking
+        "build", "maintenance", "repair" -> Icons.Default.Build
+        "local_taxi", "taxi", "ride" -> Icons.Default.LocalTaxi
+        "checkroom", "clothing" -> Icons.Default.Checkroom
+        "devices", "electronics" -> Icons.Default.Devices
+        "spa", "personal_care", "beauty" -> Icons.Default.Spa
+        "music_note", "music" -> Icons.Default.MusicNote
+        "sports_esports", "games", "gaming" -> Icons.Default.SportsEsports
+        "live_tv", "streaming" -> Icons.Default.LiveTv
+        "sports_soccer", "sports" -> Icons.Default.SportsSoccer
+        "bolt", "electricity", "power" -> Icons.Default.Bolt
+        "water_drop", "water" -> Icons.Default.WaterDrop
+        "apartment", "rent", "housing" -> Icons.Default.Apartment
+        "local_hospital", "doctor", "hospital" -> Icons.Default.LocalHospital
+        "local_pharmacy", "pharmacy" -> Icons.Default.LocalPharmacy
+        "shield", "insurance" -> Icons.Default.Shield
+        "menu_book", "books", "book" -> Icons.Default.MenuBook
+        "laptop", "computer" -> Icons.Default.Laptop
+        "attach_money", "bonus" -> Icons.Default.AttachMoney
+        "show_chart", "stocks" -> Icons.Default.ShowChart
+        "currency_exchange", "crypto", "exchange" -> Icons.Default.CurrencyExchange
+        "volunteer_activism", "charity", "donate" -> Icons.Default.VolunteerActivism
+        "star", "favorite" -> Icons.Default.Star
+        "cake", "celebration" -> Icons.Default.Cake
+        "brush", "art" -> Icons.Default.Brush
+        "yard", "garden" -> Icons.Default.Yard
         else -> Icons.Default.MoreHoriz
     }
 }
@@ -94,6 +125,37 @@ val AvailableIcons = listOf(
     "account_balance",
     "work",
     "category",
+    "local_grocery_store",
+    "fastfood",
+    "delivery_dining",
+    "local_gas_station",
+    "train",
+    "local_parking",
+    "build",
+    "local_taxi",
+    "checkroom",
+    "devices",
+    "spa",
+    "music_note",
+    "sports_esports",
+    "live_tv",
+    "sports_soccer",
+    "bolt",
+    "water_drop",
+    "apartment",
+    "local_hospital",
+    "local_pharmacy",
+    "shield",
+    "menu_book",
+    "laptop",
+    "attach_money",
+    "show_chart",
+    "currency_exchange",
+    "volunteer_activism",
+    "star",
+    "cake",
+    "brush",
+    "yard",
     "more_horiz"
 )
 
@@ -112,5 +174,20 @@ val AvailableColors = listOf(
     Color(0xFFEE5A24),
     Color(0xFF7158E2),
     Color(0xFF3AE374),
-    Color(0xFF17C0EB)
+    Color(0xFF17C0EB),
+    Color(0xFFE056A0),
+    Color(0xFF5F27CD),
+    Color(0xFF01A3A4),
+    Color(0xFFF8A5C2),
+    Color(0xFF778BEB),
+    Color(0xFFF3A683),
+    Color(0xFF63CDDA),
+    Color(0xFFCF6A87),
+    Color(0xFF574B90),
+    Color(0xFFE77F67),
+    Color(0xFF786FA6),
+    Color(0xFF2BCB6E),
+    Color(0xFFFF6348),
+    Color(0xFF70A1FF),
+    Color(0xFFFFC312)
 )

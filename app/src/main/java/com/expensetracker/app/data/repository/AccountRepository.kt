@@ -72,4 +72,10 @@ class AccountRepository @Inject constructor(
 
     suspend fun insertAccounts(accounts: List<Account>) =
         accountDao.insertAccounts(accounts.map { it.toEntity() })
+
+    suspend fun deleteAllAccounts() =
+        accountDao.deleteAllAccounts()
+
+    suspend fun getAllAccountsSync(): List<Account> =
+        accountDao.getAllAccountsSync().map { it.toDomain() }
 }

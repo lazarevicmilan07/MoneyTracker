@@ -27,6 +27,9 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE id = :id")
     suspend fun getCategoryById(id: Long): CategoryEntity?
 
+    @Query("SELECT * FROM categories WHERE name = :name AND parentCategoryId IS NULL LIMIT 1")
+    suspend fun getCategoryByName(name: String): CategoryEntity?
+
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun getCategoryCount(): Int
 
@@ -44,6 +47,12 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun deleteCategoryById(id: Long)
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAllCategories()
+
+    @Query("SELECT * FROM categories ORDER BY isDefault DESC, name ASC")
+    suspend fun getAllCategoriesSync(): List<CategoryEntity>
 
     @Query("SELECT EXISTS(SELECT 1 FROM categories LIMIT 1)")
     suspend fun hasCategories(): Boolean

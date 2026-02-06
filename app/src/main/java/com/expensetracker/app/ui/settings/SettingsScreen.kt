@@ -40,6 +40,7 @@ fun SettingsScreen(
     var selectedPeriod by remember { mutableStateOf<ExportPeriod?>(null) }
     var showPeriodDialog by remember { mutableStateOf(false) }
     var periodDialogTitle by remember { mutableStateOf("") }
+    var showRestoreConfirmDialog by remember { mutableStateOf(false) }
 
     val excelExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -233,7 +234,7 @@ fun SettingsScreen(
                     icon = Icons.Default.Restore,
                     title = "Restore",
                     subtitle = if (userPreferences.isPremium) "Restore from backup" else "Premium feature",
-                    onClick = { restoreLauncher.launch(arrayOf("application/json")) },
+                    onClick = { showRestoreConfirmDialog = true },
                     isPremium = !userPreferences.isPremium
                 )
             }
@@ -282,6 +283,38 @@ fun SettingsScreen(
                 viewModel.hideCurrencyPicker()
             },
             onDismiss = { viewModel.hideCurrencyPicker() }
+        )
+    }
+
+    // Restore Confirmation Dialog
+    if (showRestoreConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestoreConfirmDialog = false },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text("Restore Data") },
+            text = {
+                Text(
+                    "This will permanently delete all your current data including transactions, categories, subcategories, and accounts, and replace it with the data from the backup file.\n\nThis action cannot be undone. Are you sure you want to continue?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showRestoreConfirmDialog = false
+                        restoreLauncher.launch(arrayOf("application/json"))
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Restore")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 
