@@ -25,6 +25,7 @@ import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import com.expensetracker.app.ui.theme.TransferBlue
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,7 +148,7 @@ fun TransactionDetailContent(
         TransactionType.INCOME -> IncomeGreen
         TransactionType.TRANSFER -> TransferBlue
     }
-    val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy")
+    val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)
 
     Column(
         modifier = modifier,

@@ -1,5 +1,10 @@
 package com.expensetracker.app.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,6 +45,8 @@ sealed class Screen(val route: String) {
     data object CopyTransaction : Screen("copy_transaction/{expenseId}/{useToday}") {
         fun createRoute(expenseId: Long, useToday: Boolean) = "copy_transaction/$expenseId/$useToday"
     }
+    data object AccountsFromTransaction : Screen("accounts_from_transaction")
+    data object CategoriesFromTransaction : Screen("categories_from_transaction")
 }
 
 @Composable
@@ -51,7 +58,11 @@ fun NavGraph(
     NavHost(
         navController = navController,
         startDestination = Screen.Dashboard.route,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { slideInVertically(tween(500)) { it / 4 } + fadeIn(tween(500)) },
+        exitTransition = { fadeOut(tween(350)) },
+        popEnterTransition = { fadeIn(tween(350)) },
+        popExitTransition = { slideOutVertically(tween(400)) { it / 4 } + fadeOut(tween(400)) }
     ) {
         composable(Screen.Dashboard.route) {
             DashboardScreen(
@@ -67,8 +78,8 @@ fun NavGraph(
         composable(Screen.AddTransaction.route) {
             TransactionScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAccounts = { navController.navigate(Screen.Accounts.route) },
-                onNavigateToCategories = { navController.navigate(Screen.Categories.route) }
+                onNavigateToAccounts = { navController.navigate(Screen.AccountsFromTransaction.route) },
+                onNavigateToCategories = { navController.navigate(Screen.CategoriesFromTransaction.route) }
             )
         }
 
@@ -83,8 +94,8 @@ fun NavGraph(
                 onCopyTransaction = { expenseId, useToday ->
                     navController.navigate(Screen.CopyTransaction.createRoute(expenseId, useToday))
                 },
-                onNavigateToAccounts = { navController.navigate(Screen.Accounts.route) },
-                onNavigateToCategories = { navController.navigate(Screen.Categories.route) }
+                onNavigateToAccounts = { navController.navigate(Screen.AccountsFromTransaction.route) },
+                onNavigateToCategories = { navController.navigate(Screen.CategoriesFromTransaction.route) }
             )
         }
 
@@ -99,8 +110,8 @@ fun NavGraph(
                 onNavigateBack = {
                     navController.popBackStack(Screen.Dashboard.route, inclusive = false)
                 },
-                onNavigateToAccounts = { navController.navigate(Screen.Accounts.route) },
-                onNavigateToCategories = { navController.navigate(Screen.Categories.route) }
+                onNavigateToAccounts = { navController.navigate(Screen.AccountsFromTransaction.route) },
+                onNavigateToCategories = { navController.navigate(Screen.CategoriesFromTransaction.route) }
             )
         }
 
@@ -134,6 +145,24 @@ fun NavGraph(
             val currency by dashboardViewModel.currency.collectAsState()
             AccountsScreen(
                 currency = currency,
+                preferencesManager = preferencesManager
+            )
+        }
+
+        composable(Screen.AccountsFromTransaction.route) {
+            val dashboardViewModel: DashboardViewModel = hiltViewModel()
+            val currency by dashboardViewModel.currency.collectAsState()
+            AccountsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                currency = currency,
+                preferencesManager = preferencesManager
+            )
+        }
+
+        composable(Screen.CategoriesFromTransaction.route) {
+            CategoriesScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onShowPremium = { navController.navigate(Screen.Premium.route) },
                 preferencesManager = preferencesManager
             )
         }

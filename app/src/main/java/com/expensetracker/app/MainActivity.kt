@@ -52,6 +52,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -319,11 +323,11 @@ fun CustomNavigationBar(
     val backgroundColor = if (isDarkMode) {
         Color(0xFF1E1E1E)
     } else {
-        Color(0xFF2D2D2D)
+        Color(0xFFF5F5F0)
     }
 
     val selectedColor = if (isDarkMode) NavBarAccent else NavBarAccentDark
-    val unselectedColor = if (isDarkMode) Color(0xFF8A8A7A) else Color(0xFF9A9A8A)
+    val unselectedColor = if (isDarkMode) Color(0xFF8A8A7A) else Color(0xFF8A8A7A)
 
     Surface(
         modifier = Modifier
@@ -367,10 +371,19 @@ fun NavBarItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "nav_press_scale"
+    )
+
     Column(
         modifier = modifier
+            .scale(scale)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             ),
@@ -402,9 +415,9 @@ fun StatsSubmenu(
     onYearlyClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val backgroundColor = if (isDarkMode) Color(0xFF3D3D3D) else Color(0xFF5A5A5A)
+    val backgroundColor = if (isDarkMode) Color(0xFF3D3D3D) else Color(0xFFEEEEE8)
     val selectedColor = if (isDarkMode) NavBarAccent else NavBarAccentDark
-    val unselectedColor = if (isDarkMode) Color(0xFFAAAAAA) else Color(0xFFCCCCCC)
+    val unselectedColor = if (isDarkMode) Color(0xFFAAAAAA) else Color(0xFF8A8A7A)
 
     Surface(
         shape = RoundedCornerShape(12.dp),

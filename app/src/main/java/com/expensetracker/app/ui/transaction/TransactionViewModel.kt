@@ -157,11 +157,17 @@ class TransactionViewModel @Inject constructor(
         }
     }
 
+    private var shouldClearAmount = false
+
     fun setCurrentField(field: TransactionField) {
+        if (field == TransactionField.AMOUNT && _uiState.value.amount.isNotEmpty()) {
+            shouldClearAmount = true
+        }
         _uiState.value = _uiState.value.copy(currentField = field)
     }
 
     fun updateAmount(amount: String) {
+        shouldClearAmount = false
         val filtered = amount.filter { it.isDigit() || it == '.' || it == '-' }
         if (filtered.count { it == '.' } <= 1) {
             _uiState.value = _uiState.value.copy(amount = filtered)
@@ -169,6 +175,11 @@ class TransactionViewModel @Inject constructor(
     }
 
     fun appendToAmount(digit: String) {
+        if (shouldClearAmount) {
+            shouldClearAmount = false
+            _uiState.value = _uiState.value.copy(amount = digit)
+            return
+        }
         val current = _uiState.value.amount
         if (digit == "." && current.replace("-", "").contains(".")) return
         val newAmount = current + digit
@@ -176,6 +187,11 @@ class TransactionViewModel @Inject constructor(
     }
 
     fun deleteLastDigit() {
+        if (shouldClearAmount) {
+            shouldClearAmount = false
+            _uiState.value = _uiState.value.copy(amount = "")
+            return
+        }
         val current = _uiState.value.amount
         if (current.isNotEmpty()) {
             _uiState.value = _uiState.value.copy(amount = current.dropLast(1))
@@ -336,8 +352,8 @@ class TransactionViewModel @Inject constructor(
             val state = _uiState.value
             val amount = state.amount.toDoubleOrNull()
 
-            if (amount == null) {
-                _events.emit(TransactionEvent.ShowError("Please enter an amount"))
+            if (amount == null || amount <= 0.0) {
+                _events.emit(TransactionEvent.ShowError("Please enter an amount greater than zero"))
                 return@launch
             }
 
@@ -408,6 +424,8 @@ class TransactionViewModel @Inject constructor(
 
             if (andContinue) {
                 // Reset form but keep type, date, and account for convenience
+                _selectedParentCategoryId.value = null
+                _availableSubcategories.value = emptyList()
                 _uiState.value = _uiState.value.copy(
                     amount = "",
                     note = "",

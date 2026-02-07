@@ -64,7 +64,7 @@ fun DashboardScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddTransaction,
-                modifier = Modifier.padding(bottom = 80.dp),
+                modifier = Modifier.padding(bottom = 60.dp),
                 containerColor = MaterialTheme.colorScheme.secondary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Transaction")

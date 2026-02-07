@@ -94,7 +94,7 @@ fun AccountsScreen(
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 120.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = if (onNavigateBack != null) 64.dp else 120.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Total Balance Card
@@ -128,12 +128,12 @@ fun AccountsScreen(
                 }
             }
 
-            // Ad banner at the bottom, sitting on top of the nav bar
+            // Ad banner at the bottom, sitting on top of the nav bar (or system bar if no nav bar)
             AdBanner(
                 preferencesManager = preferencesManager,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 56.dp)
+                    .then(if (onNavigateBack != null) Modifier else Modifier.padding(bottom = 56.dp))
             )
         }
     }
