@@ -3,8 +3,13 @@ package com.expensetracker.app.ui.transaction
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,12 +25,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -33,27 +36,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,13 +73,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.data.local.entity.TransactionType
 import com.expensetracker.app.domain.model.Account
@@ -111,11 +117,9 @@ fun TransactionScreen(
     val accounts by viewModel.accounts.collectAsState()
     val context = LocalContext.current
 
-    // Compute category display text reactively
     val categoryDisplayText = remember(uiState.selectedParentCategoryId, uiState.selectedCategoryId, allCategories) {
         val parentCategory = uiState.selectedParentCategoryId?.let { id -> allCategories.find { it.id == id } }
         val selectedCategory = uiState.selectedCategoryId?.let { id -> allCategories.find { it.id == id } }
-
         when {
             parentCategory == null && selectedCategory == null -> ""
             parentCategory != null && selectedCategory != null && parentCategory.id != selectedCategory.id ->
@@ -130,18 +134,16 @@ fun TransactionScreen(
     var showCopyDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Animation state for the form - re-triggers on Continue
     var formAnimKey by remember { mutableIntStateOf(0) }
-    val formAlpha = remember { androidx.compose.animation.core.Animatable(1f) }
-    val formOffsetX = remember { androidx.compose.animation.core.Animatable(0f) }
+    val formAlpha = remember { Animatable(1f) }
+    val formOffsetX = remember { Animatable(0f) }
 
     LaunchedEffect(formAnimKey) {
         if (formAnimKey > 0) {
-            // Slide in from the right like navigation transitions
             formAlpha.snapTo(0f)
             formOffsetX.snapTo(300f)
-            launch { formAlpha.animateTo(1f, androidx.compose.animation.core.tween(300)) }
-            formOffsetX.animateTo(0f, androidx.compose.animation.core.tween(300, easing = androidx.compose.animation.core.EaseOut))
+            launch { formAlpha.animateTo(1f, tween(300)) }
+            formOffsetX.animateTo(0f, tween(300, easing = EaseOut))
         }
     }
 
@@ -167,38 +169,18 @@ fun TransactionScreen(
         }
     }
 
-    when (uiState.transactionType) {
+    val typeColor = when (uiState.transactionType) {
         TransactionType.EXPENSE -> ExpenseRed
         TransactionType.INCOME -> IncomeGreen
         TransactionType.TRANSFER -> TransferBlue
     }
 
-    // Intercept system back button: close the current panel instead of leaving the screen
     BackHandler(enabled = uiState.currentField != TransactionField.NONE && uiState.currentField != TransactionField.DATE) {
         viewModel.setCurrentField(TransactionField.NONE)
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        when (uiState.transactionType) {
-                            TransactionType.EXPENSE -> "Expense"
-                            TransactionType.INCOME -> "Income"
-                            TransactionType.TRANSFER -> "Transfer"
-                        },
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = { }
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -207,7 +189,28 @@ fun TransactionScreen(
                 .consumeWindowInsets(paddingValues)
                 .imePadding()
         ) {
-            // Main content area (scrollable form)
+            // Minimal header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Text(
+                    text = if (uiState.isEditing) "Edit Transaction" else "New Transaction",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            // Scrollable form content
             val scrollState = rememberScrollState()
             Column(
                 modifier = Modifier
@@ -217,36 +220,46 @@ fun TransactionScreen(
                         translationX = formOffsetX.value
                     }
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 20.dp)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // Transaction Type Toggle
                 TransactionTypeToggle(
                     selectedType = uiState.transactionType,
                     onTypeSelected = viewModel::selectTransactionType
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Form Fields
-                TransactionFormFields(
-                    uiState = uiState,
-                    accounts = accounts,
-                    allCategories = allCategories,
+                // Hero amount display
+                HeroAmountDisplay(
+                    amount = uiState.amount,
                     currency = currency,
-                    categoryDisplayText = categoryDisplayText,
-                    viewModel = viewModel,
-                    onDateClick = { showDatePicker = true }
+                    typeColor = typeColor,
+                    isActive = uiState.currentField == TransactionField.AMOUNT,
+                    onClick = { viewModel.setCurrentField(TransactionField.AMOUNT) }
                 )
 
-                // Extra space so the Note field can be scrolled up away from buttons
-                Spacer(modifier = Modifier.height(if (uiState.currentField == TransactionField.NOTE) 120.dp else 16.dp))
+                // Form fields card
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 1.dp,
+                    shadowElevation = 1.dp
+                ) {
+                    TransactionFormFields(
+                        uiState = uiState,
+                        accounts = accounts,
+                        allCategories = allCategories,
+                        categoryDisplayText = categoryDisplayText,
+                        typeColor = typeColor,
+                        viewModel = viewModel,
+                        onDateClick = { showDatePicker = true }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(if (uiState.currentField == TransactionField.NOTE) 100.dp else 12.dp))
             }
 
-            // Auto-scroll when Note or Amount is focused so lower fields stay visible.
-            // maxValue is 0 until the bottom panel/keyboard shrinks the available
-            // space, so we reactively watch for it to become scrollable.
             LaunchedEffect(uiState.currentField) {
                 if (uiState.currentField == TransactionField.NOTE ||
                     uiState.currentField == TransactionField.AMOUNT) {
@@ -259,13 +272,14 @@ fun TransactionScreen(
                 }
             }
 
-            // Bottom Panel (changes based on current field)
+            // Bottom panel
             BottomSelectionPanel(
                 uiState = uiState,
                 accounts = accounts,
                 rootCategories = rootCategories,
                 allCategories = allCategories,
                 availableSubcategories = availableSubcategories,
+                typeColor = typeColor,
                 viewModel = viewModel,
                 onSave = { viewModel.saveTransaction() },
                 onContinue = { viewModel.saveAndContinue() },
@@ -340,48 +354,100 @@ fun TransactionScreen(
 }
 
 @Composable
+private fun HeroAmountDisplay(
+    amount: String,
+    currency: String,
+    typeColor: Color,
+    isActive: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = onClick
+            )
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(verticalAlignment = Alignment.Top) {
+            Text(
+                text = getCurrencySymbol(currency),
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                color = if (amount.isNotEmpty()) typeColor else typeColor.copy(alpha = 0.35f),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            Text(
+                text = if (amount.isNotEmpty()) amount else "0",
+                style = MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-1).sp
+                ),
+                color = if (amount.isNotEmpty()) typeColor else typeColor.copy(alpha = 0.2f)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .width(if (isActive) 40.dp else 24.dp)
+                .height(2.5.dp)
+                .background(
+                    color = if (isActive) typeColor else typeColor.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(1.5.dp)
+                )
+        )
+    }
+}
+
+@Composable
 fun TransactionTypeToggle(
     selectedType: TransactionType,
     onTypeSelected: (TransactionType) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(4.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
     ) {
-        TransactionType.entries.forEach { type ->
-            val isSelected = type == selectedType
-            val backgroundColor by animateColorAsState(
-                targetValue = if (isSelected) {
-                    when (type) {
-                        TransactionType.EXPENSE -> ExpenseRed
-                        TransactionType.INCOME -> IncomeGreen
-                        TransactionType.TRANSFER -> TransferBlue
-                    }
-                } else Color.Transparent,
-                label = "tab_bg"
-            )
-            val textColor by animateColorAsState(
-                targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                label = "tab_text"
-            )
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(backgroundColor)
-                    .clickable { onTypeSelected(type) }
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = type.name.lowercase().replaceFirstChar { it.uppercase() },
-                    color = textColor,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+        Row(modifier = Modifier.padding(3.dp)) {
+            TransactionType.entries.forEach { type ->
+                val isSelected = type == selectedType
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (isSelected) {
+                        when (type) {
+                            TransactionType.EXPENSE -> ExpenseRed
+                            TransactionType.INCOME -> IncomeGreen
+                            TransactionType.TRANSFER -> TransferBlue
+                        }
+                    } else Color.Transparent,
+                    label = "tab_bg"
                 )
+                val textColor by animateColorAsState(
+                    targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    label = "tab_text"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(backgroundColor)
+                        .clickable { onTypeSelected(type) }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = type.name.lowercase().replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.titleSmall,
+                        color = textColor,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
+                }
             }
         }
     }
@@ -392,38 +458,32 @@ fun TransactionFormFields(
     uiState: TransactionUiState,
     accounts: List<Account>,
     allCategories: List<Category>,
-    currency: String,
     categoryDisplayText: String,
+    typeColor: Color,
     viewModel: TransactionViewModel,
     onDateClick: () -> Unit
 ) {
     val selectedAccount = accounts.find { it.id == uiState.selectedAccountId }
     val selectedToAccount = accounts.find { it.id == uiState.toAccountId }
-    // Resolve the displayed category for icon (subcategory if selected, otherwise parent)
     val displayedCategory = (uiState.selectedCategoryId?.let { id -> allCategories.find { it.id == id } }
         ?: uiState.selectedParentCategoryId?.let { id -> allCategories.find { it.id == id } })
     val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
     val dayOfWeekFormatter = DateTimeFormatter.ofPattern("EEE")
 
-    val typeColor = when (uiState.transactionType) {
-        TransactionType.EXPENSE -> ExpenseRed
-        TransactionType.INCOME -> IncomeGreen
-        TransactionType.TRANSFER -> TransferBlue
-    }
-
     Column {
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
         // Date Field
         FormFieldRow(
             label = "Date",
             value = "${uiState.selectedDate.format(dateFormatter)} (${uiState.selectedDate.format(dayOfWeekFormatter)})",
-            onClick = onDateClick
+            onClick = onDateClick,
+            isActive = uiState.currentField == TransactionField.DATE,
+            typeColor = typeColor
         )
 
         HorizontalDivider(
-            color = if (uiState.currentField == TransactionField.DATE) typeColor else MaterialTheme.colorScheme.outlineVariant,
-            thickness = if (uiState.currentField == TransactionField.DATE) 2.dp else 1.dp
+            modifier = Modifier.padding(horizontal = 16.dp),
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         )
 
         // Account / From Field
@@ -431,66 +491,61 @@ fun TransactionFormFields(
             label = if (uiState.transactionType == TransactionType.TRANSFER) "From" else "Account",
             value = selectedAccount?.name ?: "",
             onClick = { viewModel.setCurrentField(TransactionField.ACCOUNT) },
+            isActive = uiState.currentField == TransactionField.ACCOUNT,
+            typeColor = typeColor,
             iconName = selectedAccount?.icon,
             iconColor = selectedAccount?.color
         )
 
         HorizontalDivider(
-            color = if (uiState.currentField == TransactionField.ACCOUNT) typeColor else MaterialTheme.colorScheme.outlineVariant,
-            thickness = if (uiState.currentField == TransactionField.ACCOUNT) 2.dp else 1.dp
+            modifier = Modifier.padding(horizontal = 16.dp),
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         )
 
         if (uiState.transactionType == TransactionType.TRANSFER) {
-            // To Account Field (Transfer only)
             FormFieldRow(
                 label = "To",
                 value = selectedToAccount?.name ?: "",
                 onClick = { viewModel.setCurrentField(TransactionField.TO_ACCOUNT) },
+                isActive = uiState.currentField == TransactionField.TO_ACCOUNT,
+                typeColor = typeColor,
                 iconName = selectedToAccount?.icon,
                 iconColor = selectedToAccount?.color
             )
         } else {
-            // Category Field (Income/Expense only)
             FormFieldRow(
                 label = "Category",
                 value = categoryDisplayText,
                 onClick = { viewModel.setCurrentField(TransactionField.CATEGORY) },
+                isActive = uiState.currentField == TransactionField.CATEGORY || uiState.currentField == TransactionField.SUBCATEGORY,
+                typeColor = typeColor,
                 iconName = displayedCategory?.icon,
                 iconColor = displayedCategory?.color
             )
         }
 
-        val isCategoryFieldActive = if (uiState.transactionType == TransactionType.TRANSFER) {
-            uiState.currentField == TransactionField.TO_ACCOUNT
-        } else {
-            uiState.currentField == TransactionField.CATEGORY || uiState.currentField == TransactionField.SUBCATEGORY
-        }
         HorizontalDivider(
-            color = if (isCategoryFieldActive) typeColor else MaterialTheme.colorScheme.outlineVariant,
-            thickness = if (isCategoryFieldActive) 2.dp else 1.dp
-        )
-
-        // Amount Field
-        FormFieldRow(
-            label = "Amount",
-            value = if (uiState.amount.isNotEmpty()) "${getCurrencySymbol(currency)}${uiState.amount}" else "",
-            onClick = { viewModel.setCurrentField(TransactionField.AMOUNT) }
-        )
-
-        HorizontalDivider(
-            color = if (uiState.currentField == TransactionField.AMOUNT) typeColor else MaterialTheme.colorScheme.outlineVariant,
-            thickness = if (uiState.currentField == TransactionField.AMOUNT) 2.dp else 1.dp
+            modifier = Modifier.padding(horizontal = 16.dp),
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         )
 
         // Note Field - inline editable
         val noteFocusRequester = remember { FocusRequester() }
         val isNoteActive = uiState.currentField == TransactionField.NOTE
+        val noteBgColor by animateColorAsState(
+            targetValue = if (isNoteActive) typeColor.copy(alpha = 0.05f) else Color.Transparent,
+            label = "note_bg"
+        )
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(noteBgColor)
+                .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
                 .clickable { viewModel.setCurrentField(TransactionField.NOTE) }
-                .padding(vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -500,10 +555,11 @@ fun TransactionFormFields(
                 Text(
                     text = "Note",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = if (isNoteActive) typeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                    fontWeight = if (isNoteActive) FontWeight.Medium else FontWeight.Normal
                 )
                 if (isNoteActive) {
-                    androidx.compose.foundation.text.BasicTextField(
+                    BasicTextField(
                         value = uiState.note,
                         onValueChange = { viewModel.updateNote(it) },
                         modifier = Modifier
@@ -512,9 +568,10 @@ fun TransactionFormFields(
                             .focusRequester(noteFocusRequester),
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.End
+                            textAlign = TextAlign.End,
+                            fontWeight = FontWeight.Medium
                         ),
-                        cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.onSurface),
+                        cursorBrush = SolidColor(typeColor),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(
@@ -526,7 +583,7 @@ fun TransactionFormFields(
                                     Text(
                                         text = "Add a note...",
                                         style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                                         textAlign = TextAlign.End
                                     )
                                 }
@@ -535,24 +592,18 @@ fun TransactionFormFields(
                         }
                     )
                 } else {
-                    if (uiState.note.isNotEmpty()) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = uiState.note,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = if (uiState.note.isNotEmpty()) uiState.note else "Add a note...",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (uiState.note.isNotEmpty()) MaterialTheme.colorScheme.onSurface
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+                        fontWeight = if (uiState.note.isNotEmpty()) FontWeight.Medium else FontWeight.Normal
+                    )
                 }
             }
         }
 
-        HorizontalDivider(
-            color = if (isNoteActive) typeColor else MaterialTheme.colorScheme.outlineVariant,
-            thickness = if (isNoteActive) 2.dp else 1.dp
-        )
-
-        // Auto-focus note field when it becomes active
         LaunchedEffect(isNoteActive) {
             if (isNoteActive) {
                 noteFocusRequester.requestFocus()
@@ -566,47 +617,58 @@ fun FormFieldRow(
     label: String,
     value: String,
     onClick: () -> Unit,
-    isDotted: Boolean = false,
+    isActive: Boolean = false,
+    typeColor: Color = Color.Transparent,
     iconName: String? = null,
     iconColor: Color? = null
 ) {
-    Column(
+    val bgColor by animateColorAsState(
+        targetValue = if (isActive) typeColor.copy(alpha = 0.05f) else Color.Transparent,
+        label = "field_bg"
+    )
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(bgColor)
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (iconName != null && iconColor != null && value.isNotEmpty()) {
-                    CategoryIcon(
-                        icon = iconName,
-                        color = iconColor,
-                        size = 24.dp,
-                        iconSize = 14.dp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-                Text(
-                    text = value.ifEmpty { if (isDotted) ". . . . . . . . . . ." else "" },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (value.isEmpty())
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    else
-                        MaterialTheme.colorScheme.onSurface
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (isActive) typeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+            fontWeight = if (isActive) FontWeight.Medium else FontWeight.Normal
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (iconName != null && iconColor != null && value.isNotEmpty()) {
+                CategoryIcon(
+                    icon = iconName,
+                    color = iconColor,
+                    size = 26.dp,
+                    iconSize = 15.dp
                 )
+                Spacer(modifier = Modifier.width(8.dp))
             }
+            Text(
+                text = value.ifEmpty { "Select" },
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (value.isEmpty())
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = if (isActive) typeColor.copy(alpha = 0.4f)
+                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+            )
         }
     }
 }
@@ -618,6 +680,7 @@ fun BottomSelectionPanel(
     rootCategories: List<Category>,
     allCategories: List<Category>,
     availableSubcategories: List<Category>,
+    typeColor: Color,
     viewModel: TransactionViewModel,
     onSave: () -> Unit,
     onContinue: () -> Unit,
@@ -627,19 +690,27 @@ fun BottomSelectionPanel(
     onNavigateToAccounts: (() -> Unit)? = null,
     onNavigateToCategories: (() -> Unit)? = null
 ) {
-    when (uiState.transactionType) {
-        TransactionType.EXPENSE -> ExpenseRed
-        TransactionType.INCOME -> IncomeGreen
-        TransactionType.TRANSFER -> TransferBlue
-    }
-
     Surface(
-        modifier = Modifier
-            .fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 8.dp
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp,
+        tonalElevation = 2.dp
     ) {
         Column {
+            // Drag handle
+            Box(
+                modifier = Modifier
+                    .padding(top = 6.dp, bottom = 2.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .width(32.dp)
+                    .height(3.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        RoundedCornerShape(2.dp)
+                    )
+            )
+
             when (uiState.currentField) {
                 TransactionField.ACCOUNT -> {
                     AccountSelectionPanel(
@@ -682,6 +753,7 @@ fun BottomSelectionPanel(
                 TransactionField.AMOUNT -> {
                     Column {
                         AmountInputPanel(
+                            typeColor = typeColor,
                             onDigit = { viewModel.appendToAmount(it) },
                             onDelete = { viewModel.deleteLastDigit() },
                             onDone = { viewModel.setCurrentField(TransactionField.NOTE) },
@@ -706,7 +778,6 @@ fun BottomSelectionPanel(
                     )
                 }
                 else -> {
-                    // Show Save/Continue buttons
                     SaveButtonsPanel(
                         onSave = onSave,
                         onContinue = onContinue,
@@ -731,8 +802,9 @@ fun AccountSelectionPanel(
     title: String
 ) {
     val filteredAccounts = accounts.filter { it.id != excludeAccountId }
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -753,20 +825,50 @@ fun AccountSelectionPanel(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier.heightIn(max = 300.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Grid with borders
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(0.5.dp, borderColor),
+            color = Color.Transparent
         ) {
-            items(filteredAccounts) { account ->
-                AccountChip(
-                    account = account,
-                    isSelected = account.id == selectedAccountId,
-                    onClick = { onAccountSelected(account.id) }
-                )
+            Column {
+                val rows = filteredAccounts.chunked(3)
+                rows.forEachIndexed { rowIndex, rowAccounts ->
+                    if (rowIndex > 0) {
+                        HorizontalDivider(thickness = 0.5.dp, color = borderColor)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        rowAccounts.forEachIndexed { colIndex, account ->
+                            if (colIndex > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(0.5.dp)
+                                        .height(56.dp)
+                                        .background(borderColor)
+                                )
+                            }
+                            AccountChip(
+                                account = account,
+                                isSelected = account.id == selectedAccountId,
+                                onClick = { onAccountSelected(account.id) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        // Fill remaining cells if row is incomplete
+                        repeat(3 - rowAccounts.size) { i ->
+                            Box(
+                                modifier = Modifier
+                                    .width(0.5.dp)
+                                    .height(56.dp)
+                                    .background(borderColor)
+                            )
+                            Spacer(modifier = Modifier.weight(1f).height(56.dp))
+                        }
+                    }
+                }
             }
         }
     }
@@ -776,41 +878,39 @@ fun AccountSelectionPanel(
 fun AccountChip(
     account: Account,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
-        color = if (isSelected)
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-        else
-            MaterialTheme.colorScheme.surface,
-        border = if (isSelected)
-            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        else
-            null,
-        tonalElevation = if (isSelected) 0.dp else 2.dp
+    val bgColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                      else Color.Transparent,
+        label = "chip_bg"
+    )
+
+    Row(
+        modifier = modifier
+            .height(56.dp)
+            .background(bgColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CategoryIcon(
-                icon = account.icon,
-                color = account.color,
-                size = 32.dp,
-                iconSize = 18.dp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = account.name,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        CategoryIcon(
+            icon = account.icon,
+            color = account.color,
+            size = 28.dp,
+            iconSize = 16.dp
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = account.name,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -827,7 +927,10 @@ fun CategorySelectionPanel(
     onClose: () -> Unit,
     onEditCategories: (() -> Unit)? = null
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val typeColor = ExpenseRed
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -848,45 +951,57 @@ fun CategorySelectionPanel(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        Row(
-            modifier = Modifier.heightIn(max = 300.dp)
+        // Two-column grid with borders
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(0.5.dp, borderColor),
+            color = Color.Transparent
         ) {
-            // Left column - Categories (always half width)
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                items(categories) { category ->
-                    val isSelected = category.id == selectedParentCategoryId
-                    CategoryListItem(
-                        category = category,
-                        isSelected = isSelected,
-                        onClick = {
-                            if (isSelected) {
-                                onParentSelected()
-                            } else {
-                                onCategorySelected(category.id)
-                            }
-                        },
-                        showArrow = allCategories.any { it.parentCategoryId == category.id },
-                        highlightColor = if (isSelected) ExpenseRed.copy(alpha = 0.15f) else Color.Transparent
-                    )
-                }
-            }
+            Row(modifier = Modifier.heightIn(max = 300.dp)) {
+                // Left column - Parent categories
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(categories) { category ->
+                        val isSelected = category.id == selectedParentCategoryId
+                        val hasSubcategories = allCategories.any { it.parentCategoryId == category.id }
 
-            // Right column - Subcategories (always half width)
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                items(subcategories) { subcategory ->
-                    SubcategoryListItem(
-                        subcategory = subcategory,
-                        isSelected = subcategory.id == selectedSubcategoryId,
-                        onClick = { onSubcategorySelected(subcategory.id) }
-                    )
+                        CategoryListItem(
+                            category = category,
+                            isSelected = isSelected,
+                            onClick = {
+                                if (isSelected) {
+                                    onParentSelected()
+                                } else {
+                                    onCategorySelected(category.id)
+                                }
+                            },
+                            showArrow = hasSubcategories,
+                            typeColor = typeColor
+                        )
+                        HorizontalDivider(thickness = 0.5.dp, color = borderColor)
+                    }
+                }
+
+                // Vertical divider
+                Box(
+                    modifier = Modifier
+                        .width(0.5.dp)
+                        .heightIn(max = 300.dp)
+                        .background(borderColor)
+                )
+
+                // Right column - Subcategories
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(subcategories) { subcategory ->
+                        SubcategoryListItem(
+                            subcategory = subcategory,
+                            isSelected = subcategory.id == selectedSubcategoryId,
+                            onClick = { onSubcategorySelected(subcategory.id) }
+                        )
+                        HorizontalDivider(thickness = 0.5.dp, color = borderColor)
+                    }
                 }
             }
         }
@@ -899,43 +1014,45 @@ fun CategoryListItem(
     isSelected: Boolean,
     onClick: () -> Unit,
     showArrow: Boolean = false,
-    highlightColor: Color = Color.Transparent
+    typeColor: Color = Color.Transparent
 ) {
-    Surface(
+    val bgColor by animateColorAsState(
+        targetValue = if (isSelected) typeColor.copy(alpha = 0.1f) else Color.Transparent,
+        label = "cat_bg"
+    )
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
-        color = if (isSelected && highlightColor != Color.Transparent) highlightColor
-               else if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-               else Color.Transparent
+            .background(bgColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CategoryIcon(
-                icon = category.icon,
-                color = category.color,
-                size = 28.dp,
-                iconSize = 16.dp
+        CategoryIcon(
+            icon = category.icon,
+            color = category.color,
+            size = 28.dp,
+            iconSize = 16.dp
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = category.name,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected) typeColor else MaterialTheme.colorScheme.onSurface
+        )
+        if (showArrow) {
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = if (isSelected) typeColor.copy(alpha = 0.6f)
+                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (showArrow) {
-                Icon(
-                    Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
         }
     }
 }
@@ -946,36 +1063,40 @@ fun SubcategoryListItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
+    val bgColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent,
+        label = "subcat_bg"
+    )
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
-        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.Transparent
+            .background(bgColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CategoryIcon(
-                icon = subcategory.icon,
-                color = subcategory.color,
-                size = 28.dp,
-                iconSize = 16.dp
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = subcategory.name,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        CategoryIcon(
+            icon = subcategory.icon,
+            color = subcategory.color,
+            size = 28.dp,
+            iconSize = 16.dp
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = subcategory.name,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
 @Composable
 fun AmountInputPanel(
+    typeColor: Color,
     onDigit: (String) -> Unit,
     onDelete: () -> Unit,
     onDone: () -> Unit,
@@ -997,36 +1118,40 @@ fun AmountInputPanel(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // Numeric Keyboard
-        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        // Modern numeric keypad
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             // Row 1: 1, 2, 3, Backspace
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 NumPadKey(text = "1", modifier = Modifier.weight(1f)) { onDigit("1") }
                 NumPadKey(text = "2", modifier = Modifier.weight(1f)) { onDigit("2") }
                 NumPadKey(text = "3", modifier = Modifier.weight(1f)) { onDigit("3") }
-                NumPadKey(icon = Icons.AutoMirrored.Filled.Backspace, modifier = Modifier.weight(1f)) { onDelete() }
+                NumPadKey(
+                    icon = Icons.AutoMirrored.Filled.Backspace,
+                    modifier = Modifier.weight(1f),
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                ) { onDelete() }
             }
 
             // Row 2: 4, 5, 6
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 NumPadKey(text = "4", modifier = Modifier.weight(1f)) { onDigit("4") }
                 NumPadKey(text = "5", modifier = Modifier.weight(1f)) { onDigit("5") }
                 NumPadKey(text = "6", modifier = Modifier.weight(1f)) { onDigit("6") }
-                Box(modifier = Modifier.weight(1f).height(56.dp).background(MaterialTheme.colorScheme.surface))
+                Spacer(modifier = Modifier.weight(1f).height(46.dp))
             }
 
             // Row 3: 7, 8, 9, Decimal
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 NumPadKey(text = "7", modifier = Modifier.weight(1f)) { onDigit("7") }
                 NumPadKey(text = "8", modifier = Modifier.weight(1f)) { onDigit("8") }
@@ -1037,25 +1162,25 @@ fun AmountInputPanel(
             // Row 4: Empty, 0, Empty, Done
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Box(modifier = Modifier.weight(1f).height(56.dp).background(MaterialTheme.colorScheme.surface))
+                Spacer(modifier = Modifier.weight(1f).height(46.dp))
                 NumPadKey(text = "0", modifier = Modifier.weight(1f)) { onDigit("0") }
-                Box(modifier = Modifier.weight(1f).height(56.dp).background(MaterialTheme.colorScheme.surface))
+                Spacer(modifier = Modifier.weight(1f).height(46.dp))
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(IncomeGreen.copy(alpha = 0.3f))
+                        .height(46.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(typeColor)
                         .clickable(onClick = onDone),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Done",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = IncomeGreen
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = "Done",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.White
                     )
                 }
             }
@@ -1067,14 +1192,16 @@ fun AmountInputPanel(
 fun NumPadKey(
     text: String? = null,
     modifier: Modifier = Modifier,
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    icon: ImageVector? = null,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit
 ) {
     Box(
         modifier = modifier
-            .height(56.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .height(46.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(backgroundColor)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -1082,14 +1209,15 @@ fun NumPadKey(
             Icon(
                 icon,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurface
+                modifier = Modifier.size(22.dp),
+                tint = contentColor
             )
         } else if (text != null) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Medium,
+                color = contentColor
             )
         }
     }
@@ -1103,118 +1231,82 @@ fun SaveButtonsPanel(
     onCopy: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Copy Button (only when editing)
-            if (onCopy != null) {
-                OutlinedButton(
-                    onClick = onCopy,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.ContentCopy,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Copy",
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            // Delete Button (only when editing)
-            if (onDelete != null) {
-                OutlinedButton(
-                    onClick = onDelete,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Delete",
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            // Save Button
-            OutlinedButton(
-                onClick = onSave,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = IncomeGreen
-                ),
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp, IncomeGreen.copy(alpha = 0.5f)
+        // Copy Button (editing only)
+        if (onCopy != null) {
+            FilledTonalButton(
+                onClick = onCopy,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Icon(
-                    Icons.Default.Save,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Save",
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    fontWeight = FontWeight.Medium
-                )
+                Icon(Icons.Default.ContentCopy, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Copy", fontWeight = FontWeight.Medium)
             }
+        }
 
-            // Continue Button (only for new transactions)
-            if (!isEditing) {
-                OutlinedButton(
-                    onClick = onContinue,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.AddCircleOutline,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Continue",
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+        // Delete Button (editing only)
+        if (onDelete != null) {
+            FilledTonalButton(
+                onClick = onDelete,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = ExpenseRed.copy(alpha = 0.1f),
+                    contentColor = ExpenseRed
+                )
+            ) {
+                Icon(Icons.Default.Delete, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Delete", fontWeight = FontWeight.Medium)
+            }
+        }
+
+        // Save Button - primary filled
+        Button(
+            onClick = onSave,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = IncomeGreen,
+                contentColor = Color.White
+            ),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 2.dp,
+                pressedElevation = 4.dp
+            )
+        ) {
+            Icon(Icons.Default.Check, null, Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = "Save",
+                modifier = Modifier.padding(vertical = 2.dp),
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        // Continue Button (new transactions only)
+        if (!isEditing) {
+            FilledTonalButton(
+                onClick = onContinue,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(Icons.Default.AddCircleOutline, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = "Continue",
+                    modifier = Modifier.padding(vertical = 2.dp),
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
@@ -1227,7 +1319,6 @@ fun DatePickerDialog(
     onDateSelected: (LocalDate) -> Unit,
     onDismiss: () -> Unit
 ) {
-    // Convert LocalDate to UTC millis for DatePicker (which uses UTC)
     val initialMillis = selectedDate.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
 
     val datePickerState = rememberDatePickerState(
@@ -1240,7 +1331,6 @@ fun DatePickerDialog(
             TextButton(
                 onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        // Convert UTC millis back to LocalDate (DatePicker returns UTC)
                         val date = Instant.ofEpochMilli(millis)
                             .atZone(ZoneId.of("UTC"))
                             .toLocalDate()
