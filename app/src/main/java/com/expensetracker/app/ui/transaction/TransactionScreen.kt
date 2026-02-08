@@ -2,34 +2,68 @@ package com.expensetracker.app.ui.transaction
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,17 +72,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.data.local.entity.TransactionType
 import com.expensetracker.app.domain.model.Account
-import com.expensetracker.app.domain.model.AccountTypeNames
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.ui.components.CategoryIcon
 import com.expensetracker.app.ui.components.getCurrencySymbol
@@ -100,7 +131,7 @@ fun TransactionScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     // Animation state for the form - re-triggers on Continue
-    var formAnimKey by remember { mutableStateOf(0) }
+    var formAnimKey by remember { mutableIntStateOf(0) }
     val formAlpha = remember { androidx.compose.animation.core.Animatable(1f) }
     val formOffsetX = remember { androidx.compose.animation.core.Animatable(0f) }
 
@@ -136,7 +167,7 @@ fun TransactionScreen(
         }
     }
 
-    val typeColor = when (uiState.transactionType) {
+    when (uiState.transactionType) {
         TransactionType.EXPENSE -> ExpenseRed
         TransactionType.INCOME -> IncomeGreen
         TransactionType.TRANSFER -> TransferBlue
@@ -235,7 +266,6 @@ fun TransactionScreen(
                 rootCategories = rootCategories,
                 allCategories = allCategories,
                 availableSubcategories = availableSubcategories,
-                currency = currency,
                 viewModel = viewModel,
                 onSave = { viewModel.saveTransaction() },
                 onContinue = { viewModel.saveAndContinue() },
@@ -588,7 +618,6 @@ fun BottomSelectionPanel(
     rootCategories: List<Category>,
     allCategories: List<Category>,
     availableSubcategories: List<Category>,
-    currency: String,
     viewModel: TransactionViewModel,
     onSave: () -> Unit,
     onContinue: () -> Unit,
@@ -598,7 +627,7 @@ fun BottomSelectionPanel(
     onNavigateToAccounts: (() -> Unit)? = null,
     onNavigateToCategories: (() -> Unit)? = null
 ) {
-    val typeColor = when (uiState.transactionType) {
+    when (uiState.transactionType) {
         TransactionType.EXPENSE -> ExpenseRed
         TransactionType.INCOME -> IncomeGreen
         TransactionType.TRANSFER -> TransferBlue
@@ -653,8 +682,6 @@ fun BottomSelectionPanel(
                 TransactionField.AMOUNT -> {
                     Column {
                         AmountInputPanel(
-                            amount = uiState.amount,
-                            currency = currency,
                             onDigit = { viewModel.appendToAmount(it) },
                             onDelete = { viewModel.deleteLastDigit() },
                             onDone = { viewModel.setCurrentField(TransactionField.NOTE) },
@@ -665,8 +692,7 @@ fun BottomSelectionPanel(
                             onContinue = onContinue,
                             isEditing = isEditing,
                             onCopy = onCopy,
-                            onDelete = onDelete,
-                            typeColor = typeColor
+                            onDelete = onDelete
                         )
                     }
                 }
@@ -676,8 +702,7 @@ fun BottomSelectionPanel(
                         onContinue = onContinue,
                         isEditing = isEditing,
                         onCopy = onCopy,
-                        onDelete = onDelete,
-                        typeColor = typeColor
+                        onDelete = onDelete
                     )
                 }
                 else -> {
@@ -687,8 +712,7 @@ fun BottomSelectionPanel(
                         onContinue = onContinue,
                         isEditing = isEditing,
                         onCopy = onCopy,
-                        onDelete = onDelete,
-                        typeColor = typeColor
+                        onDelete = onDelete
                     )
                 }
             }
@@ -952,8 +976,6 @@ fun SubcategoryListItem(
 
 @Composable
 fun AmountInputPanel(
-    amount: String,
-    currency: String,
     onDigit: (String) -> Unit,
     onDelete: () -> Unit,
     onDone: () -> Unit,
@@ -1074,50 +1096,12 @@ fun NumPadKey(
 }
 
 @Composable
-fun NoteInputPanel(
-    note: String,
-    onNoteChange: (String) -> Unit,
-    onClose: () -> Unit
-) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Note",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(20.dp))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = note,
-            onValueChange = onNoteChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 100.dp),
-            placeholder = { Text("Add a note...") },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { onClose() })
-        )
-    }
-}
-
-@Composable
 fun SaveButtonsPanel(
     onSave: () -> Unit,
     onContinue: () -> Unit,
     isEditing: Boolean,
     onCopy: (() -> Unit)? = null,
-    onDelete: (() -> Unit)? = null,
-    typeColor: Color
+    onDelete: (() -> Unit)? = null
 ) {
     Column(
         modifier = Modifier
