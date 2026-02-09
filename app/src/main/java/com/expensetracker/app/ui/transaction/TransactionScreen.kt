@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,15 +36,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.PlayCircleOutline
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -554,9 +556,9 @@ fun TransactionFormFields(
             ) {
                 Text(
                     text = "Note",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isNoteActive) typeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-                    fontWeight = if (isNoteActive) FontWeight.Medium else FontWeight.Normal
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isNoteActive) typeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    fontWeight = FontWeight.Medium
                 )
                 if (isNoteActive) {
                     BasicTextField(
@@ -566,7 +568,7 @@ fun TransactionFormFields(
                             .weight(1f)
                             .padding(start = 16.dp)
                             .focusRequester(noteFocusRequester),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        textStyle = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.End,
                             fontWeight = FontWeight.Medium
@@ -582,7 +584,7 @@ fun TransactionFormFields(
                                 if (uiState.note.isEmpty()) {
                                     Text(
                                         text = "Add a note...",
-                                        style = MaterialTheme.typography.bodyLarge,
+                                        style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                                         textAlign = TextAlign.End
                                     )
@@ -595,7 +597,7 @@ fun TransactionFormFields(
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = if (uiState.note.isNotEmpty()) uiState.note else "Add a note...",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodySmall,
                         color = if (uiState.note.isNotEmpty()) MaterialTheme.colorScheme.onSurface
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                         fontWeight = if (uiState.note.isNotEmpty()) FontWeight.Medium else FontWeight.Normal
@@ -633,39 +635,40 @@ fun FormFieldRow(
             .background(bgColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (isActive) typeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-            fontWeight = if (isActive) FontWeight.Medium else FontWeight.Normal
+            style = MaterialTheme.typography.bodySmall,
+            color = if (isActive) typeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            fontWeight = FontWeight.Medium
         )
+        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(16.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (iconName != null && iconColor != null && value.isNotEmpty()) {
                 CategoryIcon(
                     icon = iconName,
                     color = iconColor,
-                    size = 26.dp,
-                    iconSize = 15.dp
+                    size = 24.dp,
+                    iconSize = 14.dp
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
             }
             Text(
                 text = value.ifEmpty { "Select" },
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodySmall,
                 color = if (value.isEmpty())
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                 else
                     MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(16.dp),
                 tint = if (isActive) typeColor.copy(alpha = 0.4f)
                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
             )
@@ -802,7 +805,7 @@ fun AccountSelectionPanel(
     title: String
 ) {
     val filteredAccounts = accounts.filter { it.id != excludeAccountId }
-    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)
 
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(
@@ -827,46 +830,48 @@ fun AccountSelectionPanel(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Grid with borders
+        // 2-column grid with borders
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(0.5.dp, borderColor),
+            border = BorderStroke(1.dp, borderColor),
             color = Color.Transparent
         ) {
-            Column {
-                val rows = filteredAccounts.chunked(3)
-                rows.forEachIndexed { rowIndex, rowAccounts ->
-                    if (rowIndex > 0) {
-                        HorizontalDivider(thickness = 0.5.dp, color = borderColor)
-                    }
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        rowAccounts.forEachIndexed { colIndex, account ->
-                            if (colIndex > 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .width(0.5.dp)
-                                        .height(56.dp)
-                                        .background(borderColor)
-                                )
-                            }
+            val col0 = filteredAccounts.filterIndexed { i, _ -> i % 2 == 0 }
+            val col1 = filteredAccounts.filterIndexed { i, _ -> i % 2 == 1 }
+            val maxRows = maxOf(col0.size, col1.size)
+            val contentHeight = (maxRows * 49).dp // 48dp row + 1dp divider
+
+            Row(modifier = Modifier.heightIn(max = 300.dp)) {
+                // Column 1
+                Box(modifier = Modifier.weight(1f)) {
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(col0) { account ->
                             AccountChip(
                                 account = account,
                                 isSelected = account.id == selectedAccountId,
-                                onClick = { onAccountSelected(account.id) },
-                                modifier = Modifier.weight(1f)
+                                onClick = { onAccountSelected(account.id) }
                             )
+                            HorizontalDivider(thickness = 1.dp, color = borderColor)
                         }
-                        // Fill remaining cells if row is incomplete
-                        repeat(3 - rowAccounts.size) { i ->
-                            Box(
-                                modifier = Modifier
-                                    .width(0.5.dp)
-                                    .height(56.dp)
-                                    .background(borderColor)
-                            )
-                            Spacer(modifier = Modifier.weight(1f).height(56.dp))
-                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .width(1.dp)
+                            .height(contentHeight)
+                            .background(borderColor)
+                    )
+                }
+                // Column 2
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(col1) { account ->
+                        AccountChip(
+                            account = account,
+                            isSelected = account.id == selectedAccountId,
+                            onClick = { onAccountSelected(account.id) }
+                        )
+                        HorizontalDivider(thickness = 1.dp, color = borderColor)
                     }
                 }
             }
@@ -878,8 +883,7 @@ fun AccountSelectionPanel(
 fun AccountChip(
     account: Account,
     isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     val bgColor by animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
@@ -888,13 +892,14 @@ fun AccountChip(
     )
 
     Row(
-        modifier = modifier
-            .height(56.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
             .background(bgColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Start
     ) {
         CategoryIcon(
             icon = account.icon,
@@ -905,8 +910,8 @@ fun AccountChip(
         Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = account.name,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -927,7 +932,7 @@ fun CategorySelectionPanel(
     onClose: () -> Unit,
     onEditCategories: (() -> Unit)? = null
 ) {
-    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)
     val typeColor = ExpenseRed
 
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -957,40 +962,45 @@ fun CategorySelectionPanel(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(0.5.dp, borderColor),
+            border = BorderStroke(1.dp, borderColor),
             color = Color.Transparent
         ) {
+            val maxRows = maxOf(categories.size, subcategories.size)
+            val contentHeight = (maxRows * 49).dp // 48dp row + 1dp divider
+
             Row(modifier = Modifier.heightIn(max = 300.dp)) {
-                // Left column - Parent categories
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(categories) { category ->
-                        val isSelected = category.id == selectedParentCategoryId
-                        val hasSubcategories = allCategories.any { it.parentCategoryId == category.id }
+                // Left column - Parent categories with right border
+                Box(modifier = Modifier.weight(1f)) {
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(categories) { category ->
+                            val isSelected = category.id == selectedParentCategoryId
+                            val hasSubcategories = allCategories.any { it.parentCategoryId == category.id }
 
-                        CategoryListItem(
-                            category = category,
-                            isSelected = isSelected,
-                            onClick = {
-                                if (isSelected) {
-                                    onParentSelected()
-                                } else {
-                                    onCategorySelected(category.id)
-                                }
-                            },
-                            showArrow = hasSubcategories,
-                            typeColor = typeColor
-                        )
-                        HorizontalDivider(thickness = 0.5.dp, color = borderColor)
+                            CategoryListItem(
+                                category = category,
+                                isSelected = isSelected,
+                                onClick = {
+                                    if (isSelected) {
+                                        onParentSelected()
+                                    } else {
+                                        onCategorySelected(category.id)
+                                    }
+                                },
+                                showArrow = hasSubcategories,
+                                typeColor = typeColor
+                            )
+                            HorizontalDivider(thickness = 1.dp, color = borderColor)
+                        }
                     }
+                    // Vertical divider on right edge - only covers content rows
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .width(1.dp)
+                            .height(contentHeight)
+                            .background(borderColor)
+                    )
                 }
-
-                // Vertical divider
-                Box(
-                    modifier = Modifier
-                        .width(0.5.dp)
-                        .heightIn(max = 300.dp)
-                        .background(borderColor)
-                )
 
                 // Right column - Subcategories
                 LazyColumn(modifier = Modifier.weight(1f)) {
@@ -1000,7 +1010,7 @@ fun CategorySelectionPanel(
                             isSelected = subcategory.id == selectedSubcategoryId,
                             onClick = { onSubcategorySelected(subcategory.id) }
                         )
-                        HorizontalDivider(thickness = 0.5.dp, color = borderColor)
+                        HorizontalDivider(thickness = 1.dp, color = borderColor)
                     }
                 }
             }
@@ -1038,11 +1048,11 @@ fun CategoryListItem(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = category.name,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.weight(1f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = if (isSelected) typeColor else MaterialTheme.colorScheme.onSurface
         )
         if (showArrow) {
@@ -1085,10 +1095,10 @@ fun SubcategoryListItem(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = subcategory.name,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
         )
     }
@@ -1172,7 +1182,7 @@ fun AmountInputPanel(
                         .weight(1f)
                         .height(46.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(typeColor)
+                        .background(IncomeGreen.copy(alpha = 0.1f))
                         .clickable(onClick = onDone),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1180,7 +1190,7 @@ fun AmountInputPanel(
                         Icons.Default.Check,
                         contentDescription = "Done",
                         modifier = Modifier.size(24.dp),
-                        tint = Color.White
+                        tint = IncomeGreen
                     )
                 }
             }
@@ -1193,7 +1203,7 @@ fun NumPadKey(
     text: String? = null,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+    backgroundColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit
 ) {
@@ -1242,15 +1252,17 @@ fun SaveButtonsPanel(
         if (onCopy != null) {
             FilledTonalButton(
                 onClick = onCopy,
+                modifier = Modifier.weight(1f).height(40.dp),
                 shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.primary
+                    containerColor = TransferBlue.copy(alpha = 0.1f),
+                    contentColor = TransferBlue
                 )
             ) {
-                Icon(Icons.Default.ContentCopy, null, Modifier.size(18.dp))
+                Icon(Icons.Default.ContentCopy, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Copy", fontWeight = FontWeight.Medium)
+                Text("Copy", fontWeight = FontWeight.Medium, maxLines = 1)
             }
         }
 
@@ -1258,55 +1270,51 @@ fun SaveButtonsPanel(
         if (onDelete != null) {
             FilledTonalButton(
                 onClick = onDelete,
+                modifier = Modifier.weight(1f).height(40.dp),
                 shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
                     containerColor = ExpenseRed.copy(alpha = 0.1f),
                     contentColor = ExpenseRed
                 )
             ) {
-                Icon(Icons.Default.Delete, null, Modifier.size(18.dp))
+                Icon(Icons.Outlined.DeleteOutline, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Delete", fontWeight = FontWeight.Medium)
+                Text("Delete", fontWeight = FontWeight.Medium, maxLines = 1)
             }
         }
 
-        // Save Button - primary filled
-        Button(
+        // Save Button - green tinted background
+        FilledTonalButton(
             onClick = onSave,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).height(40.dp),
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = IncomeGreen,
-                contentColor = Color.White
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 2.dp,
-                pressedElevation = 4.dp
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = IncomeGreen.copy(alpha = 0.1f),
+                contentColor = IncomeGreen
             )
         ) {
-            Icon(Icons.Default.Check, null, Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = "Save",
-                modifier = Modifier.padding(vertical = 2.dp),
-                fontWeight = FontWeight.SemiBold
-            )
+            Icon(Icons.Outlined.Save, null, Modifier.size(16.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("Save", fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
 
         // Continue Button (new transactions only)
         if (!isEditing) {
             FilledTonalButton(
                 onClick = onContinue,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Icon(Icons.Default.AddCircleOutline, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = "Continue",
-                    modifier = Modifier.padding(vertical = 2.dp),
-                    fontWeight = FontWeight.SemiBold
+                modifier = Modifier.weight(1f).height(40.dp),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = TransferBlue.copy(alpha = 0.1f),
+                    contentColor = TransferBlue
                 )
+            ) {
+                Icon(Icons.Outlined.PlayCircleOutline, null, Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Continue", fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }

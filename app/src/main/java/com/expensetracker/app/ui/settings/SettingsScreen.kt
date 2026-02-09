@@ -198,9 +198,9 @@ fun SettingsScreen(
 
                 item {
                     SettingsItem(
-                        icon = Icons.Default.TableChart,
+                        icon = Icons.Default.GridOn,
                         title = "Export to Excel",
-                        subtitle = if (userPreferences.isPremium) "Export all transactions" else "Premium feature",
+                        subtitle = if (userPreferences.isPremium) "Export transactions to Excel" else "Premium feature",
                         onClick = {
                             pendingAction = PendingExportAction.EXCEL
                             periodDialogTitle = "Export to Excel"
@@ -214,7 +214,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.PictureAsPdf,
                         title = "Export to PDF",
-                        subtitle = if (userPreferences.isPremium) "Generate expense report" else "Premium feature",
+                        subtitle = if (userPreferences.isPremium) "Generate transactions report" else "Premium feature",
                         onClick = {
                             pendingAction = PendingExportAction.PDF
                             periodDialogTitle = "Export to PDF"
@@ -228,7 +228,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.Backup,
                         title = "Backup",
-                        subtitle = if (userPreferences.isPremium) "Create data backup" else "Premium feature",
+                        subtitle = if (userPreferences.isPremium) "Create data backup (JSON)" else "Premium feature",
                         onClick = {
                             pendingAction = PendingExportAction.BACKUP
                             periodDialogTitle = "Backup Data"
@@ -242,7 +242,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.Restore,
                         title = "Restore",
-                        subtitle = if (userPreferences.isPremium) "Restore from backup" else "Premium feature",
+                        subtitle = if (userPreferences.isPremium) "Restore from backup (JSON)" else "Premium feature",
                         onClick = { showRestoreConfirmDialog = true },
                         isPremium = !userPreferences.isPremium
                     )

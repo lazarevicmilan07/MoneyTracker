@@ -159,10 +159,14 @@ class TransactionViewModel @Inject constructor(
 
     private var shouldClearAmount = false
 
-    fun setCurrentField(field: TransactionField) {
+    private fun markClearAmountIfNeeded(field: TransactionField) {
         if (field == TransactionField.AMOUNT && _uiState.value.amount.isNotEmpty()) {
             shouldClearAmount = true
         }
+    }
+
+    fun setCurrentField(field: TransactionField) {
+        markClearAmountIfNeeded(field)
         _uiState.value = _uiState.value.copy(currentField = field)
     }
 
@@ -235,6 +239,7 @@ class TransactionViewModel @Inject constructor(
                 _availableSubcategories.value = subcategories
                 if (subcategories.isEmpty()) {
                     // No subcategories, use parent category directly, move to amount
+                    markClearAmountIfNeeded(TransactionField.AMOUNT)
                     _uiState.value = _uiState.value.copy(
                         selectedCategoryId = categoryId,
                         selectedParentCategoryId = categoryId,
@@ -256,6 +261,7 @@ class TransactionViewModel @Inject constructor(
 
     // Called when clicking on category that has subcategories showing - to select parent only
     fun selectParentCategoryOnly(categoryId: Long) {
+        markClearAmountIfNeeded(TransactionField.AMOUNT)
         _uiState.value = _uiState.value.copy(
             selectedCategoryId = categoryId,
             selectedParentCategoryId = categoryId,
@@ -265,6 +271,7 @@ class TransactionViewModel @Inject constructor(
     }
 
     fun selectSubcategory(subcategoryId: Long) {
+        markClearAmountIfNeeded(TransactionField.AMOUNT)
         _uiState.value = _uiState.value.copy(
             selectedCategoryId = subcategoryId,
             currentField = TransactionField.AMOUNT
@@ -318,6 +325,7 @@ class TransactionViewModel @Inject constructor(
     }
 
     fun selectToAccount(accountId: Long?) {
+        markClearAmountIfNeeded(TransactionField.AMOUNT)
         _uiState.value = _uiState.value.copy(
             toAccountId = accountId,
             currentField = TransactionField.AMOUNT
