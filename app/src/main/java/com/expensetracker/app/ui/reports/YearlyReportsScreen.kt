@@ -318,9 +318,11 @@ fun YearlySummaryCard(
             )
             Text(
                 text = formatCurrency(balance, currency),
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = balanceColor
+                color = balanceColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
@@ -337,25 +339,25 @@ fun YearlySummaryCard(
                 tonalElevation = 0.dp
             ) {
                 Row(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Surface(
                         shape = CircleShape,
                         color = IncomeGreen.copy(alpha = 0.2f),
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowDownward,
                                 contentDescription = null,
                                 tint = IncomeGreen,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Income",
                             style = MaterialTheme.typography.labelSmall,
@@ -363,7 +365,7 @@ fun YearlySummaryCard(
                         )
                         Text(
                             text = formatCurrency(income, currency),
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = IncomeGreen,
                             maxLines = 1,
@@ -380,25 +382,25 @@ fun YearlySummaryCard(
                 tonalElevation = 0.dp
             ) {
                 Row(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Surface(
                         shape = CircleShape,
                         color = ExpenseRed.copy(alpha = 0.2f),
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowUpward,
                                 contentDescription = null,
                                 tint = ExpenseRed,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Expenses",
                             style = MaterialTheme.typography.labelSmall,
@@ -406,7 +408,7 @@ fun YearlySummaryCard(
                         )
                         Text(
                             text = formatCurrency(expense, currency),
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = ExpenseRed,
                             maxLines = 1,
@@ -494,8 +496,9 @@ fun MonthlyBreakdownCard(
                                 text = formatCurrency(data.income, currency),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = IncomeGreen,
-                                modifier = Modifier.width(80.dp),
-                                textAlign = TextAlign.End
+                                modifier = Modifier.width(110.dp),
+                                textAlign = TextAlign.End,
+                                maxLines = 1
                             )
                         }
 
@@ -526,8 +529,9 @@ fun MonthlyBreakdownCard(
                                 text = formatCurrency(data.expense, currency),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = ExpenseRed,
-                                modifier = Modifier.width(80.dp),
-                                textAlign = TextAlign.End
+                                modifier = Modifier.width(110.dp),
+                                textAlign = TextAlign.End,
+                                maxLines = 1
                             )
                         }
                     }

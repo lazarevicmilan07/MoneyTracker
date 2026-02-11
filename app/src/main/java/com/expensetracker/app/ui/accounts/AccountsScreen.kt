@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.data.local.entity.AccountType
@@ -217,9 +218,11 @@ fun TotalBalanceCard(
             )
             Text(
                 text = formatCurrency(totalBalance, currency),
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = balanceColor
+                color = balanceColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 

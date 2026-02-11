@@ -90,6 +90,7 @@ import com.expensetracker.app.data.local.entity.TransactionType
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.ui.components.CategoryIcon
+import com.expensetracker.app.ui.components.formatNumber
 import com.expensetracker.app.ui.components.getCurrencySymbol
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
@@ -384,8 +385,16 @@ private fun HeroAmountDisplay(
                 modifier = Modifier.padding(top = 4.dp)
             )
             Spacer(modifier = Modifier.width(2.dp))
+            val displayAmount = when {
+                amount.isEmpty() -> "0"
+                isActive -> amount
+                else -> {
+                    val parsed = amount.toDoubleOrNull()
+                    if (parsed != null) formatNumber(parsed, currency) else amount
+                }
+            }
             Text(
-                text = if (amount.isNotEmpty()) amount else "0",
+                text = displayAmount,
                 style = MaterialTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = (-1).sp
@@ -759,7 +768,7 @@ fun BottomSelectionPanel(
                             typeColor = typeColor,
                             onDigit = { viewModel.appendToAmount(it) },
                             onDelete = { viewModel.deleteLastDigit() },
-                            onDone = { viewModel.setCurrentField(TransactionField.NOTE) },
+                            onDone = { viewModel.formatAmount(); viewModel.setCurrentField(TransactionField.NOTE) },
                             onClose = { viewModel.setCurrentField(TransactionField.NONE) }
                         )
                         SaveButtonsPanel(
@@ -1130,57 +1139,67 @@ fun AmountInputPanel(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Modern numeric keypad
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            // Row 1: 1, 2, 3, Backspace
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+        // Modern numeric keypad - left 3 columns + right action column
+        val rowHeight = 46.dp
+        val gap = 4.dp
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(gap)
+        ) {
+            // Left side: digit keys (3 columns x 4 rows)
+            Column(
+                modifier = Modifier.weight(3f),
+                verticalArrangement = Arrangement.spacedBy(gap)
             ) {
-                NumPadKey(text = "1", modifier = Modifier.weight(1f)) { onDigit("1") }
-                NumPadKey(text = "2", modifier = Modifier.weight(1f)) { onDigit("2") }
-                NumPadKey(text = "3", modifier = Modifier.weight(1f)) { onDigit("3") }
-                NumPadKey(
-                    icon = Icons.AutoMirrored.Filled.Backspace,
-                    modifier = Modifier.weight(1f),
-                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                ) { onDelete() }
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    NumPadKey(text = "1", modifier = Modifier.weight(1f)) { onDigit("1") }
+                    NumPadKey(text = "2", modifier = Modifier.weight(1f)) { onDigit("2") }
+                    NumPadKey(text = "3", modifier = Modifier.weight(1f)) { onDigit("3") }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    NumPadKey(text = "4", modifier = Modifier.weight(1f)) { onDigit("4") }
+                    NumPadKey(text = "5", modifier = Modifier.weight(1f)) { onDigit("5") }
+                    NumPadKey(text = "6", modifier = Modifier.weight(1f)) { onDigit("6") }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    NumPadKey(text = "7", modifier = Modifier.weight(1f)) { onDigit("7") }
+                    NumPadKey(text = "8", modifier = Modifier.weight(1f)) { onDigit("8") }
+                    NumPadKey(text = "9", modifier = Modifier.weight(1f)) { onDigit("9") }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    NumPadKey(text = "0", modifier = Modifier.weight(2f)) { onDigit("0") }
+                    NumPadKey(text = ".", modifier = Modifier.weight(1f)) { onDigit(".") }
+                }
             }
 
-            // Row 2: 4, 5, 6
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            // Right side: Delete (2 rows) + Done (2 rows)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(gap)
             ) {
-                NumPadKey(text = "4", modifier = Modifier.weight(1f)) { onDigit("4") }
-                NumPadKey(text = "5", modifier = Modifier.weight(1f)) { onDigit("5") }
-                NumPadKey(text = "6", modifier = Modifier.weight(1f)) { onDigit("6") }
-                Spacer(modifier = Modifier.weight(1f).height(46.dp))
-            }
-
-            // Row 3: 7, 8, 9, Decimal
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                NumPadKey(text = "7", modifier = Modifier.weight(1f)) { onDigit("7") }
-                NumPadKey(text = "8", modifier = Modifier.weight(1f)) { onDigit("8") }
-                NumPadKey(text = "9", modifier = Modifier.weight(1f)) { onDigit("9") }
-                NumPadKey(text = ".", modifier = Modifier.weight(1f)) { onDigit(".") }
-            }
-
-            // Row 4: Empty, 0, Empty, Done
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Spacer(modifier = Modifier.weight(1f).height(46.dp))
-                NumPadKey(text = "0", modifier = Modifier.weight(1f)) { onDigit("0") }
-                Spacer(modifier = Modifier.weight(1f).height(46.dp))
+                // Delete button - spans 2 rows
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(46.dp)
+                        .fillMaxWidth()
+                        .height(rowHeight * 2 + gap)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(ExpenseRed.copy(alpha = 0.1f))
+                        .clickable(onClick = onDelete),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Backspace,
+                        contentDescription = "Delete",
+                        modifier = Modifier.size(22.dp),
+                        tint = ExpenseRed
+                    )
+                }
+                // Done/Check button - spans 2 rows
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(rowHeight * 2 + gap)
                         .clip(RoundedCornerShape(14.dp))
                         .background(IncomeGreen.copy(alpha = 0.1f))
                         .clickable(onClick = onDone),
