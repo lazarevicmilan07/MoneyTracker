@@ -161,12 +161,12 @@ fun MonthlyBarChart(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Text(
-                        text = "Income: ${formatCurrency(data.income, currency)}",
+                        text = formatCurrency(data.income, currency),
                         style = MaterialTheme.typography.labelMedium,
                         color = IncomeGreen
                     )
                     Text(
-                        text = "Expense: ${formatCurrency(data.expense, currency)}",
+                        text = formatCurrency(data.expense, currency),
                         style = MaterialTheme.typography.labelMedium,
                         color = ExpenseRed
                     )

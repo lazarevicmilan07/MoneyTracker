@@ -65,3 +65,30 @@ private fun findLocaleForCurrency(currencyCode: String): Locale {
         }
     } ?: Locale.getDefault()
 }
+
+/**
+ * Formats a raw amount input string with proper separators while preserving
+ * the exact digits the user has typed (no rounding or trailing zero addition).
+ * Uses dot for thousands and comma for decimals (e.g. "200000.00" -> "200.000,00").
+ */
+fun formatAmountInput(raw: String): String {
+    if (raw.isEmpty()) return "0"
+
+    val negative = raw.startsWith("-")
+    val abs = if (negative) raw.substring(1) else raw
+
+    val parts = abs.split(".")
+    val intPart = parts[0].ifEmpty { "0" }
+    val decPart = if (parts.size > 1) parts[1] else null
+
+    // Format integer part with dot as thousands separator
+    val formatted = intPart.reversed().chunked(3).joinToString(".").reversed()
+
+    val result = if (decPart != null) {
+        "$formatted,$decPart"
+    } else {
+        formatted
+    }
+
+    return if (negative) "-$result" else result
+}

@@ -90,6 +90,7 @@ import com.expensetracker.app.data.local.entity.TransactionType
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.ui.components.CategoryIcon
+import com.expensetracker.app.ui.components.formatAmountInput
 import com.expensetracker.app.ui.components.formatNumber
 import com.expensetracker.app.ui.components.getCurrencySymbol
 import com.expensetracker.app.ui.theme.ExpenseRed
@@ -387,7 +388,7 @@ private fun HeroAmountDisplay(
             Spacer(modifier = Modifier.width(2.dp))
             val displayAmount = when {
                 amount.isEmpty() -> "0"
-                isActive -> amount
+                isActive -> formatAmountInput(amount)
                 else -> {
                     val parsed = amount.toDoubleOrNull()
                     if (parsed != null) formatNumber(parsed, currency) else amount

@@ -153,7 +153,7 @@ fun DashboardScreen(
                             }
                         )
                     },
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 140.dp),
+                contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 16.dp, bottom = 140.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Month Selector
@@ -659,7 +659,7 @@ fun CompactTransactionItem(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .padding(horizontal = 6.dp, vertical = 6.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -672,10 +672,9 @@ fun CompactTransactionItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Middle section: fixed-proportion columns so note/account always align
-            // Left column: category/subcategory
+            // Left column: category/subcategory — sized to fit longest default categories
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.width(110.dp),
                 verticalArrangement = if (hasSubcategory && !isTransfer) Arrangement.Top else Arrangement.Center
             ) {
                 Text(
@@ -696,9 +695,9 @@ fun CompactTransactionItem(
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Right column: note/account — same fixed weight so position is consistent
+            // Right column: note/account — takes remaining space, truncates if amount is long
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = if (hasNote) Arrangement.Top else Arrangement.Center
@@ -717,14 +716,16 @@ fun CompactTransactionItem(
                         text = "$accountName -> $toAccountName",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 } else if (accountName != null) {
                     Text(
                         text = accountName,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -740,8 +741,9 @@ fun CompactTransactionItem(
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = amountColor,
-                modifier = Modifier.widthIn(min = 70.dp),
-                textAlign = TextAlign.End
+                modifier = Modifier.width(120.dp),
+                textAlign = TextAlign.End,
+                maxLines = 1
             )
         }
     }
