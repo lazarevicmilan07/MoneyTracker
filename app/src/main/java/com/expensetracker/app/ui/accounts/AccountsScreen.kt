@@ -31,7 +31,8 @@ import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.AccountTypeNames
 import com.expensetracker.app.domain.model.AccountWithBalance
 import com.expensetracker.app.ui.components.AvailableColors
-import com.expensetracker.app.ui.components.formatCurrency
+import com.expensetracker.app.ui.components.CurrencyAmountText
+import com.expensetracker.app.ui.components.formatNumber
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import com.expensetracker.app.ui.components.AdBanner
@@ -216,8 +217,9 @@ fun TotalBalanceCard(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = formatCurrency(totalBalance, currency),
+            CurrencyAmountText(
+                amount = totalBalance,
+                currencyCode = currency,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = balanceColor,
@@ -322,7 +324,7 @@ fun AccountListItem(
             }
 
             Text(
-                text = formatCurrency(currentBalance, currency),
+                text = formatNumber(currentBalance, currency),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = if (currentBalance >= 0)

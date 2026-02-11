@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.domain.model.CategoryBreakdown
-import com.expensetracker.app.ui.components.formatCurrency
+import com.expensetracker.app.ui.components.CurrencyAmountText
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import java.time.YearMonth
@@ -312,8 +312,9 @@ fun ReportsSummaryCard(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = formatCurrency(balance, currency),
+            CurrencyAmountText(
+                amount = balance,
+                currencyCode = currency,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = balanceColor,
@@ -359,8 +360,9 @@ fun ReportsSummaryCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = formatCurrency(income, currency),
+                        CurrencyAmountText(
+                            amount = income,
+                            currencyCode = currency,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = IncomeGreen,
@@ -402,8 +404,9 @@ fun ReportsSummaryCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = formatCurrency(expense, currency),
+                        CurrencyAmountText(
+                            amount = expense,
+                            currencyCode = currency,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = ExpenseRed,
@@ -473,8 +476,9 @@ fun BreakdownCard(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = formatCurrency(item.amount, currency),
+                    CurrencyAmountText(
+                        amount = item.amount,
+                        currencyCode = currency,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -562,13 +566,31 @@ fun PieChart(
 
         if (selectedIndex in breakdown.indices) {
             val item = breakdown[selectedIndex]
-            Text(
-                text = "${item.category?.name ?: "Uncategorized"}: ${formatCurrency(item.amount, currency)} (${item.percentage.toInt()}%)",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (accentColor != Color.Unspecified) accentColor else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            val tooltipColor = if (accentColor != Color.Unspecified) accentColor else MaterialTheme.colorScheme.onSurface
+            Row(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = "${item.category?.name ?: "Uncategorized"}: ",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = tooltipColor
+                )
+                CurrencyAmountText(
+                    amount = item.amount,
+                    currencyCode = currency,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = tooltipColor
+                )
+                Text(
+                    text = " (${item.percentage.toInt()}%)",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = tooltipColor
+                )
+            }
         }
     }
 }

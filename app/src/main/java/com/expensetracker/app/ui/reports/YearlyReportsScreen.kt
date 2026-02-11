@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.expensetracker.app.ui.components.CurrencyAmountText
 import com.expensetracker.app.ui.components.MonthlyBarChart
-import com.expensetracker.app.ui.components.formatCurrency
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import java.time.Month
@@ -316,8 +316,9 @@ fun YearlySummaryCard(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = formatCurrency(balance, currency),
+            CurrencyAmountText(
+                amount = balance,
+                currencyCode = currency,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = balanceColor,
@@ -363,8 +364,9 @@ fun YearlySummaryCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = formatCurrency(income, currency),
+                        CurrencyAmountText(
+                            amount = income,
+                            currencyCode = currency,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = IncomeGreen,
@@ -406,8 +408,9 @@ fun YearlySummaryCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = formatCurrency(expense, currency),
+                        CurrencyAmountText(
+                            amount = expense,
+                            currencyCode = currency,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = ExpenseRed,
@@ -461,8 +464,9 @@ fun MonthlyBreakdownCard(
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
-                            Text(
-                                text = formatCurrency(balance, currency),
+                            CurrencyAmountText(
+                                amount = balance,
+                                currencyCode = currency,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (balance >= 0) IncomeGreen else ExpenseRed
@@ -492,14 +496,18 @@ fun MonthlyBreakdownCard(
                                 )
                             }
                             Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = formatCurrency(data.income, currency),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = IncomeGreen,
+                            Box(
                                 modifier = Modifier.width(110.dp),
-                                textAlign = TextAlign.End,
-                                maxLines = 1
-                            )
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                CurrencyAmountText(
+                                    amount = data.income,
+                                    currencyCode = currency,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = IncomeGreen,
+                                    maxLines = 1
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -525,14 +533,18 @@ fun MonthlyBreakdownCard(
                                 )
                             }
                             Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = formatCurrency(data.expense, currency),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = ExpenseRed,
+                            Box(
                                 modifier = Modifier.width(110.dp),
-                                textAlign = TextAlign.End,
-                                maxLines = 1
-                            )
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                CurrencyAmountText(
+                                    amount = data.expense,
+                                    currencyCode = currency,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = ExpenseRed,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
 

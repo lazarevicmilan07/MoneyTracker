@@ -160,13 +160,15 @@ fun MonthlyBarChart(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text(
-                        text = formatCurrency(data.income, currency),
+                    CurrencyAmountText(
+                        amount = data.income,
+                        currencyCode = currency,
                         style = MaterialTheme.typography.labelMedium,
                         color = IncomeGreen
                     )
-                    Text(
-                        text = formatCurrency(data.expense, currency),
+                    CurrencyAmountText(
+                        amount = data.expense,
+                        currencyCode = currency,
                         style = MaterialTheme.typography.labelMedium,
                         color = ExpenseRed
                     )

@@ -38,7 +38,9 @@ import com.expensetracker.app.data.local.entity.TransactionType
 import com.expensetracker.app.domain.model.CategoryBreakdown
 import com.expensetracker.app.domain.model.ExpenseWithCategory
 import com.expensetracker.app.ui.components.CategoryIcon
+import com.expensetracker.app.ui.components.CurrencyAmountText
 import com.expensetracker.app.ui.components.formatCurrency
+import com.expensetracker.app.ui.components.formatNumber
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import com.expensetracker.app.ui.theme.TransferBlue
@@ -365,8 +367,9 @@ fun SummaryCard(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = formatCurrency(balance, currency),
+            CurrencyAmountText(
+                amount = balance,
+                currencyCode = currency,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = balanceColor,
@@ -414,8 +417,9 @@ fun SummaryCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = formatCurrency(income, currency),
+                        CurrencyAmountText(
+                            amount = income,
+                            currencyCode = currency,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = IncomeGreen,
@@ -458,8 +462,9 @@ fun SummaryCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = formatCurrency(expense, currency),
+                        CurrencyAmountText(
+                            amount = expense,
+                            currencyCode = currency,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = ExpenseRed,
@@ -734,14 +739,14 @@ fun CompactTransactionItem(
 
             Text(
                 text = when {
-                    isTransfer -> formatCurrency(transaction.expense.amount, currency)
-                    isExpense -> "-${formatCurrency(transaction.expense.amount, currency)}"
-                    else -> "+${formatCurrency(transaction.expense.amount, currency)}"
+                    isTransfer -> formatNumber(transaction.expense.amount, currency)
+                    isExpense -> "-${formatNumber(transaction.expense.amount, currency)}"
+                    else -> "+${formatNumber(transaction.expense.amount, currency)}"
                 },
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = amountColor,
-                modifier = Modifier.width(120.dp),
+                modifier = Modifier.width(100.dp),
                 textAlign = TextAlign.End,
                 maxLines = 1
             )

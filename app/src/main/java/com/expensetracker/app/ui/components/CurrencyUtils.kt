@@ -1,5 +1,18 @@
 package com.expensetracker.app.ui.components
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Currency
@@ -91,4 +104,45 @@ fun formatAmountInput(raw: String): String {
     }
 
     return if (negative) "-$result" else result
+}
+
+/**
+ * Displays a currency amount with the symbol in smaller font aligned to the
+ * top of the amount text, matching the transaction screen hero style.
+ */
+@Composable
+fun CurrencyAmountText(
+    amount: Double,
+    currencyCode: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    fontWeight: FontWeight? = null,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
+    val symbol = getCurrencySymbol(currencyCode)
+    val formatted = formatNumber(amount, currencyCode)
+    val effectiveStyle = if (fontWeight != null) style.copy(fontWeight = fontWeight) else style
+    val currencyStyle = effectiveStyle.copy(
+        fontSize = effectiveStyle.fontSize * 0.75f,
+        fontWeight = FontWeight.Medium
+    )
+
+    Row(modifier = modifier, verticalAlignment = Alignment.Top) {
+        Text(
+            text = symbol,
+            style = currencyStyle,
+            color = color,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+        Spacer(modifier = Modifier.width(1.dp))
+        Text(
+            text = formatted,
+            style = effectiveStyle,
+            color = color,
+            maxLines = maxLines,
+            overflow = overflow
+        )
+    }
 }
