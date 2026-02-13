@@ -10,7 +10,7 @@ import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.domain.model.CategoryBreakdown
 import com.expensetracker.app.domain.model.ExpenseWithCategory
 import com.expensetracker.app.domain.model.MonthlyStats
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -60,21 +60,14 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             // Combine month selection, categories, and expenses reactively
             combine(
-                _selectedMonth,
                 categoryRepository.getAllCategories(),
                 accountRepository.getAllAccounts(),
                 _selectedMonth.flatMapLatest { month ->
                     expenseRepository.getExpensesByMonth(month.year, month.monthValue)
                 }
-            ) { month, categories, accounts, expenses ->
-                arrayOf(month, categories, accounts, expenses)
-            }.collect { data ->
-                @Suppress("UNCHECKED_CAST")
-                val categories = data[1] as List<Category>
-                @Suppress("UNCHECKED_CAST")
-                val accounts = data[2] as List<com.expensetracker.app.domain.model.Account>
-                @Suppress("UNCHECKED_CAST")
-                val expenses = data[3] as List<com.expensetracker.app.domain.model.Expense>
+            ) { categories, accounts, expenses ->
+                Triple(categories, accounts, expenses)
+            }.collect { (categories, accounts, expenses) ->
                 updateUiState(categories, accounts, expenses)
             }
         }

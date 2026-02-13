@@ -3,6 +3,7 @@ package com.expensetracker.app.data.local.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.expensetracker.app.domain.model.AccountType
 
 @Entity(tableName = "accounts")
 data class AccountEntity(
@@ -16,15 +17,6 @@ data class AccountEntity(
     val isDefault: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )
-
-enum class AccountType {
-    CASH,
-    BANK,
-    CREDIT_CARD,
-    SAVINGS,
-    INVESTMENT,
-    OTHER
-}
 
 data class AccountWithBalanceEntity(
     @Embedded val account: AccountEntity,

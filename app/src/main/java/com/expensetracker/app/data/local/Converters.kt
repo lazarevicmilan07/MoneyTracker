@@ -1,8 +1,8 @@
 package com.expensetracker.app.data.local
 
 import androidx.room.TypeConverter
-import com.expensetracker.app.data.local.entity.AccountType
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.AccountType
+import com.expensetracker.app.domain.model.TransactionType
 
 class Converters {
 

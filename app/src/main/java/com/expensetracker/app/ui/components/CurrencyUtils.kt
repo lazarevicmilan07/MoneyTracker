@@ -68,15 +68,19 @@ fun getCurrencySymbol(currencyCode: String): String {
     }
 }
 
+private val localeCache = mutableMapOf<String, Locale>()
+
 private fun findLocaleForCurrency(currencyCode: String): Locale {
-    // Find a locale whose default currency matches, so formatting is native
-    return Locale.getAvailableLocales().firstOrNull { locale ->
-        try {
-            Currency.getInstance(locale)?.currencyCode == currencyCode
-        } catch (e: Exception) {
-            false
-        }
-    } ?: Locale.getDefault()
+    return localeCache.getOrPut(currencyCode) {
+        // Find a locale whose default currency matches, so formatting is native
+        Locale.getAvailableLocales().firstOrNull { locale ->
+            try {
+                Currency.getInstance(locale)?.currencyCode == currencyCode
+            } catch (e: Exception) {
+                false
+            }
+        } ?: Locale.getDefault()
+    }
 }
 
 /**

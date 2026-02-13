@@ -22,8 +22,7 @@ fun AdBanner(
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
 
-    // TODO: Change back to `if (!isPremium)` before release
-    if (true) {
+    if (!isPremium) {
         AndroidView(
             modifier = modifier.fillMaxWidth(),
             factory = { context ->

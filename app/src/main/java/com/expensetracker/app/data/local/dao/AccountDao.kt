@@ -8,7 +8,6 @@ import androidx.room.Query
 import androidx.room.Update
 import com.expensetracker.app.data.local.entity.AccountEntity
 import com.expensetracker.app.data.local.entity.AccountWithBalanceEntity
-import com.expensetracker.app.data.local.entity.TransactionType
 import kotlinx.coroutines.flow.Flow
 
 @Dao

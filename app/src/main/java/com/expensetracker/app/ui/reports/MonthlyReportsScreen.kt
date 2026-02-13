@@ -6,20 +6,42 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,10 +58,10 @@ import kotlin.math.roundToInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.domain.model.CategoryBreakdown
 import com.expensetracker.app.ui.components.CurrencyAmountText
+import com.expensetracker.app.ui.components.MonthSelector
+import com.expensetracker.app.ui.components.MonthYearPickerDialog
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -162,129 +184,6 @@ fun MonthlyReportsScreen(
         }
         }
     }
-}
-
-@Composable
-fun MonthSelector(
-    selectedMonth: YearMonth,
-    onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit,
-    onMonthClick: () -> Unit = {}
-) {
-    val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onPreviousMonth) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = "Previous month")
-        }
-
-        Text(
-            text = selectedMonth.format(formatter),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.clickable(onClick = onMonthClick)
-        )
-
-        IconButton(
-            onClick = onNextMonth
-        ) {
-            Icon(Icons.Default.ChevronRight, contentDescription = "Next month")
-        }
-    }
-}
-
-@Composable
-fun MonthYearPickerDialog(
-    selectedMonth: YearMonth,
-    onMonthSelected: (YearMonth) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var selectedYear by remember { mutableIntStateOf(selectedMonth.year) }
-    var selectedMonthValue by remember { mutableIntStateOf(selectedMonth.monthValue) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select Month and Year", style = MaterialTheme.typography.titleMedium) },
-        text = {
-            Column {
-                // Year selector
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { selectedYear-- }) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Previous year")
-                    }
-                    Text(
-                        text = selectedYear.toString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    IconButton(onClick = { selectedYear++ }) {
-                        Icon(Icons.Default.ChevronRight, contentDescription = "Next year")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Month grid
-                val months = listOf(
-                    "Jan", "Feb", "Mar", "Apr",
-                    "May", "Jun", "Jul", "Aug",
-                    "Sep", "Oct", "Nov", "Dec"
-                )
-
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    for (row in 0..2) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            for (col in 0..3) {
-                                val monthIndex = row * 4 + col + 1
-                                val isSelected = monthIndex == selectedMonthValue
-                                Surface(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .clickable { selectedMonthValue = monthIndex },
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary
-                                           else MaterialTheme.colorScheme.surfaceVariant,
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text(
-                                        text = months[monthIndex - 1],
-                                        modifier = Modifier.padding(vertical = 12.dp),
-                                        textAlign = TextAlign.Center,
-                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                               else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onMonthSelected(YearMonth.of(selectedYear, selectedMonthValue))
-            }) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }
 
 @Composable
@@ -545,7 +444,6 @@ fun PieChart(
                     val sliceColor = breakdown[index].category?.color ?: Color.Gray
                     val isSelected = index == selectedIndex
                     val drawStroke = if (isSelected) strokeWidth * 1.15f else strokeWidth
-                    val drawRadius = if (isSelected) arcRadius else arcRadius
                     val adjustedSweep = (sweep - gapDegrees).coerceAtLeast(0.5f)
                     val adjustedStart = start + gapDegrees / 2f
                     drawArc(
@@ -553,8 +451,8 @@ fun PieChart(
                         startAngle = adjustedStart,
                         sweepAngle = adjustedSweep,
                         useCenter = false,
-                        topLeft = Offset(centerX - drawRadius, centerY - drawRadius),
-                        size = Size(drawRadius * 2f, drawRadius * 2f),
+                        topLeft = Offset(centerX - arcRadius, centerY - arcRadius),
+                        size = Size(arcRadius * 2f, arcRadius * 2f),
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
                             width = drawStroke,
                             cap = androidx.compose.ui.graphics.StrokeCap.Butt

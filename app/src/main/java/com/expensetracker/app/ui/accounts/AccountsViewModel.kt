@@ -3,7 +3,7 @@ package com.expensetracker.app.ui.accounts
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.expensetracker.app.data.local.entity.AccountType
+import com.expensetracker.app.domain.model.AccountType
 import com.expensetracker.app.data.repository.AccountRepository
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.AccountWithBalance

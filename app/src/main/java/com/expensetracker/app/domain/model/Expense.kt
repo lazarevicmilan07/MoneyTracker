@@ -1,7 +1,12 @@
 package com.expensetracker.app.domain.model
 
-import com.expensetracker.app.data.local.entity.TransactionType
 import java.time.LocalDate
+
+enum class TransactionType {
+    EXPENSE,
+    INCOME,
+    TRANSFER
+}
 
 data class Expense(
     val id: Long = 0,

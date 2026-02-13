@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.expensetracker.app.data.local.entity.ExpenseEntity
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 
 @Dao

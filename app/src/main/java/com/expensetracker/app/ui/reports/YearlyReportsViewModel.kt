@@ -2,7 +2,7 @@ package com.expensetracker.app.ui.reports
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.TransactionType
 import com.expensetracker.app.data.repository.CategoryRepository
 import com.expensetracker.app.data.repository.ExpenseRepository
 import com.expensetracker.app.domain.model.Category
