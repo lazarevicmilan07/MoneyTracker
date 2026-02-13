@@ -44,7 +44,7 @@ import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -386,7 +386,7 @@ fun NavBarItem(
             .clip(RoundedCornerShape(8.dp))
             .clickable(
                 interactionSource = interactionSource,
-                indication = rememberRipple(bounded = true, color = color),
+                indication = ripple(bounded = true, color = color),
                 onClick = onClick
             )
             .padding(vertical = 4.dp),

@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
@@ -8,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.expensetracker.app"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.expensetracker.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
 
@@ -60,10 +61,6 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"
-    }
-
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -73,15 +70,15 @@ android {
 
 dependencies {
     // Core Android
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.activity:activity-compose:1.9.2")
 
     // Material Design (for XML themes)
     implementation("com.google.android.material:material:1.11.0")
 
     // Compose BOM - use consistent versions
-    val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
+    val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
@@ -96,8 +93,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.6")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("androidx.navigation:navigation-compose:2.8.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
@@ -105,8 +102,8 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     // Hilt Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.50")
-    ksp("com.google.dagger:hilt-compiler:2.50")
+    implementation("com.google.dagger:hilt-android:2.55")
+    ksp("com.google.dagger:hilt-compiler:2.55")
 
     // DataStore Preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
