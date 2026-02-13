@@ -31,7 +31,8 @@
       "Bash(ls:*)",
       "Bash(\"C:/Users/kompj/.gradle/wrapper/dists/gradle-8.13-bin/5xuhj0ry160q40clulazy9h7d/gradle-8.13/bin/gradle\" -p \"Z:/Claude/SimpleExpenseTracker\" wrapper --gradle-version 8.13)",
       "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" \"/c/Users/kompj/.gradle/wrapper/dists/gradle-8.13-bin/5xuhj0ry160q40clulazy9h7d/gradle-8.13/bin/gradle\":*)",
-      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" \"Z:/Claude/SimpleExpenseTracker/gradlew.bat\":*)"
+      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" \"Z:/Claude/SimpleExpenseTracker/gradlew.bat\":*)",
+      "Bash(git check-ignore:*)"
     ]
   }
 }
