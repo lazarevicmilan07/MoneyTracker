@@ -20,9 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -154,16 +152,6 @@ fun PremiumScreen(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    PremiumFeatureItem(
-                        icon = Icons.Default.TableChart,
-                        title = "Export to Excel",
-                        description = "Export all your data to spreadsheets"
-                    )
-                    PremiumFeatureItem(
-                        icon = Icons.Default.PictureAsPdf,
-                        title = "Export to PDF",
-                        description = "Generate beautiful expense reports"
-                    )
                     PremiumFeatureItem(
                         icon = Icons.Default.CloudSync,
                         title = "Backup & Restore",

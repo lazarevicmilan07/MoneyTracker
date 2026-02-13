@@ -60,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.data.preferences.PreferencesManager
@@ -88,6 +89,7 @@ fun SettingsScreen(
     var showPeriodDialog by remember { mutableStateOf(false) }
     var periodDialogTitle by remember { mutableStateOf("") }
     var showRestoreConfirmDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
 
     val excelExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -244,13 +246,12 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.GridOn,
                         title = "Export to Excel",
-                        subtitle = if (userPreferences.isPremium) "Export transactions to Excel" else "Premium feature",
+                        subtitle = "Export transactions to Excel",
                         onClick = {
                             pendingAction = PendingExportAction.EXCEL
                             periodDialogTitle = "Export to Excel"
                             showPeriodDialog = true
-                        },
-                        isPremium = !userPreferences.isPremium
+                        }
                     )
                 }
 
@@ -258,13 +259,12 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.PictureAsPdf,
                         title = "Export to PDF",
-                        subtitle = if (userPreferences.isPremium) "Generate transactions report" else "Premium feature",
+                        subtitle = "Generate transactions report",
                         onClick = {
                             pendingAction = PendingExportAction.PDF
                             periodDialogTitle = "Export to PDF"
                             showPeriodDialog = true
-                        },
-                        isPremium = !userPreferences.isPremium
+                        }
                     )
                 }
 
@@ -274,9 +274,13 @@ fun SettingsScreen(
                         title = "Backup",
                         subtitle = if (userPreferences.isPremium) "Create data backup (JSON)" else "Premium feature",
                         onClick = {
-                            pendingAction = PendingExportAction.BACKUP
-                            periodDialogTitle = "Backup Data"
-                            showPeriodDialog = true
+                            if (userPreferences.isPremium) {
+                                pendingAction = PendingExportAction.BACKUP
+                                periodDialogTitle = "Backup Data"
+                                showPeriodDialog = true
+                            } else {
+                                onShowPremium()
+                            }
                         },
                         isPremium = !userPreferences.isPremium
                     )
@@ -287,7 +291,13 @@ fun SettingsScreen(
                         icon = Icons.Default.Restore,
                         title = "Restore",
                         subtitle = if (userPreferences.isPremium) "Restore from backup (JSON)" else "Premium feature",
-                        onClick = { showRestoreConfirmDialog = true },
+                        onClick = {
+                            if (userPreferences.isPremium) {
+                                showRestoreConfirmDialog = true
+                            } else {
+                                onShowPremium()
+                            }
+                        },
                         isPremium = !userPreferences.isPremium
                     )
                 }
@@ -300,9 +310,9 @@ fun SettingsScreen(
                 item {
                     SettingsItem(
                         icon = Icons.Default.Info,
-                        title = "Version",
-                        subtitle = "1.0.0",
-                        onClick = {}
+                        title = "About",
+                        subtitle = "Version 1.0.0",
+                        onClick = { showAboutDialog = true }
                     )
                 }
 
@@ -375,6 +385,72 @@ fun SettingsScreen(
             dismissButton = {
                 TextButton(onClick = { showRestoreConfirmDialog = false }) {
                     Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // About Dialog
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            icon = {
+                Icon(
+                    Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = {
+                Text(
+                    text = "Money Tracker",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Version 1.0.0",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "\u00A9 ${java.time.Year.now().value} Money Tracker",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showAboutDialog = false
+                        try {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("market://details?id=${context.packageName}")
+                            )
+                            context.startActivity(intent)
+                        } catch (_: android.content.ActivityNotFoundException) {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                            )
+                            context.startActivity(intent)
+                        }
+                    }
+                ) {
+                    Text("Rate App")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("Close")
                 }
             }
         )

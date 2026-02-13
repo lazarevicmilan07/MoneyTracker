@@ -37,7 +37,7 @@ class PremiumViewModel @Inject constructor(
             val price = billingManager.getPremiumPrice()
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
-                price = price ?: "$4.99" // Fallback price
+                price = price ?: "$2.99" // Fallback price
             )
         }
     }
