@@ -63,7 +63,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.domain.model.AccountType
-import com.expensetracker.app.data.preferences.PreferencesManager
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.AccountTypeNames
 import com.expensetracker.app.domain.model.AccountWithBalance
@@ -72,7 +71,6 @@ import com.expensetracker.app.ui.components.CurrencyAmountText
 import com.expensetracker.app.ui.components.formatNumber
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
-import com.expensetracker.app.ui.components.AdBanner
 import com.expensetracker.app.ui.components.AvailableIcons
 import com.expensetracker.app.ui.components.CategoryIcon
 import com.expensetracker.app.ui.components.getIconForName
@@ -82,7 +80,6 @@ import com.expensetracker.app.ui.components.getIconForName
 fun AccountsScreen(
     onNavigateBack: (() -> Unit)? = null,
     currency: String,
-    preferencesManager: PreferencesManager,
     viewModel: AccountsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -167,13 +164,6 @@ fun AccountsScreen(
                 }
             }
 
-            // Ad banner at the bottom, sitting on top of the nav bar (or system bar if no nav bar)
-            AdBanner(
-                preferencesManager = preferencesManager,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .then(if (onNavigateBack != null) Modifier else Modifier.padding(bottom = 56.dp))
-            )
         }
     }
 

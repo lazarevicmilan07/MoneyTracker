@@ -50,6 +50,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,18 +62,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.expensetracker.app.BuildConfig
 import com.expensetracker.app.data.preferences.PreferencesManager
 import com.expensetracker.app.navigation.NavGraph
 import com.expensetracker.app.navigation.Screen
 import com.expensetracker.app.ui.theme.ExpenseTrackerTheme
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -179,6 +189,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isDarkMode by preferencesManager.isDarkMode.collectAsState(initial = true)
+            val isPremium by preferencesManager.isPremium.collectAsState(initial = false)
 
             ExpenseTrackerTheme(darkTheme = isDarkMode) {
                 val navController = rememberNavController()
@@ -215,6 +226,42 @@ class MainActivity : ComponentActivity() {
                     Screen.YearlyReports.route
                 )
 
+                // Routes where the ad banner should be visible
+                val adRoutes = listOf(
+                    Screen.Accounts.route,
+                    Screen.Categories.route,
+                    Screen.Settings.route
+                )
+                val showAd = !isPremium && currentRoute in adRoutes
+
+                // Create a single AdView instance that lives for the composable's lifetime
+                val configuration = LocalConfiguration.current
+                val screenWidthDp = configuration.screenWidthDp
+                val adView = remember {
+                    AdView(this@MainActivity).apply {
+                        setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this@MainActivity, screenWidthDp))
+                        adUnitId = BuildConfig.ADMOB_BANNER_ID
+                        loadAd(AdRequest.Builder().build())
+                    }
+                }
+
+                // Manage AdView lifecycle
+                val lifecycleOwner = LocalLifecycleOwner.current
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_PAUSE -> adView.pause()
+                            Lifecycle.Event.ON_RESUME -> adView.resume()
+                            else -> {}
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                        adView.destroy()
+                    }
+                }
+
                 Box(modifier = Modifier.fillMaxSize()) {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
@@ -249,10 +296,22 @@ class MainActivity : ComponentActivity() {
                     ) { _ ->
                         NavGraph(
                             navController = navController,
-                            preferencesManager = preferencesManager,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
+
+                    // Shared ad banner overlay — one AdView instance, visibility toggled per route
+                    AndroidView(
+                        factory = { adView },
+                        update = { view ->
+                            view.visibility = if (showAd) View.VISIBLE else View.GONE
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(bottom = 56.dp)
+                            .fillMaxWidth()
+                    )
 
                     // Dismiss overlay when stats submenu is open (captures taps outside submenu)
                     // Excludes the nav bar area so nav bar remains clickable

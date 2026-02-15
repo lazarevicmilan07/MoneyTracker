@@ -56,8 +56,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.domain.model.Category
-import com.expensetracker.app.data.preferences.PreferencesManager
-import com.expensetracker.app.ui.components.AdBanner
 import com.expensetracker.app.ui.components.AvailableColors
 import com.expensetracker.app.ui.components.AvailableIcons
 import com.expensetracker.app.ui.components.CategoryIcon
@@ -68,7 +66,6 @@ import com.expensetracker.app.ui.components.getIconForName
 fun CategoriesScreen(
     onNavigateBack: (() -> Unit)? = null,
     onShowPremium: () -> Unit,
-    preferencesManager: PreferencesManager,
     viewModel: CategoriesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -157,13 +154,6 @@ fun CategoriesScreen(
                 }
             }
 
-            // Ad banner at the bottom, sitting on top of the nav bar (or system bar if no nav bar)
-            AdBanner(
-                preferencesManager = preferencesManager,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .then(if (onNavigateBack != null) Modifier else Modifier.padding(bottom = 56.dp))
-            )
         }
     }
 
