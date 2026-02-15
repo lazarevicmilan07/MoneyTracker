@@ -86,7 +86,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.TransactionType
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.Category
 import com.expensetracker.app.ui.components.CategoryIcon
@@ -95,14 +95,13 @@ import com.expensetracker.app.ui.components.formatNumber
 import com.expensetracker.app.ui.components.getCurrencySymbol
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
+import com.expensetracker.app.ui.theme.TransferBlue
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-
-private val TransferBlue = Color(0xFF2196F3)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

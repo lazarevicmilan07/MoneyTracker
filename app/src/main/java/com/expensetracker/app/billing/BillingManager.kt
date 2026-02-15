@@ -2,7 +2,18 @@ package com.expensetracker.app.billing
 
 import android.app.Activity
 import android.content.Context
-import com.android.billingclient.api.*
+import android.os.Handler
+import android.os.Looper
+import com.android.billingclient.api.AcknowledgePurchaseParams
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +22,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlin.math.min
 
 @Singleton
 class BillingManager @Inject constructor(
@@ -19,6 +31,8 @@ class BillingManager @Inject constructor(
 
     private var billingClient: BillingClient? = null
     private var productDetails: ProductDetails? = null
+    private var reconnectAttempts = 0
+    private val handler = Handler(Looper.getMainLooper())
 
     private val _purchaseState = MutableStateFlow<PurchaseState>(PurchaseState.Idle)
     val purchaseState: StateFlow<PurchaseState> = _purchaseState.asStateFlow()
@@ -36,13 +50,18 @@ class BillingManager @Inject constructor(
         billingClient?.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    reconnectAttempts = 0
                     queryProductDetails()
                 }
             }
 
             override fun onBillingServiceDisconnected() {
-                // Retry connection
-                setupBillingClient()
+                // Retry with exponential backoff, max 5 attempts
+                if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                    val delayMs = min(RECONNECT_BASE_DELAY_MS * (1L shl reconnectAttempts), MAX_RECONNECT_DELAY_MS)
+                    reconnectAttempts++
+                    handler.postDelayed({ setupBillingClient() }, delayMs)
+                }
             }
         })
     }
@@ -177,5 +196,8 @@ class BillingManager @Inject constructor(
 
     companion object {
         const val PREMIUM_PRODUCT_ID = "premium_unlock"
+        private const val MAX_RECONNECT_ATTEMPTS = 5
+        private const val RECONNECT_BASE_DELAY_MS = 1000L
+        private const val MAX_RECONNECT_DELAY_MS = 30_000L
     }
 }

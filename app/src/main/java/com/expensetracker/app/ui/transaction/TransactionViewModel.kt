@@ -3,7 +3,7 @@ package com.expensetracker.app.ui.transaction
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.TransactionType
 import com.expensetracker.app.data.preferences.PreferencesManager
 import com.expensetracker.app.data.repository.AccountRepository
 import com.expensetracker.app.data.repository.CategoryRepository
@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -118,11 +119,10 @@ class TransactionViewModel @Inject constructor(
                 // If subcategoryId is set, load subcategories and show selector
                 if (expense.subcategoryId != null && expense.categoryId != null) {
                     _selectedParentCategoryId.value = expense.categoryId
-                    categoryRepository.getSubcategories(expense.categoryId).collect { subcategories ->
-                        _availableSubcategories.value = subcategories
-                        if (subcategories.isNotEmpty()) {
-                            _uiState.value = _uiState.value.copy(showSubcategorySelector = true)
-                        }
+                    val subcategories = categoryRepository.getSubcategories(expense.categoryId).first()
+                    _availableSubcategories.value = subcategories
+                    if (subcategories.isNotEmpty()) {
+                        _uiState.value = _uiState.value.copy(showSubcategorySelector = true)
                     }
                 }
             }
@@ -146,11 +146,10 @@ class TransactionViewModel @Inject constructor(
                 )
                 if (expense.subcategoryId != null && expense.categoryId != null) {
                     _selectedParentCategoryId.value = expense.categoryId
-                    categoryRepository.getSubcategories(expense.categoryId).collect { subcategories ->
-                        _availableSubcategories.value = subcategories
-                        if (subcategories.isNotEmpty()) {
-                            _uiState.value = _uiState.value.copy(showSubcategorySelector = true)
-                        }
+                    val subcategories = categoryRepository.getSubcategories(expense.categoryId).first()
+                    _availableSubcategories.value = subcategories
+                    if (subcategories.isNotEmpty()) {
+                        _uiState.value = _uiState.value.copy(showSubcategorySelector = true)
                     }
                 }
             }
@@ -235,26 +234,25 @@ class TransactionViewModel @Inject constructor(
     fun selectParentCategory(categoryId: Long) {
         _selectedParentCategoryId.value = categoryId
         viewModelScope.launch {
-            categoryRepository.getSubcategories(categoryId).collect { subcategories ->
-                _availableSubcategories.value = subcategories
-                if (subcategories.isEmpty()) {
-                    // No subcategories, use parent category directly, move to amount
-                    markClearAmountIfNeeded(TransactionField.AMOUNT)
-                    _uiState.value = _uiState.value.copy(
-                        selectedCategoryId = categoryId,
-                        selectedParentCategoryId = categoryId,
-                        showSubcategorySelector = false,
-                        currentField = TransactionField.AMOUNT
-                    )
-                } else {
-                    // Show subcategory selector
-                    _uiState.value = _uiState.value.copy(
-                        selectedParentCategoryId = categoryId,
-                        selectedCategoryId = null,
-                        showSubcategorySelector = true,
-                        currentField = TransactionField.SUBCATEGORY
-                    )
-                }
+            val subcategories = categoryRepository.getSubcategories(categoryId).first()
+            _availableSubcategories.value = subcategories
+            if (subcategories.isEmpty()) {
+                // No subcategories, use parent category directly, move to amount
+                markClearAmountIfNeeded(TransactionField.AMOUNT)
+                _uiState.value = _uiState.value.copy(
+                    selectedCategoryId = categoryId,
+                    selectedParentCategoryId = categoryId,
+                    showSubcategorySelector = false,
+                    currentField = TransactionField.AMOUNT
+                )
+            } else {
+                // Show subcategory selector
+                _uiState.value = _uiState.value.copy(
+                    selectedParentCategoryId = categoryId,
+                    selectedCategoryId = null,
+                    showSubcategorySelector = true,
+                    currentField = TransactionField.SUBCATEGORY
+                )
             }
         }
     }

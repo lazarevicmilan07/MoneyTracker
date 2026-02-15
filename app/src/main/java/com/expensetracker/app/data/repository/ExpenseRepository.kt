@@ -3,7 +3,7 @@ package com.expensetracker.app.data.repository
 import com.expensetracker.app.data.local.dao.CategoryTotal
 import com.expensetracker.app.data.local.dao.ExpenseDao
 import com.expensetracker.app.data.local.dao.MonthlyTotal
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.TransactionType
 import com.expensetracker.app.data.mapper.toDomain
 import com.expensetracker.app.data.mapper.toEntity
 import com.expensetracker.app.domain.model.Expense

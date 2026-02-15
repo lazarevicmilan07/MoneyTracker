@@ -157,10 +157,10 @@ class ExportUseCase @Inject constructor(
 
                 // Summary
                 val totalIncome =
-                    expenses.filter { it.type == com.expensetracker.app.data.local.entity.TransactionType.INCOME }
+                    expenses.filter { it.type == com.expensetracker.app.domain.model.TransactionType.INCOME }
                         .sumOf { it.amount }
                 val totalExpense =
-                    expenses.filter { it.type == com.expensetracker.app.data.local.entity.TransactionType.EXPENSE }
+                    expenses.filter { it.type == com.expensetracker.app.domain.model.TransactionType.EXPENSE }
                         .sumOf { it.amount }
 
                 document.add(

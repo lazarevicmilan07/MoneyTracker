@@ -25,7 +25,7 @@ class PreferencesManager @Inject constructor(
         UserPreferences(
             isDarkMode = preferences[PreferencesKeys.DARK_MODE] ?: true,
             currency = preferences[PreferencesKeys.CURRENCY] ?: "USD",
-            isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: true // TODO: Change back to false before release
+            isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: false
         )
     }
 
@@ -38,7 +38,7 @@ class PreferencesManager @Inject constructor(
     }
 
     val isPremium: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.IS_PREMIUM] ?: true // TODO: Change back to false before release
+        preferences[PreferencesKeys.IS_PREMIUM] ?: false
     }
 
     suspend fun setDarkMode(enabled: Boolean) {
@@ -69,5 +69,5 @@ class PreferencesManager @Inject constructor(
 data class UserPreferences(
     val isDarkMode: Boolean = true,
     val currency: String = "USD",
-    val isPremium: Boolean = true // TODO: Change back to false before release
+    val isPremium: Boolean = false
 )

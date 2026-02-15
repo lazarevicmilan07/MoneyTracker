@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.expensetracker.app.domain.model.TransactionType
 
 @Entity(
     tableName = "expenses",
@@ -41,9 +42,3 @@ data class ExpenseEntity(
     val toAccountId: Long? = null,
     val createdAt: Long = System.currentTimeMillis()
 )
-
-enum class TransactionType {
-    EXPENSE,
-    INCOME,
-    TRANSFER
-}

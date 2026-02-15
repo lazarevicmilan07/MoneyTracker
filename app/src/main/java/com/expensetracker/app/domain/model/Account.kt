@@ -1,7 +1,15 @@
 package com.expensetracker.app.domain.model
 
 import androidx.compose.ui.graphics.Color
-import com.expensetracker.app.data.local.entity.AccountType
+
+enum class AccountType {
+    CASH,
+    BANK,
+    CREDIT_CARD,
+    SAVINGS,
+    INVESTMENT,
+    OTHER
+}
 
 data class Account(
     val id: Long = 0,

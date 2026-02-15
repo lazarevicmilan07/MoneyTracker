@@ -58,10 +58,6 @@ class SettingsViewModel @Inject constructor(
 
     fun exportToExcel(context: Context, uri: Uri, period: ExportPeriodParams) {
         viewModelScope.launch {
-            if (!userPreferences.value.isPremium) {
-                _events.emit(SettingsEvent.ShowPremiumRequired("Export to Excel"))
-                return@launch
-            }
             _uiState.value = _uiState.value.copy(isExporting = true)
             val result = exportUseCase.exportToExcel(context, uri, period)
             _uiState.value = _uiState.value.copy(isExporting = false)
@@ -75,10 +71,6 @@ class SettingsViewModel @Inject constructor(
 
     fun exportToPdf(context: Context, uri: Uri, period: ExportPeriodParams) {
         viewModelScope.launch {
-            if (!userPreferences.value.isPremium) {
-                _events.emit(SettingsEvent.ShowPremiumRequired("Export to PDF"))
-                return@launch
-            }
             _uiState.value = _uiState.value.copy(isExporting = true)
             val result = exportUseCase.exportToPdf(context, uri, period)
             _uiState.value = _uiState.value.copy(isExporting = false)

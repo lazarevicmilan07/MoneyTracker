@@ -3,8 +3,8 @@ package com.expensetracker.app.domain.usecase
 import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
-import com.expensetracker.app.data.local.entity.AccountType
-import com.expensetracker.app.data.local.entity.TransactionType
+import com.expensetracker.app.domain.model.AccountType
+import com.expensetracker.app.domain.model.TransactionType
 import com.expensetracker.app.data.repository.AccountRepository
 import com.expensetracker.app.data.repository.CategoryRepository
 import com.expensetracker.app.data.repository.ExpenseRepository
