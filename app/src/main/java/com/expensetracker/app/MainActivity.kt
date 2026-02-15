@@ -73,6 +73,7 @@ import com.expensetracker.app.data.preferences.PreferencesManager
 import com.expensetracker.app.navigation.NavGraph
 import com.expensetracker.app.navigation.Screen
 import com.expensetracker.app.ui.theme.ExpenseTrackerTheme
+import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -172,6 +173,9 @@ class MainActivity : ComponentActivity() {
         }
 
         enableEdgeToEdge()
+
+        // Initialize Google Mobile Ads SDK
+        MobileAds.initialize(this) {}
 
         setContent {
             val isDarkMode by preferencesManager.isDarkMode.collectAsState(initial = true)

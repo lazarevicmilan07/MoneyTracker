@@ -41,9 +41,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Replace with your actual AdMob IDs for production
-            buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX\"")
-            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX"
+            buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-7740019911335733/1532139010\"")
+            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-7740019911335733~1331062102"
         }
     }
 
