@@ -30,16 +30,44 @@ data class AccountWithBalance(
 val DefaultAccount = Account(
     name = "Cash",
     type = AccountType.CASH,
-    icon = "wallet",
+    icon = "attach_money",
     color = Color(0xFF4CAF50),
     initialBalance = 0.0,
     isDefault = true
 )
 
+val DefaultAccounts = listOf(
+    DefaultAccount,
+    Account(
+        name = "Bank Account",
+        type = AccountType.BANK,
+        icon = "account_balance",
+        color = Color(0xFF2196F3),
+        initialBalance = 0.0,
+        isDefault = false
+    ),
+    Account(
+        name = "Credit Card",
+        type = AccountType.CREDIT_CARD,
+        icon = "payments",
+        color = Color(0xFFFF9800),
+        initialBalance = 0.0,
+        isDefault = false
+    ),
+    Account(
+        name = "Savings",
+        type = AccountType.SAVINGS,
+        icon = "savings",
+        color = Color(0xFF9C27B0),
+        initialBalance = 0.0,
+        isDefault = false
+    )
+)
+
 val AccountTypeIcons = mapOf(
-    AccountType.CASH to "wallet",
+    AccountType.CASH to "attach_money",
     AccountType.BANK to "account_balance",
-    AccountType.CREDIT_CARD to "credit_card",
+    AccountType.CREDIT_CARD to "payments",
     AccountType.SAVINGS to "savings",
     AccountType.INVESTMENT to "trending_up",
     AccountType.OTHER to "account_balance_wallet"

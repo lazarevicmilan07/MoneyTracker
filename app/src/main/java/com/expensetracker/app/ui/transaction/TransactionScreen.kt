@@ -851,7 +851,7 @@ fun AccountSelectionPanel(
             val maxRows = maxOf(col0.size, col1.size)
             val contentHeight = (maxRows * 49).dp // 48dp row + 1dp divider
 
-            Row(modifier = Modifier.heightIn(max = 300.dp)) {
+            Row(modifier = Modifier.heightIn(min = 300.dp, max = 300.dp)) {
                 // Column 1
                 Box(modifier = Modifier.weight(1f)) {
                     LazyColumn(modifier = Modifier.fillMaxWidth()) {

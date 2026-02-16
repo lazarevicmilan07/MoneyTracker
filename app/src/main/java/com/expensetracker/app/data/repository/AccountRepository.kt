@@ -5,7 +5,7 @@ import com.expensetracker.app.data.mapper.toDomain
 import com.expensetracker.app.data.mapper.toEntity
 import com.expensetracker.app.domain.model.Account
 import com.expensetracker.app.domain.model.AccountWithBalance
-import com.expensetracker.app.domain.model.DefaultAccount
+import com.expensetracker.app.domain.model.DefaultAccounts
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -49,7 +49,7 @@ class AccountRepository @Inject constructor(
 
     suspend fun initializeDefaultAccount() {
         if (!accountDao.hasAccounts()) {
-            accountDao.insertAccount(DefaultAccount.toEntity())
+            accountDao.insertAccounts(DefaultAccounts.map { it.toEntity() })
         }
     }
 
