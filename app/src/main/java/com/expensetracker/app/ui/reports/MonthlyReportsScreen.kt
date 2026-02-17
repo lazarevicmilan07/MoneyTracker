@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -45,6 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -70,22 +73,60 @@ fun MonthlyReportsScreen(
     val selectedMonth by viewModel.selectedMonth.collectAsState()
     var showMonthPicker by remember { mutableStateOf(false) }
 
+    val swipeThreshold = 100f
+    val dragOffset = remember { Animatable(0f) }
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val collapseProgress = rememberCollapseProgress(listState)
+    val screenWidthPx = with(LocalDensity.current) {
+        LocalConfiguration.current.screenWidthDp.dp.toPx()
+    }
+
     if (showMonthPicker) {
         MonthYearPickerDialog(
             selectedMonth = selectedMonth,
             onMonthSelected = { yearMonth ->
-                viewModel.selectMonth(yearMonth)
+                if (yearMonth != selectedMonth) {
+                    val goingBack = yearMonth < selectedMonth
+                    coroutineScope.launch {
+                        dragOffset.animateTo(
+                            if (goingBack) screenWidthPx else -screenWidthPx,
+                            tween(150)
+                        )
+                        viewModel.selectMonth(yearMonth)
+                        dragOffset.snapTo(
+                            if (goingBack) -screenWidthPx else screenWidthPx
+                        )
+                        dragOffset.animateTo(0f, tween(200))
+                    }
+                }
                 showMonthPicker = false
             },
             onDismiss = { showMonthPicker = false }
         )
     }
 
-    val swipeThreshold = 100f
-    val dragOffset = remember { Animatable(0f) }
-    val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
-    val collapseProgress = rememberCollapseProgress(listState)
+    // Scroll to top when month changes
+    LaunchedEffect(selectedMonth) {
+        listState.scrollToItem(0)
+    }
+
+    val animateToPrevious: () -> Unit = {
+        coroutineScope.launch {
+            dragOffset.animateTo(screenWidthPx, tween(150))
+            viewModel.previousMonth()
+            dragOffset.snapTo(-screenWidthPx)
+            dragOffset.animateTo(0f, tween(200))
+        }
+    }
+    val animateToNext: () -> Unit = {
+        coroutineScope.launch {
+            dragOffset.animateTo(-screenWidthPx, tween(150))
+            viewModel.nextMonth()
+            dragOffset.snapTo(screenWidthPx)
+            dragOffset.animateTo(0f, tween(200))
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -112,8 +153,8 @@ fun MonthlyReportsScreen(
             Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                 MonthSelector(
                     selectedMonth = selectedMonth,
-                    onPreviousMonth = viewModel::previousMonth,
-                    onNextMonth = viewModel::nextMonth,
+                    onPreviousMonth = animateToPrevious,
+                    onNextMonth = animateToNext,
                     onMonthClick = { showMonthPicker = true }
                 )
             }
@@ -138,16 +179,14 @@ fun MonthlyReportsScreen(
                                 coroutineScope.launch {
                                     val currentOffset = dragOffset.value
                                     if (currentOffset > swipeThreshold) {
-                                        dragOffset.animateTo(size.width.toFloat(), tween(150))
+                                        dragOffset.animateTo(screenWidthPx, tween(150))
                                         viewModel.previousMonth()
-                                        listState.scrollToItem(0)
-                                        dragOffset.snapTo(-size.width.toFloat())
+                                        dragOffset.snapTo(-screenWidthPx)
                                         dragOffset.animateTo(0f, tween(200))
                                     } else if (currentOffset < -swipeThreshold) {
-                                        dragOffset.animateTo(-size.width.toFloat(), tween(150))
+                                        dragOffset.animateTo(-screenWidthPx, tween(150))
                                         viewModel.nextMonth()
-                                        listState.scrollToItem(0)
-                                        dragOffset.snapTo(size.width.toFloat())
+                                        dragOffset.snapTo(screenWidthPx)
                                         dragOffset.animateTo(0f, tween(200))
                                     } else {
                                         dragOffset.animateTo(0f, tween(200))

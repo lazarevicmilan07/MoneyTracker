@@ -40,6 +40,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -78,22 +81,60 @@ fun YearlyReportsScreen(
     val selectedYear by viewModel.selectedYear.collectAsState()
     var showYearPicker by remember { mutableStateOf(false) }
 
+    val swipeThreshold = 100f
+    val dragOffset = remember { Animatable(0f) }
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val collapseProgress = rememberCollapseProgress(listState)
+    val screenWidthPx = with(LocalDensity.current) {
+        LocalConfiguration.current.screenWidthDp.dp.toPx()
+    }
+
     if (showYearPicker) {
         YearPickerDialog(
             selectedYear = selectedYear,
             onYearSelected = { year ->
-                viewModel.selectYear(year)
+                if (year != selectedYear) {
+                    val goingBack = year < selectedYear
+                    coroutineScope.launch {
+                        dragOffset.animateTo(
+                            if (goingBack) screenWidthPx else -screenWidthPx,
+                            tween(150)
+                        )
+                        viewModel.selectYear(year)
+                        dragOffset.snapTo(
+                            if (goingBack) -screenWidthPx else screenWidthPx
+                        )
+                        dragOffset.animateTo(0f, tween(200))
+                    }
+                }
                 showYearPicker = false
             },
             onDismiss = { showYearPicker = false }
         )
     }
 
-    val swipeThreshold = 100f
-    val dragOffset = remember { Animatable(0f) }
-    val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
-    val collapseProgress = rememberCollapseProgress(listState)
+    // Scroll to top when year changes
+    LaunchedEffect(selectedYear) {
+        listState.scrollToItem(0)
+    }
+
+    val animateToPrevious: () -> Unit = {
+        coroutineScope.launch {
+            dragOffset.animateTo(screenWidthPx, tween(150))
+            viewModel.previousYear()
+            dragOffset.snapTo(-screenWidthPx)
+            dragOffset.animateTo(0f, tween(200))
+        }
+    }
+    val animateToNext: () -> Unit = {
+        coroutineScope.launch {
+            dragOffset.animateTo(-screenWidthPx, tween(150))
+            viewModel.nextYear()
+            dragOffset.snapTo(screenWidthPx)
+            dragOffset.animateTo(0f, tween(200))
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -120,8 +161,8 @@ fun YearlyReportsScreen(
             Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                 YearSelector(
                     selectedYear = selectedYear,
-                    onPreviousYear = viewModel::previousYear,
-                    onNextYear = viewModel::nextYear,
+                    onPreviousYear = animateToPrevious,
+                    onNextYear = animateToNext,
                     onYearClick = { showYearPicker = true }
                 )
             }
@@ -147,16 +188,14 @@ fun YearlyReportsScreen(
                                 coroutineScope.launch {
                                     val currentOffset = dragOffset.value
                                     if (currentOffset > swipeThreshold) {
-                                        dragOffset.animateTo(size.width.toFloat(), tween(150))
+                                        dragOffset.animateTo(screenWidthPx, tween(150))
                                         viewModel.previousYear()
-                                        listState.scrollToItem(0)
-                                        dragOffset.snapTo(-size.width.toFloat())
+                                        dragOffset.snapTo(-screenWidthPx)
                                         dragOffset.animateTo(0f, tween(200))
                                     } else if (currentOffset < -swipeThreshold) {
-                                        dragOffset.animateTo(-size.width.toFloat(), tween(150))
+                                        dragOffset.animateTo(-screenWidthPx, tween(150))
                                         viewModel.nextYear()
-                                        listState.scrollToItem(0)
-                                        dragOffset.snapTo(size.width.toFloat())
+                                        dragOffset.snapTo(screenWidthPx)
                                         dragOffset.animateTo(0f, tween(200))
                                     } else {
                                         dragOffset.animateTo(0f, tween(200))

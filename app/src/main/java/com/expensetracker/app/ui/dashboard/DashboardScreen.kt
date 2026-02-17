@@ -59,6 +59,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.expensetracker.app.domain.model.TransactionType
@@ -92,12 +94,29 @@ fun DashboardScreen(
     var showMonthPicker by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val dragOffset = remember { Animatable(0f) }
+    val screenWidthPx = with(LocalDensity.current) {
+        LocalConfiguration.current.screenWidthDp.dp.toPx()
+    }
 
     if (showMonthPicker) {
         MonthYearPickerDialog(
             selectedMonth = selectedMonth,
             onMonthSelected = { yearMonth ->
-                viewModel.selectMonth(yearMonth)
+                if (yearMonth != selectedMonth) {
+                    val goingBack = yearMonth < selectedMonth
+                    coroutineScope.launch {
+                        dragOffset.animateTo(
+                            if (goingBack) screenWidthPx else -screenWidthPx,
+                            tween(150)
+                        )
+                        viewModel.selectMonth(yearMonth)
+                        dragOffset.snapTo(
+                            if (goingBack) -screenWidthPx else screenWidthPx
+                        )
+                        dragOffset.animateTo(0f, tween(200))
+                    }
+                }
                 showMonthPicker = false
             },
             onDismiss = { showMonthPicker = false }
@@ -142,12 +161,28 @@ fun DashboardScreen(
             }
         } else {
             val swipeThreshold = 100f
-            val dragOffset = remember { Animatable(0f) }
             val collapseProgress = rememberCollapseProgress(listState)
 
-            // Scroll to top when screen is navigated to
-            LaunchedEffect(Unit) {
+            // Scroll to top when month changes
+            LaunchedEffect(selectedMonth) {
                 listState.scrollToItem(0)
+            }
+
+            val animateToPrevious: () -> Unit = {
+                coroutineScope.launch {
+                    dragOffset.animateTo(screenWidthPx, tween(150))
+                    viewModel.previousMonth()
+                    dragOffset.snapTo(-screenWidthPx)
+                    dragOffset.animateTo(0f, tween(200))
+                }
+            }
+            val animateToNext: () -> Unit = {
+                coroutineScope.launch {
+                    dragOffset.animateTo(-screenWidthPx, tween(150))
+                    viewModel.nextMonth()
+                    dragOffset.snapTo(screenWidthPx)
+                    dragOffset.animateTo(0f, tween(200))
+                }
             }
 
             Column(
@@ -159,8 +194,8 @@ fun DashboardScreen(
                 Box(modifier = Modifier.padding(horizontal = 10.dp)) {
                     MonthSelector(
                         selectedMonth = selectedMonth,
-                        onPreviousMonth = viewModel::previousMonth,
-                        onNextMonth = viewModel::nextMonth,
+                        onPreviousMonth = animateToPrevious,
+                        onNextMonth = animateToNext,
                         onMonthClick = { showMonthPicker = true }
                     )
                 }
@@ -185,25 +220,17 @@ fun DashboardScreen(
                                     coroutineScope.launch {
                                         val currentOffset = dragOffset.value
                                         if (currentOffset > swipeThreshold) {
-                                            dragOffset.animateTo(
-                                                targetValue = size.width.toFloat(),
-                                                animationSpec = tween(150)
-                                            )
+                                            dragOffset.animateTo(screenWidthPx, tween(150))
                                             viewModel.previousMonth()
-                                            listState.scrollToItem(0)
-                                            dragOffset.snapTo(-size.width.toFloat())
-                                            dragOffset.animateTo(0f, animationSpec = tween(200))
+                                            dragOffset.snapTo(-screenWidthPx)
+                                            dragOffset.animateTo(0f, tween(200))
                                         } else if (currentOffset < -swipeThreshold) {
-                                            dragOffset.animateTo(
-                                                targetValue = -size.width.toFloat(),
-                                                animationSpec = tween(150)
-                                            )
+                                            dragOffset.animateTo(-screenWidthPx, tween(150))
                                             viewModel.nextMonth()
-                                            listState.scrollToItem(0)
-                                            dragOffset.snapTo(size.width.toFloat())
-                                            dragOffset.animateTo(0f, animationSpec = tween(200))
+                                            dragOffset.snapTo(screenWidthPx)
+                                            dragOffset.animateTo(0f, tween(200))
                                         } else {
-                                            dragOffset.animateTo(0f, animationSpec = tween(200))
+                                            dragOffset.animateTo(0f, tween(200))
                                         }
                                     }
                                 },
