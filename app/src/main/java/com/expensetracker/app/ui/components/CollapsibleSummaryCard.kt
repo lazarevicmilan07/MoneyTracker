@@ -1,7 +1,5 @@
 package com.expensetracker.app.ui.components
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -39,7 +37,7 @@ import com.expensetracker.app.ui.theme.IncomeGreen
 
 @Composable
 fun rememberCollapseProgress(listState: LazyListState): Float {
-    val rawProgress by remember {
+    val progress by remember {
         derivedStateOf {
             val threshold = 200f
             when {
@@ -48,12 +46,7 @@ fun rememberCollapseProgress(listState: LazyListState): Float {
             }
         }
     }
-    val animatedProgress by animateFloatAsState(
-        targetValue = rawProgress,
-        animationSpec = tween(durationMillis = 100),
-        label = "collapseProgress"
-    )
-    return animatedProgress
+    return progress
 }
 
 private fun lerpDp(start: Dp, end: Dp, fraction: Float): Dp {
@@ -82,16 +75,16 @@ fun CollapsibleSummaryCard(
         else -> MaterialTheme.colorScheme.onSurface
     }
 
-    // Smooth interpolation of all visual properties
     val balanceLabelAlpha = (1f - p * 2f).coerceIn(0f, 1f)
     val balanceFontSize = lerpSp(28.sp, 18.sp, p)
-    val balanceVerticalPadding = lerpDp(4.dp, 0.dp, p)
-    val spacerAfterBalance = lerpDp(8.dp, 4.dp, p)
+    val balanceVerticalPadding = lerpDp(4.dp, 1.dp, p)
+    val spacerAfterBalance = lerpDp(8.dp, 2.dp, p)
     val iconCircleSize = lerpDp(32.dp, 24.dp, p)
     val innerIconSize = lerpDp(16.dp, 12.dp, p)
     val cardPadding = lerpDp(10.dp, 6.dp, p)
     val incomeExpenseLabelAlpha = (1f - p * 1.5f).coerceIn(0f, 1f)
-    val bottomSpacer = lerpDp(8.dp, 4.dp, p)
+    val labelHeight = lerpDp(16.dp, 0.dp, p)
+    val bottomSpacer = lerpDp(8.dp, 8.dp, p)
 
     Column(
         modifier = modifier
@@ -105,14 +98,14 @@ fun CollapsibleSummaryCard(
                 .padding(vertical = balanceVerticalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (balanceLabelAlpha > 0f) {
-                Text(
-                    text = balanceLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.alpha(balanceLabelAlpha)
-                )
-            }
+            Text(
+                text = balanceLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .height(lerpDp(18.dp, 0.dp, p))
+                    .graphicsLayer { alpha = balanceLabelAlpha }
+            )
             CurrencyAmountText(
                 amount = balance,
                 currencyCode = currency,
@@ -158,14 +151,14 @@ fun CollapsibleSummaryCard(
                         }
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        if (incomeExpenseLabelAlpha > 0f) {
-                            Text(
-                                text = "Income",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.alpha(incomeExpenseLabelAlpha)
-                            )
-                        }
+                        Text(
+                            text = "Income",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .height(labelHeight)
+                                .graphicsLayer { alpha = incomeExpenseLabelAlpha }
+                        )
                         CurrencyAmountText(
                             amount = income,
                             currencyCode = currency,
@@ -206,14 +199,14 @@ fun CollapsibleSummaryCard(
                         }
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        if (incomeExpenseLabelAlpha > 0f) {
-                            Text(
-                                text = "Expenses",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.alpha(incomeExpenseLabelAlpha)
-                            )
-                        }
+                        Text(
+                            text = "Expenses",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .height(labelHeight)
+                                .graphicsLayer { alpha = incomeExpenseLabelAlpha }
+                        )
                         CurrencyAmountText(
                             amount = expense,
                             currencyCode = currency,
