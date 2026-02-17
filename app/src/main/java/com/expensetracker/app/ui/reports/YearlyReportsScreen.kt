@@ -17,14 +17,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.AlertDialog
@@ -54,14 +51,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.expensetracker.app.ui.components.CollapsibleSummaryCard
 import com.expensetracker.app.ui.components.CurrencyAmountText
 import com.expensetracker.app.ui.components.MonthlyBarChart
+import com.expensetracker.app.ui.components.ScrollToTopButton
+import com.expensetracker.app.ui.components.rememberCollapseProgress
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import java.time.Month
@@ -93,128 +92,148 @@ fun YearlyReportsScreen(
     val swipeThreshold = 100f
     val dragOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val collapseProgress = rememberCollapseProgress(listState)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Yearly Reports") }
             )
+        },
+        floatingActionButton = {
+            ScrollToTopButton(
+                listState = listState,
+                onClick = {
+                    coroutineScope.launch { listState.animateScrollToItem(0) }
+                },
+                modifier = Modifier.padding(bottom = 60.dp)
+            )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .pointerInput(selectedYear) {
-                    detectHorizontalDragGestures(
-                        onDragEnd = {
-                            coroutineScope.launch {
-                                val currentOffset = dragOffset.value
-                                if (currentOffset > swipeThreshold) {
-                                    dragOffset.animateTo(size.width.toFloat(), tween(150))
-                                    viewModel.previousYear()
-                                    dragOffset.snapTo(-size.width.toFloat())
-                                    dragOffset.animateTo(0f, tween(200))
-                                } else if (currentOffset < -swipeThreshold) {
-                                    dragOffset.animateTo(-size.width.toFloat(), tween(150))
-                                    viewModel.nextYear()
-                                    dragOffset.snapTo(size.width.toFloat())
-                                    dragOffset.animateTo(0f, tween(200))
-                                } else {
-                                    dragOffset.animateTo(0f, tween(200))
+        ) {
+            // Pinned year selector
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                YearSelector(
+                    selectedYear = selectedYear,
+                    onPreviousYear = viewModel::previousYear,
+                    onNextYear = viewModel::nextYear,
+                    onYearClick = { showYearPicker = true }
+                )
+            }
+
+            // Pinned collapsible hero — swipes with content
+            CollapsibleSummaryCard(
+                income = uiState.totalIncome,
+                expense = uiState.totalExpense,
+                balance = uiState.balance,
+                currency = currency,
+                collapseProgress = collapseProgress,
+                balanceLabel = "Yearly Balance",
+                modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) }
+            )
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(selectedYear) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                coroutineScope.launch {
+                                    val currentOffset = dragOffset.value
+                                    if (currentOffset > swipeThreshold) {
+                                        dragOffset.animateTo(size.width.toFloat(), tween(150))
+                                        viewModel.previousYear()
+                                        dragOffset.snapTo(-size.width.toFloat())
+                                        dragOffset.animateTo(0f, tween(200))
+                                    } else if (currentOffset < -swipeThreshold) {
+                                        dragOffset.animateTo(-size.width.toFloat(), tween(150))
+                                        viewModel.nextYear()
+                                        dragOffset.snapTo(size.width.toFloat())
+                                        dragOffset.animateTo(0f, tween(200))
+                                    } else {
+                                        dragOffset.animateTo(0f, tween(200))
+                                    }
+                                }
+                            },
+                            onDragCancel = {
+                                coroutineScope.launch { dragOffset.animateTo(0f, tween(200)) }
+                            },
+                            onHorizontalDrag = { _, dragAmount ->
+                                coroutineScope.launch {
+                                    dragOffset.snapTo(dragOffset.value + dragAmount)
                                 }
                             }
-                        },
-                        onDragCancel = {
-                            coroutineScope.launch { dragOffset.animateTo(0f, tween(200)) }
-                        },
-                        onHorizontalDrag = { _, dragAmount ->
-                            coroutineScope.launch {
-                                dragOffset.snapTo(dragOffset.value + dragAmount)
+                        )
+                    },
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 140.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Content with interactive drag offset
+                item {
+                    Column(
+                        modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) },
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Bar Chart - Monthly Overview
+                        if (uiState.monthlyData.isNotEmpty()) {
+                            Card(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "Monthly Overview",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    MonthlyBarChart(
+                                        monthlyData = uiState.monthlyData,
+                                        currency = currency,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
                         }
-                    )
-                },
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 140.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-        // Year Selector
-        item {
-            YearSelector(
-                selectedYear = selectedYear,
-                onPreviousYear = viewModel::previousYear,
-                onNextYear = viewModel::nextYear,
-                onYearClick = { showYearPicker = true }
-            )
-        }
 
-        // Content with interactive drag offset
-        item {
-            Column(
-                modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) },
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Summary Card
-                YearlySummaryCard(
-                    income = uiState.totalIncome,
-                    expense = uiState.totalExpense,
-                    balance = uiState.balance,
-                    currency = currency
-                )
-
-                // Bar Chart - Monthly Overview
-                if (uiState.monthlyData.isNotEmpty()) {
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Monthly Overview",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            MonthlyBarChart(
-                                monthlyData = uiState.monthlyData,
+                        // Expense Pie Chart
+                        if (uiState.expenseBreakdown.isNotEmpty()) {
+                            BreakdownCard(
+                                title = "Yearly Expenses by Category",
+                                breakdown = uiState.expenseBreakdown,
                                 currency = currency,
-                                modifier = Modifier.fillMaxWidth()
+                                color = ExpenseRed
                             )
+                        }
+
+                        // Income Pie Chart
+                        if (uiState.incomeBreakdown.isNotEmpty()) {
+                            BreakdownCard(
+                                title = "Yearly Income by Category",
+                                breakdown = uiState.incomeBreakdown,
+                                currency = currency,
+                                color = IncomeGreen
+                            )
+                        }
+
+                        // Monthly Breakdown List
+                        if (uiState.monthlyData.any { it.income > 0 || it.expense > 0 }) {
+                            MonthlyBreakdownCard(
+                                monthlyData = uiState.monthlyData,
+                                currency = currency
+                            )
+                        }
+
+                        // Empty state
+                        if (uiState.monthlyData.all { it.income == 0.0 && it.expense == 0.0 } && !uiState.isLoading) {
+                            EmptyYearlyReportsState()
                         }
                     }
                 }
-
-                // Expense Pie Chart
-                if (uiState.expenseBreakdown.isNotEmpty()) {
-                    BreakdownCard(
-                        title = "Yearly Expenses by Category",
-                        breakdown = uiState.expenseBreakdown,
-                        currency = currency,
-                        color = ExpenseRed
-                    )
-                }
-
-                // Income Pie Chart
-                if (uiState.incomeBreakdown.isNotEmpty()) {
-                    BreakdownCard(
-                        title = "Yearly Income by Category",
-                        breakdown = uiState.incomeBreakdown,
-                        currency = currency,
-                        color = IncomeGreen
-                    )
-                }
-
-                // Monthly Breakdown List
-                if (uiState.monthlyData.any { it.income > 0 || it.expense > 0 }) {
-                    MonthlyBreakdownCard(
-                        monthlyData = uiState.monthlyData,
-                        currency = currency
-                    )
-                }
-
-                // Empty state
-                if (uiState.monthlyData.all { it.income == 0.0 && it.expense == 0.0 } && !uiState.isLoading) {
-                    EmptyYearlyReportsState()
-                }
             }
-        }
         }
     }
 }
@@ -265,7 +284,6 @@ fun YearPickerDialog(
         title = { Text("Select Year", style = MaterialTheme.typography.titleMedium) },
         text = {
             Column {
-                // Year range: current year - 10 to current year + 5
                 val years = (currentYear - 10)..(currentYear + 5)
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -295,7 +313,6 @@ fun YearPickerDialog(
                                     )
                                 }
                             }
-                            // Fill remaining space if row has fewer than 4 items
                             repeat(4 - rowYears.size) {
                                 Spacer(modifier = Modifier.weight(1f))
                             }
@@ -315,139 +332,6 @@ fun YearPickerDialog(
             }
         }
     )
-}
-
-@Composable
-fun YearlySummaryCard(
-    income: Double,
-    expense: Double,
-    balance: Double,
-    currency: String
-) {
-    val balanceColor = when {
-        balance > 0 -> IncomeGreen
-        balance < 0 -> ExpenseRed
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Yearly Balance",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            CurrencyAmountText(
-                amount = balance,
-                currencyCode = currency,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = balanceColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Surface(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp),
-                color = IncomeGreen.copy(alpha = 0.1f),
-                tonalElevation = 0.dp
-            ) {
-                Row(
-                    modifier = Modifier.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = IncomeGreen.copy(alpha = 0.2f),
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowDownward,
-                                contentDescription = null,
-                                tint = IncomeGreen,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Income",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        CurrencyAmountText(
-                            amount = income,
-                            currencyCode = currency,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = IncomeGreen,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-
-            Surface(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp),
-                color = ExpenseRed.copy(alpha = 0.1f),
-                tonalElevation = 0.dp
-            ) {
-                Row(
-                    modifier = Modifier.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = ExpenseRed.copy(alpha = 0.2f),
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowUpward,
-                                contentDescription = null,
-                                tint = ExpenseRed,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Expenses",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        CurrencyAmountText(
-                            amount = expense,
-                            currencyCode = currency,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = ExpenseRed,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -479,7 +363,6 @@ fun MonthlyBreakdownCard(
                             .fillMaxWidth()
                             .padding(vertical = 6.dp)
                     ) {
-                        // Month name and balance
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -501,7 +384,6 @@ fun MonthlyBreakdownCard(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Income row
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -538,7 +420,6 @@ fun MonthlyBreakdownCard(
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // Expense row
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -614,4 +495,3 @@ fun EmptyYearlyReportsState() {
         }
     }
 }
-

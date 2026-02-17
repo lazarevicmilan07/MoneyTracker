@@ -24,7 +24,9 @@ fun ScrollToTopButton(
     modifier: Modifier = Modifier
 ) {
     val showButton by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 0 }
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 200
+        }
     }
 
     AnimatedVisibility(

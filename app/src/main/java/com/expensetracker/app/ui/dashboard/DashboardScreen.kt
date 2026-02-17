@@ -23,12 +23,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -68,11 +65,14 @@ import com.expensetracker.app.domain.model.TransactionType
 import com.expensetracker.app.domain.model.CategoryBreakdown
 import com.expensetracker.app.domain.model.ExpenseWithCategory
 import com.expensetracker.app.ui.components.CategoryIcon
+import com.expensetracker.app.ui.components.CollapsibleSummaryCard
 import com.expensetracker.app.ui.components.MonthSelector
 import com.expensetracker.app.ui.components.MonthYearPickerDialog
 import com.expensetracker.app.ui.components.CurrencyAmountText
+import com.expensetracker.app.ui.components.ScrollToTopButton
 import com.expensetracker.app.ui.components.formatCurrency
 import com.expensetracker.app.ui.components.formatNumber
+import com.expensetracker.app.ui.components.rememberCollapseProgress
 import com.expensetracker.app.ui.theme.ExpenseRed
 import com.expensetracker.app.ui.theme.IncomeGreen
 import com.expensetracker.app.ui.theme.TransferBlue
@@ -90,6 +90,8 @@ fun DashboardScreen(
     val currency by viewModel.currency.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
     var showMonthPicker by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     if (showMonthPicker) {
         MonthYearPickerDialog(
@@ -109,12 +111,23 @@ fun DashboardScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddTransaction,
+            Column(
                 modifier = Modifier.padding(bottom = 60.dp),
-                containerColor = MaterialTheme.colorScheme.secondary
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Transaction")
+                ScrollToTopButton(
+                    listState = listState,
+                    onClick = {
+                        coroutineScope.launch { listState.animateScrollToItem(0) }
+                    }
+                )
+                FloatingActionButton(
+                    onClick = onAddTransaction,
+                    containerColor = MaterialTheme.colorScheme.secondary
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Transaction")
+                }
             }
         }
     ) { paddingValues ->
@@ -130,67 +143,20 @@ fun DashboardScreen(
         } else {
             val swipeThreshold = 100f
             val dragOffset = remember { Animatable(0f) }
-            val coroutineScope = rememberCoroutineScope()
-            val listState = rememberLazyListState()
+            val collapseProgress = rememberCollapseProgress(listState)
 
             // Scroll to top when screen is navigated to
             LaunchedEffect(Unit) {
                 listState.scrollToItem(0)
             }
 
-            LazyColumn(
-                state = listState,
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .pointerInput(selectedMonth) {
-                        detectHorizontalDragGestures(
-                            onDragEnd = {
-                                coroutineScope.launch {
-                                    val currentOffset = dragOffset.value
-                                    if (currentOffset > swipeThreshold) {
-                                        // Swipe right → previous month
-                                        dragOffset.animateTo(
-                                            targetValue = size.width.toFloat(),
-                                            animationSpec = tween(150)
-                                        )
-                                        viewModel.previousMonth()
-                                        // Slide in from the left
-                                        dragOffset.snapTo(-size.width.toFloat())
-                                        dragOffset.animateTo(0f, animationSpec = tween(200))
-                                    } else if (currentOffset < -swipeThreshold) {
-                                        // Swipe left → next month
-                                        dragOffset.animateTo(
-                                            targetValue = -size.width.toFloat(),
-                                            animationSpec = tween(150)
-                                        )
-                                        viewModel.nextMonth()
-                                        // Slide in from the right
-                                        dragOffset.snapTo(size.width.toFloat())
-                                        dragOffset.animateTo(0f, animationSpec = tween(200))
-                                    } else {
-                                        // Snap back
-                                        dragOffset.animateTo(0f, animationSpec = tween(200))
-                                    }
-                                }
-                            },
-                            onDragCancel = {
-                                coroutineScope.launch {
-                                    dragOffset.animateTo(0f, animationSpec = tween(200))
-                                }
-                            },
-                            onHorizontalDrag = { _, dragAmount ->
-                                coroutineScope.launch {
-                                    dragOffset.snapTo(dragOffset.value + dragAmount)
-                                }
-                            }
-                        )
-                    },
-                contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 16.dp, bottom = 140.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Month Selector
-                item {
+                // Pinned month selector
+                Box(modifier = Modifier.padding(horizontal = 10.dp)) {
                     MonthSelector(
                         selectedMonth = selectedMonth,
                         onPreviousMonth = viewModel::previousMonth,
@@ -199,185 +165,93 @@ fun DashboardScreen(
                     )
                 }
 
-                // Content with interactive drag offset
-                item {
-                    Column(
-                        modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) },
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Summary Card
-                        SummaryCard(
-                            income = uiState.monthlyStats.totalIncome,
-                            expense = uiState.monthlyStats.totalExpense,
-                            balance = uiState.monthlyStats.balance,
-                            currency = currency
-                        )
+                // Pinned collapsible hero — swipes with content
+                CollapsibleSummaryCard(
+                    income = uiState.monthlyStats.totalIncome,
+                    expense = uiState.monthlyStats.totalExpense,
+                    balance = uiState.monthlyStats.balance,
+                    currency = currency,
+                    collapseProgress = collapseProgress,
+                    modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) }
+                )
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Transactions grouped by date
-                        if (uiState.recentTransactions.isNotEmpty()) {
-                            val groupedByDate = uiState.recentTransactions
-                                .sortedByDescending { it.expense.date }
-                                .groupBy { it.expense.date }
-
-                            groupedByDate.forEach { (date, transactions) ->
-                                // Date header
-                                Text(
-                                    text = date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d")),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
-                                )
-
-                                transactions.forEach { transaction ->
-                                    CompactTransactionItem(
-                                        transaction = transaction,
-                                        currency = currency,
-                                        onClick = { onViewTransaction(transaction.expense.id) }
-                                    )
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(selectedMonth) {
+                            detectHorizontalDragGestures(
+                                onDragEnd = {
+                                    coroutineScope.launch {
+                                        val currentOffset = dragOffset.value
+                                        if (currentOffset > swipeThreshold) {
+                                            dragOffset.animateTo(
+                                                targetValue = size.width.toFloat(),
+                                                animationSpec = tween(150)
+                                            )
+                                            viewModel.previousMonth()
+                                            dragOffset.snapTo(-size.width.toFloat())
+                                            dragOffset.animateTo(0f, animationSpec = tween(200))
+                                        } else if (currentOffset < -swipeThreshold) {
+                                            dragOffset.animateTo(
+                                                targetValue = -size.width.toFloat(),
+                                                animationSpec = tween(150)
+                                            )
+                                            viewModel.nextMonth()
+                                            dragOffset.snapTo(size.width.toFloat())
+                                            dragOffset.animateTo(0f, animationSpec = tween(200))
+                                        } else {
+                                            dragOffset.animateTo(0f, animationSpec = tween(200))
+                                        }
+                                    }
+                                },
+                                onDragCancel = {
+                                    coroutineScope.launch {
+                                        dragOffset.animateTo(0f, animationSpec = tween(200))
+                                    }
+                                },
+                                onHorizontalDrag = { _, dragAmount ->
+                                    coroutineScope.launch {
+                                        dragOffset.snapTo(dragOffset.value + dragAmount)
+                                    }
                                 }
+                            )
+                        },
+                    contentPadding = PaddingValues(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 140.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Content with interactive drag offset
+                    item {
+                        Column(
+                            modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) },
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Transactions grouped by date
+                            if (uiState.recentTransactions.isNotEmpty()) {
+                                val groupedByDate = uiState.recentTransactions
+                                    .sortedByDescending { it.expense.date }
+                                    .groupBy { it.expense.date }
+
+                                groupedByDate.forEach { (date, transactions) ->
+                                    Text(
+                                        text = date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d")),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
+                                    )
+
+                                    transactions.forEach { transaction ->
+                                        CompactTransactionItem(
+                                            transaction = transaction,
+                                            currency = currency,
+                                            onClick = { onViewTransaction(transaction.expense.id) }
+                                        )
+                                    }
+                                }
+                            } else {
+                                EmptyState()
                             }
-                        } else {
-                            EmptyState()
                         }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SummaryCard(
-    income: Double,
-    expense: Double,
-    balance: Double,
-    currency: String
-) {
-    val balanceColor = when {
-        balance > 0 -> IncomeGreen
-        balance < 0 -> ExpenseRed
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Balance hero
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Balance",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            CurrencyAmountText(
-                amount = balance,
-                currencyCode = currency,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = balanceColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Income & Expense side by side
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Income card
-            Surface(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp),
-                color = IncomeGreen.copy(alpha = 0.1f),
-                tonalElevation = 0.dp
-            ) {
-                Row(
-                    modifier = Modifier.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = IncomeGreen.copy(alpha = 0.2f),
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowDownward,
-                                contentDescription = null,
-                                tint = IncomeGreen,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Income",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        CurrencyAmountText(
-                            amount = income,
-                            currencyCode = currency,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = IncomeGreen,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-
-            // Expense card
-            Surface(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp),
-                color = ExpenseRed.copy(alpha = 0.1f),
-                tonalElevation = 0.dp
-            ) {
-                Row(
-                    modifier = Modifier.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = ExpenseRed.copy(alpha = 0.2f),
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowUpward,
-                                contentDescription = null,
-                                tint = ExpenseRed,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Expenses",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        CurrencyAmountText(
-                            amount = expense,
-                            currencyCode = currency,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = ExpenseRed,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
                     }
                 }
             }
@@ -584,7 +458,7 @@ fun CompactTransactionItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Left column: category/subcategory — sized to fit longest default categories
+            // Left column: category/subcategory
             Column(
                 modifier = Modifier.width(110.dp),
                 verticalArrangement = if (hasSubcategory && !isTransfer) Arrangement.Top else Arrangement.Center
@@ -609,7 +483,7 @@ fun CompactTransactionItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Right column: note/account — takes remaining space, truncates if amount is long
+            // Right column: note/account
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = if (hasNote) Arrangement.Top else Arrangement.Center
@@ -688,4 +562,3 @@ fun EmptyState() {
         )
     }
 }
-
