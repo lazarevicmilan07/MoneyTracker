@@ -190,6 +190,7 @@ fun DashboardScreen(
                                                 animationSpec = tween(150)
                                             )
                                             viewModel.previousMonth()
+                                            listState.scrollToItem(0)
                                             dragOffset.snapTo(-size.width.toFloat())
                                             dragOffset.animateTo(0f, animationSpec = tween(200))
                                         } else if (currentOffset < -swipeThreshold) {
@@ -198,6 +199,7 @@ fun DashboardScreen(
                                                 animationSpec = tween(150)
                                             )
                                             viewModel.nextMonth()
+                                            listState.scrollToItem(0)
                                             dragOffset.snapTo(size.width.toFloat())
                                             dragOffset.animateTo(0f, animationSpec = tween(200))
                                         } else {

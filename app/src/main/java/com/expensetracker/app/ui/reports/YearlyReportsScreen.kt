@@ -149,11 +149,13 @@ fun YearlyReportsScreen(
                                     if (currentOffset > swipeThreshold) {
                                         dragOffset.animateTo(size.width.toFloat(), tween(150))
                                         viewModel.previousYear()
+                                        listState.scrollToItem(0)
                                         dragOffset.snapTo(-size.width.toFloat())
                                         dragOffset.animateTo(0f, tween(200))
                                     } else if (currentOffset < -swipeThreshold) {
                                         dragOffset.animateTo(-size.width.toFloat(), tween(150))
                                         viewModel.nextYear()
+                                        listState.scrollToItem(0)
                                         dragOffset.snapTo(size.width.toFloat())
                                         dragOffset.animateTo(0f, tween(200))
                                     } else {
@@ -230,6 +232,7 @@ fun YearlyReportsScreen(
                         // Empty state
                         if (uiState.monthlyData.all { it.income == 0.0 && it.expense == 0.0 } && !uiState.isLoading) {
                             EmptyYearlyReportsState()
+                            Spacer(modifier = Modifier.height(300.dp))
                         }
                     }
                 }
