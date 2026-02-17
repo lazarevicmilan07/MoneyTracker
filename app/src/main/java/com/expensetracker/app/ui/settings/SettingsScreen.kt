@@ -204,9 +204,18 @@ fun SettingsScreen(
                 contentPadding = PaddingValues(bottom = 120.dp)
             ) {
                 // Premium Banner
+                // TODO: Restore for release - navigate to premium purchase screen
+                // if (!userPreferences.isPremium) {
+                //     item {
+                //         PremiumBanner(onClick = onShowPremium)
+                //     }
+                // }
                 if (!userPreferences.isPremium) {
                     item {
-                        PremiumBanner(onClick = onShowPremium)
+                        PremiumBanner(onClick = {
+                            viewModel.setPremium(true)
+                            Toast.makeText(context, "Premium activated! All features unlocked.", Toast.LENGTH_SHORT).show()
+                        })
                     }
                 }
 
@@ -243,7 +252,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.GridOn,
                         title = "Export to Excel",
-                        subtitle = "Export transactions to Excel",
+                        subtitle = "Export data to Excel",
                         onClick = {
                             pendingAction = PendingExportAction.EXCEL
                             periodDialogTitle = "Export to Excel"
@@ -256,7 +265,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.PictureAsPdf,
                         title = "Export to PDF",
-                        subtitle = "Generate transactions report",
+                        subtitle = "Generate data report",
                         onClick = {
                             pendingAction = PendingExportAction.PDF
                             periodDialogTitle = "Export to PDF"
@@ -265,37 +274,61 @@ fun SettingsScreen(
                     )
                 }
 
+                // TODO: Restore premium gating for release
+                // item {
+                //     SettingsItem(
+                //         icon = Icons.Default.Backup,
+                //         title = "Backup",
+                //         subtitle = if (userPreferences.isPremium) "Create data backup (JSON)" else "Premium feature",
+                //         onClick = {
+                //             if (userPreferences.isPremium) {
+                //                 pendingAction = PendingExportAction.BACKUP
+                //                 periodDialogTitle = "Backup Data"
+                //                 showPeriodDialog = true
+                //             } else {
+                //                 onShowPremium()
+                //             }
+                //         },
+                //         isPremium = !userPreferences.isPremium
+                //     )
+                // }
                 item {
                     SettingsItem(
                         icon = Icons.Default.Backup,
                         title = "Backup",
-                        subtitle = if (userPreferences.isPremium) "Create data backup (JSON)" else "Premium feature",
+                        subtitle = "Create data backup (JSON)",
                         onClick = {
-                            if (userPreferences.isPremium) {
-                                pendingAction = PendingExportAction.BACKUP
-                                periodDialogTitle = "Backup Data"
-                                showPeriodDialog = true
-                            } else {
-                                onShowPremium()
-                            }
-                        },
-                        isPremium = !userPreferences.isPremium
+                            pendingAction = PendingExportAction.BACKUP
+                            periodDialogTitle = "Backup Data"
+                            showPeriodDialog = true
+                        }
                     )
                 }
 
+                // TODO: Restore premium gating for release
+                // item {
+                //     SettingsItem(
+                //         icon = Icons.Default.Restore,
+                //         title = "Restore",
+                //         subtitle = if (userPreferences.isPremium) "Restore from backup (JSON)" else "Premium feature",
+                //         onClick = {
+                //             if (userPreferences.isPremium) {
+                //                 showRestoreConfirmDialog = true
+                //             } else {
+                //                 onShowPremium()
+                //             }
+                //         },
+                //         isPremium = !userPreferences.isPremium
+                //     )
+                // }
                 item {
                     SettingsItem(
                         icon = Icons.Default.Restore,
                         title = "Restore",
-                        subtitle = if (userPreferences.isPremium) "Restore from backup (JSON)" else "Premium feature",
+                        subtitle = "Restore from backup (JSON)",
                         onClick = {
-                            if (userPreferences.isPremium) {
-                                showRestoreConfirmDialog = true
-                            } else {
-                                onShowPremium()
-                            }
-                        },
-                        isPremium = !userPreferences.isPremium
+                            showRestoreConfirmDialog = true
+                        }
                     )
                 }
 
@@ -393,7 +426,7 @@ fun SettingsScreen(
             },
             title = {
                 Text(
-                    text = "Money Tracker",
+                    text = "Money Tracker - Simple Budget",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -410,9 +443,22 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "\u00A9 ${java.time.Year.now().value} Money Tracker",
+                        text = "\u00A9 ${java.time.Year.now().value} Money Tracker - Simple Budget",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Privacy Policy",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://lazarevicmilan07.github.io/privacy-policy.html")
+                            )
+                            context.startActivity(intent)
+                        }
                     )
                 }
             },

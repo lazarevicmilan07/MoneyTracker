@@ -232,7 +232,9 @@ class MainActivity : ComponentActivity() {
                     Screen.Categories.route,
                     Screen.Settings.route
                 )
-                val showAd = !isPremium && currentRoute in adRoutes
+                // TODO: Restore for release
+                // val showAd = !isPremium && currentRoute in adRoutes
+                val showAd = false
 
                 // Create a single AdView instance that lives for the composable's lifetime
                 val configuration = LocalConfiguration.current

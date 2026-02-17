@@ -576,8 +576,8 @@ fun CompactTransactionItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             CategoryIcon(
-                icon = if (isTransfer) "swap_horiz" else (transaction.category?.icon ?: "more_horiz"),
-                color = if (isTransfer) TransferBlue else (transaction.category?.color ?: Color.Gray),
+                icon = if (isTransfer) "swap_horiz" else (transaction.subcategory?.icon ?: transaction.category?.icon ?: "more_horiz"),
+                color = if (isTransfer) TransferBlue else (transaction.subcategory?.color ?: transaction.category?.color ?: Color.Gray),
                 size = 30.dp,
                 iconSize = 15.dp
             )
