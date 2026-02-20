@@ -39,7 +39,12 @@
       "Bash(gh api:*)",
       "Bash(del \"C:\\\\ComData\\\\Projekti\\\\SimpleExpenseTracker\\\\app\\\\src\\\\main\\\\java\\\\com\\\\expensetracker\\\\app\\\\ui\\\\components\\\\AdBanner.kt\")",
       "Bash(JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\" cmd.exe /c \"cd /d C:\\\\ComData\\\\Projekti\\\\SimpleExpenseTracker && gradlew.bat assembleDebug\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(gh repo:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(del \"C:\\\\ComData\\\\Projekti\\\\MoneyTracker\\\\replace_package.ps1\")",
+      "Bash(rename \"C:\\\\ComData\\\\Projekti\\\\MoneyTracker\\\\app\\\\src\\\\main\\\\java\\\\com\\\\expensetracker\" moneytracker)",
+      "Bash(./gradlew clean:*)"
     ]
   }
 }

@@ -1,7 +1,7 @@
 # Add project specific ProGuard rules here.
 
 # Keep data classes for Room
--keep class com.expensetracker.app.data.local.entity.** { *; }
+-keep class com.moneytracker.simplebudget.data.local.entity.** { *; }
 
 # Keep Kotlin serialization
 -keepattributes *Annotation*, InnerClasses
@@ -35,3 +35,6 @@
 
 # Vico Charts
 -keep class com.patrykandpatrick.vico.** { *; }
+
+# Suppress missing SLF4J implementation warning
+-dontwarn org.slf4j.impl.StaticLoggerBinder

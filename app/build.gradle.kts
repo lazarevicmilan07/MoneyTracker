@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.expensetracker.app"
+    namespace = "com.moneytracker.simplebudget"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.expensetracker.app"
+        applicationId = "com.moneytracker.simplebudget"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
