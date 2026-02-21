@@ -12,6 +12,7 @@ import com.moneytracker.simplebudget.domain.model.Account
 import com.moneytracker.simplebudget.domain.model.Category
 import com.moneytracker.simplebudget.domain.model.Expense
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -71,6 +72,7 @@ class TransactionViewModel @Inject constructor(
     private val _selectedParentCategoryId = MutableStateFlow<Long?>(null)
     private val _availableSubcategories = MutableStateFlow<List<Category>>(emptyList())
     val availableSubcategories: StateFlow<List<Category>> = _availableSubcategories.asStateFlow()
+    private var subcategoryCollectionJob: Job? = null
 
     // For backward compatibility
     val categories: StateFlow<List<Category>> = allCategories
@@ -119,6 +121,7 @@ class TransactionViewModel @Inject constructor(
                 // If subcategoryId is set, load subcategories and show selector
                 if (expense.subcategoryId != null && expense.categoryId != null) {
                     _selectedParentCategoryId.value = expense.categoryId
+                    collectSubcategories(expense.categoryId)
                     val subcategories = categoryRepository.getSubcategories(expense.categoryId).first()
                     _availableSubcategories.value = subcategories
                     if (subcategories.isNotEmpty()) {
@@ -146,6 +149,7 @@ class TransactionViewModel @Inject constructor(
                 )
                 if (expense.subcategoryId != null && expense.categoryId != null) {
                     _selectedParentCategoryId.value = expense.categoryId
+                    collectSubcategories(expense.categoryId)
                     val subcategories = categoryRepository.getSubcategories(expense.categoryId).first()
                     _availableSubcategories.value = subcategories
                     if (subcategories.isNotEmpty()) {
@@ -231,8 +235,18 @@ class TransactionViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selectedCategoryId = categoryId)
     }
 
+    private fun collectSubcategories(parentId: Long) {
+        subcategoryCollectionJob?.cancel()
+        subcategoryCollectionJob = viewModelScope.launch {
+            categoryRepository.getSubcategories(parentId).collect { subcategories ->
+                _availableSubcategories.value = subcategories
+            }
+        }
+    }
+
     fun selectParentCategory(categoryId: Long) {
         _selectedParentCategoryId.value = categoryId
+        collectSubcategories(categoryId)
         viewModelScope.launch {
             val subcategories = categoryRepository.getSubcategories(categoryId).first()
             _availableSubcategories.value = subcategories
@@ -277,6 +291,8 @@ class TransactionViewModel @Inject constructor(
     }
 
     fun clearSubcategorySelection() {
+        subcategoryCollectionJob?.cancel()
+        subcategoryCollectionJob = null
         _selectedParentCategoryId.value = null
         _availableSubcategories.value = emptyList()
         _uiState.value = _uiState.value.copy(
