@@ -243,6 +243,18 @@ fun SettingsScreen(
                     )
                 }
 
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.AttachMoney,
+                        title = "Currency Sign Position",
+                        subtitle = run {
+                            val sign = com.moneytracker.simplebudget.ui.components.getCurrencySymbol(userPreferences.currency)
+                            if (userPreferences.currencySymbolAfter) "After amount (100$sign)" else "Before amount (${sign}100)"
+                        },
+                        onClick = { viewModel.setCurrencySymbolAfter(!userPreferences.currencySymbolAfter) }
+                    )
+                }
+
                 // Data Section
                 item {
                     SettingsSectionHeader("Data")

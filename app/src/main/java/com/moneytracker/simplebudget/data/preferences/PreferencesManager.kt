@@ -25,7 +25,8 @@ class PreferencesManager @Inject constructor(
         UserPreferences(
             isDarkMode = preferences[PreferencesKeys.DARK_MODE] ?: true,
             currency = preferences[PreferencesKeys.CURRENCY] ?: "USD",
-            isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: false
+            isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: false,
+            currencySymbolAfter = preferences[PreferencesKeys.CURRENCY_SYMBOL_AFTER] ?: true
         )
     }
 
@@ -41,6 +42,10 @@ class PreferencesManager @Inject constructor(
         preferences[PreferencesKeys.IS_PREMIUM] ?: false
     }
 
+    val currencySymbolAfter: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.CURRENCY_SYMBOL_AFTER] ?: true
+    }
+
     suspend fun setDarkMode(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DARK_MODE] = enabled
@@ -50,6 +55,12 @@ class PreferencesManager @Inject constructor(
     suspend fun setCurrency(currency: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.CURRENCY] = currency
+        }
+    }
+
+    suspend fun setCurrencySymbolAfter(after: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.CURRENCY_SYMBOL_AFTER] = after
         }
     }
 
@@ -63,11 +74,13 @@ class PreferencesManager @Inject constructor(
         val DARK_MODE = booleanPreferencesKey("dark_mode")
         val CURRENCY = stringPreferencesKey("currency")
         val IS_PREMIUM = booleanPreferencesKey("is_premium")
+        val CURRENCY_SYMBOL_AFTER = booleanPreferencesKey("currency_symbol_after")
     }
 }
 
 data class UserPreferences(
     val isDarkMode: Boolean = true,
     val currency: String = "USD",
-    val isPremium: Boolean = false
+    val isPremium: Boolean = false,
+    val currencySymbolAfter: Boolean = true
 )

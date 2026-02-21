@@ -60,6 +60,9 @@ class TransactionViewModel @Inject constructor(
     val currency: StateFlow<String> = preferencesManager.currency
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "USD")
 
+    val currencySymbolAfter: StateFlow<Boolean> = preferencesManager.currencySymbolAfter
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     // All categories for lookup
     private val allCategories: StateFlow<List<Category>> = categoryRepository.getAllCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

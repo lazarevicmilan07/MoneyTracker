@@ -109,6 +109,7 @@ fun DashboardScreen(
     val uiState by viewModel.uiState.collectAsState()
     val selectedMonth by viewModel.selectedMonth.collectAsState()
     val currency by viewModel.currency.collectAsState()
+    val symbolAfter by viewModel.currencySymbolAfter.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
     val filter by viewModel.filter.collectAsState()
     val filteredTransactions by viewModel.filteredTransactions.collectAsState()
@@ -264,7 +265,8 @@ fun DashboardScreen(
                     balance = uiState.monthlyStats.balance,
                     currency = currency,
                     collapseProgress = collapseProgress,
-                    modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) }
+                    modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) },
+                    symbolAfter = symbolAfter
                 )
 
                 LazyColumn(
@@ -360,7 +362,8 @@ fun DashboardScreen(
 @Composable
 fun ExpenseBreakdownCard(
     breakdown: List<CategoryBreakdown>,
-    currency: String
+    currency: String,
+    symbolAfter: Boolean = true
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -380,6 +383,7 @@ fun ExpenseBreakdownCard(
             SimplePieChart(
                 breakdown = breakdown,
                 currency = currency,
+                symbolAfter = symbolAfter,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
@@ -415,7 +419,7 @@ fun ExpenseBreakdownCard(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = formatCurrency(item.amount, currency),
+                        text = formatCurrency(item.amount, currency, symbolAfter),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -429,6 +433,7 @@ fun ExpenseBreakdownCard(
 fun SimplePieChart(
     breakdown: List<CategoryBreakdown>,
     currency: String,
+    symbolAfter: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val total = breakdown.sumOf { it.amount }.toFloat()
@@ -503,7 +508,7 @@ fun SimplePieChart(
         if (selectedIndex in breakdown.indices) {
             val item = breakdown[selectedIndex]
             Text(
-                text = "${item.category?.name ?: "Uncategorized"}: ${formatCurrency(item.amount, currency)} (${item.percentage.toInt()}%)",
+                text = "${item.category?.name ?: "Uncategorized"}: ${formatCurrency(item.amount, currency, symbolAfter)} (${item.percentage.toInt()}%)",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
