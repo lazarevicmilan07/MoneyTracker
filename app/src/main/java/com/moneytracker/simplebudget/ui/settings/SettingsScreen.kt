@@ -467,7 +467,7 @@ fun SettingsScreen(
                         modifier = Modifier.clickable {
                             val intent = android.content.Intent(
                                 android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse("https://lazarevicmilan07.github.io/privacy-policy.html")
+                                android.net.Uri.parse("https://lazarevicmilan07.github.io/money-tracker/privacy-policy.html")
                             )
                             context.startActivity(intent)
                         }
