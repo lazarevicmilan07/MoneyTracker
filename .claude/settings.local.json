@@ -52,7 +52,10 @@
       "Bash(set:*)",
       "Bash(export JAVA_HOME=\"C:/Program Files/Android/Android Studio/jbr\")",
       "Bash(JAVA_HOME=\"C:/Program Files/Android/Android Studio/jbr\" ./gradlew:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-17\" ./gradlew assembleDebug:*)",
+      "Bash(reg query:*)",
+      "Bash(JAVA_HOME=\"C:/Program Files/Android/Android Studio/jbr\" ./gradlew assembleDebug:*)"
     ]
   }
 }
