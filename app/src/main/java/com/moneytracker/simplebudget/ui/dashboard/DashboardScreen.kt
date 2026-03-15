@@ -120,6 +120,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -537,7 +538,7 @@ fun DashboardScreen(
 
                                 groupedByDate.forEach { (date, transactions) ->
                                     Text(
-                                        text = date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d")),
+                                        text = date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d", Locale.ENGLISH)),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                         modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
