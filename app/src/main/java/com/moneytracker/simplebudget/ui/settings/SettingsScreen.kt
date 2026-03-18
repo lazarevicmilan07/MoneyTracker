@@ -124,6 +124,7 @@ fun SettingsScreen(
     val userPreferences by viewModel.userPreferences.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val reminderSettings by viewModel.reminderSettings.collectAsState()
+    val backupReminderSettings by viewModel.backupReminderSettings.collectAsState()
     val context = LocalContext.current
 
     // Track which action is pending and the selected period
@@ -136,11 +137,21 @@ fun SettingsScreen(
     var showReminderTimePicker by remember { mutableStateOf(false) }
     var showReminderDayOfWeekPicker by remember { mutableStateOf(false) }
     var showReminderDayOfMonthPicker by remember { mutableStateOf(false) }
+    var showBackupReminderTimePicker by remember { mutableStateOf(false) }
+    var showBackupReminderDayOfWeekPicker by remember { mutableStateOf(false) }
+    var showBackupReminderDayOfMonthPicker by remember { mutableStateOf(false) }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) viewModel.setReminderEnabled(true)
+        else Toast.makeText(context, "Notification permission is required for reminders", Toast.LENGTH_SHORT).show()
+    }
+
+    val backupNotificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) viewModel.setBackupReminderEnabled(true)
         else Toast.makeText(context, "Notification permission is required for reminders", Toast.LENGTH_SHORT).show()
     }
 
@@ -415,6 +426,82 @@ fun SettingsScreen(
                                 title = "Day of month",
                                 subtitle = reminderSettings.monthlyOption.label,
                                 onClick = { showReminderDayOfMonthPicker = true }
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    if (userPreferences.isPremium) {
+                        SettingsSwitch(
+                            icon = Icons.Default.Backup,
+                            title = "Backup Reminders",
+                            subtitle = if (backupReminderSettings.enabled)
+                                "Tap below to configure schedule"
+                            else
+                                "Get reminded to back up your data",
+                            checked = backupReminderSettings.enabled,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        backupNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else {
+                                        viewModel.setBackupReminderEnabled(true)
+                                    }
+                                } else {
+                                    viewModel.setBackupReminderEnabled(false)
+                                }
+                            }
+                        )
+                    } else {
+                        SettingsItem(
+                            icon = Icons.Default.Backup,
+                            title = "Backup Reminders",
+                            subtitle = "Premium feature",
+                            onClick = onShowPremium,
+                            isPremium = true
+                        )
+                    }
+                }
+
+                if (userPreferences.isPremium && backupReminderSettings.enabled) {
+                    item {
+                        ReminderFrequencyRow(
+                            selected = backupReminderSettings.frequency,
+                            onSelect = { freq ->
+                                viewModel.updateBackupReminderSettings(backupReminderSettings.copy(frequency = freq))
+                            }
+                        )
+                    }
+
+                    item {
+                        SettingsItem(
+                            icon = Icons.Default.Schedule,
+                            title = "Remind at",
+                            subtitle = "%02d:%02d".format(backupReminderSettings.hour, backupReminderSettings.minute),
+                            onClick = { showBackupReminderTimePicker = true }
+                        )
+                    }
+
+                    if (backupReminderSettings.frequency == ReminderFrequency.WEEKLY) {
+                        item {
+                            SettingsItem(
+                                icon = Icons.Default.DateRange,
+                                title = "Day of week",
+                                subtitle = java.time.DayOfWeek.of(backupReminderSettings.dayOfWeek)
+                                    .getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH),
+                                onClick = { showBackupReminderDayOfWeekPicker = true }
+                            )
+                        }
+                    }
+
+                    if (backupReminderSettings.frequency == ReminderFrequency.MONTHLY) {
+                        item {
+                            SettingsItem(
+                                icon = Icons.Default.CalendarMonth,
+                                title = "Day of month",
+                                subtitle = backupReminderSettings.monthlyOption.label,
+                                onClick = { showBackupReminderDayOfMonthPicker = true }
                             )
                         }
                     }
@@ -703,6 +790,43 @@ fun SettingsScreen(
                 viewModel.updateReminderSettings(reminderSettings.copy(monthlyOption = option))
             },
             onDismiss = { showReminderDayOfMonthPicker = false }
+        )
+    }
+
+    // Backup Reminder Time Picker
+    if (showBackupReminderTimePicker) {
+        ReminderTimePickerDialog(
+            initialHour = backupReminderSettings.hour,
+            initialMinute = backupReminderSettings.minute,
+            onConfirm = { hour, minute ->
+                showBackupReminderTimePicker = false
+                viewModel.updateBackupReminderSettings(backupReminderSettings.copy(hour = hour, minute = minute))
+            },
+            onDismiss = { showBackupReminderTimePicker = false }
+        )
+    }
+
+    // Backup Reminder Day of Week Picker
+    if (showBackupReminderDayOfWeekPicker) {
+        ReminderDayOfWeekDialog(
+            selected = backupReminderSettings.dayOfWeek,
+            onConfirm = { day ->
+                showBackupReminderDayOfWeekPicker = false
+                viewModel.updateBackupReminderSettings(backupReminderSettings.copy(dayOfWeek = day))
+            },
+            onDismiss = { showBackupReminderDayOfWeekPicker = false }
+        )
+    }
+
+    // Backup Reminder Day of Month Picker
+    if (showBackupReminderDayOfMonthPicker) {
+        ReminderDayOfMonthDialog(
+            selected = backupReminderSettings.monthlyOption,
+            onConfirm = { option ->
+                showBackupReminderDayOfMonthPicker = false
+                viewModel.updateBackupReminderSettings(backupReminderSettings.copy(monthlyOption = option))
+            },
+            onDismiss = { showBackupReminderDayOfMonthPicker = false }
         )
     }
 
