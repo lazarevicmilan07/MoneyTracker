@@ -9,13 +9,8 @@ import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -27,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,7 +29,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Settings
@@ -97,8 +90,7 @@ sealed class BottomNavItem(
     val label: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val route: String,
-    val hasSubmenu: Boolean = false
+    val route: String
 ) {
     data object Records : BottomNavItem(
         "Transactions",
@@ -110,8 +102,7 @@ sealed class BottomNavItem(
         "Stats",
         Icons.Filled.Assessment,
         Icons.Outlined.Assessment,
-        "stats",
-        hasSubmenu = true
+        Screen.Stats.route
     )
     data object Accounts : BottomNavItem(
         "Accounts",
@@ -282,8 +273,7 @@ class MainActivity : ComponentActivity() {
                     // Main nav destinations where bottom nav should be visible
                     val mainNavRoutes = listOf(
                         Screen.Dashboard.route,
-                        Screen.MonthlyReports.route,
-                        Screen.YearlyReports.route,
+                        Screen.Stats.route,
                         Screen.Accounts.route,
                         Screen.Categories.route,
                         Screen.Settings.route
@@ -291,15 +281,7 @@ class MainActivity : ComponentActivity() {
 
                     val showBottomNav = currentDestination?.route in mainNavRoutes
 
-                    // Track stats submenu visibility
-                    var showStatsSubmenu by remember { mutableStateOf(false) }
-
-                    // Determine which nav item is selected
                     val currentRoute = currentDestination?.route
-                    val isStatsSelected = currentRoute in listOf(
-                        Screen.MonthlyReports.route,
-                        Screen.YearlyReports.route
-                    )
 
                     // Routes where the ad banner should be visible
                     val adRoutes = listOf(
@@ -348,21 +330,15 @@ class MainActivity : ComponentActivity() {
                                         CustomNavigationBar(
                                             items = bottomNavItems,
                                             currentRoute = currentRoute,
-                                            isStatsSelected = isStatsSelected,
                                             isDarkMode = isDarkMode,
                                             onItemClick = { item ->
-                                                if (item.hasSubmenu) {
-                                                    showStatsSubmenu = !showStatsSubmenu
-                                                } else {
-                                                    showStatsSubmenu = false
-                                                    if (currentRoute != item.route) {
-                                                        navController.navigate(item.route) {
-                                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                                saveState = false
-                                                            }
-                                                            launchSingleTop = true
-                                                            restoreState = false
+                                                if (currentRoute != item.route) {
+                                                    navController.navigate(item.route) {
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = false
                                                         }
+                                                        launchSingleTop = true
+                                                        restoreState = false
                                                     }
                                                 }
                                             }
@@ -390,63 +366,6 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                         )
 
-                        // Dismiss overlay when stats submenu is open (captures taps outside submenu)
-                        // Excludes the nav bar area so nav bar remains clickable
-                        if (showStatsSubmenu) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .navigationBarsPadding()
-                                    .padding(bottom = 56.dp) // Nav bar height
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) { showStatsSubmenu = false }
-                            )
-                        }
-
-                        // Stats submenu popup - positioned above nav bar (on top of overlay)
-                        if (showBottomNav) {
-                            AnimatedVisibility(
-                                visible = showStatsSubmenu,
-                                enter = fadeIn() + slideInVertically { it },
-                                exit = fadeOut() + slideOutVertically { it },
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .navigationBarsPadding()
-                                    .offset(x = (-60).dp, y = (-70).dp)
-                            ) {
-                                StatsSubmenu(
-                                    isDarkMode = isDarkMode,
-                                    currentRoute = currentRoute,
-                                    onMonthlyClick = {
-                                        showStatsSubmenu = false
-                                        if (currentRoute != Screen.MonthlyReports.route) {
-                                            navController.navigate(Screen.MonthlyReports.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = false
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = false
-                                            }
-                                        }
-                                    },
-                                    onYearlyClick = {
-                                        showStatsSubmenu = false
-                                        if (currentRoute != Screen.YearlyReports.route) {
-                                            navController.navigate(Screen.YearlyReports.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = false
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = false
-                                            }
-                                        }
-                                    },
-                                    onDismiss = { showStatsSubmenu = false }
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -458,7 +377,6 @@ class MainActivity : ComponentActivity() {
 fun CustomNavigationBar(
     items: List<BottomNavItem>,
     currentRoute: String?,
-    isStatsSelected: Boolean,
     isDarkMode: Boolean,
     onItemClick: (BottomNavItem) -> Unit
 ) {
@@ -486,10 +404,7 @@ fun CustomNavigationBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { item ->
-                val isSelected = when {
-                    item.hasSubmenu -> isStatsSelected
-                    else -> currentRoute == item.route
-                }
+                val isSelected = currentRoute == item.route
 
                 val itemColor = if (isSelected) selectedColor else unselectedColor
 
@@ -551,78 +466,3 @@ fun NavBarItem(
     }
 }
 
-@Composable
-fun StatsSubmenu(
-    isDarkMode: Boolean,
-    currentRoute: String?,
-    onMonthlyClick: () -> Unit,
-    onYearlyClick: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val backgroundColor = if (isDarkMode) Color(0xFF3D3D3D) else Color(0xFFEEEEE8)
-    val selectedColor = if (isDarkMode) NavBarAccent else NavBarAccentDark
-    val unselectedColor = if (isDarkMode) Color(0xFFAAAAAA) else Color(0xFF8A8A7A)
-
-    Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = backgroundColor,
-        shadowElevation = 8.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Monthly option
-            val isMonthlySelected = currentRoute == Screen.MonthlyReports.route
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable(onClick = onMonthlyClick)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .width(84.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Assessment,
-                    contentDescription = null,
-                    tint = if (isMonthlySelected) selectedColor else unselectedColor,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = "Monthly",
-                    color = if (isMonthlySelected) selectedColor else unselectedColor,
-                    fontSize = 12.sp,
-                    fontWeight = if (isMonthlySelected) FontWeight.SemiBold else FontWeight.Normal,
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-            }
-
-            // Yearly option
-            val isYearlySelected = currentRoute == Screen.YearlyReports.route
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable(onClick = onYearlyClick)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .width(84.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = null,
-                    tint = if (isYearlySelected) selectedColor else unselectedColor,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = "Yearly",
-                    color = if (isYearlySelected) selectedColor else unselectedColor,
-                    fontSize = 12.sp,
-                    fontWeight = if (isYearlySelected) FontWeight.SemiBold else FontWeight.Normal,
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-            }
-        }
-    }
-}
