@@ -244,7 +244,7 @@ class TransactionViewModel @Inject constructor(
         val current = _uiState.value.amount
         val value = current.toDoubleOrNull()
         if (value != null) {
-            _uiState.value = _uiState.value.copy(amount = String.format("%.2f", value))
+            _uiState.value = _uiState.value.copy(amount = String.format(java.util.Locale.ROOT, "%.2f", value))
         }
     }
 
