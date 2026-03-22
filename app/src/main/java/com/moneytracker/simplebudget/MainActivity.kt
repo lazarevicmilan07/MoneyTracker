@@ -2,6 +2,8 @@ package com.moneytracker.simplebudget
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnticipateOvershootInterpolator
@@ -9,6 +11,7 @@ import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -58,6 +61,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -72,52 +76,55 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.moneytracker.simplebudget.BuildConfig
+import com.moneytracker.simplebudget.data.preferences.LanguagePreferences
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
 import com.moneytracker.simplebudget.navigation.NavGraph
 import com.moneytracker.simplebudget.navigation.Screen
 import com.moneytracker.simplebudget.ui.onboarding.OnboardingScreen
 import com.moneytracker.simplebudget.ui.theme.MoneyTrackerTheme
+import com.moneytracker.simplebudget.util.LocaleHelper
 import kotlinx.coroutines.launch
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 import javax.inject.Inject
 
 sealed class BottomNavItem(
-    val label: String,
+    @StringRes val labelResId: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
     val route: String
 ) {
     data object Records : BottomNavItem(
-        "Transactions",
+        R.string.nav_transactions,
         Icons.Filled.Receipt,
         Icons.Outlined.Receipt,
         Screen.Dashboard.route
     )
     data object Stats : BottomNavItem(
-        "Stats",
+        R.string.nav_stats,
         Icons.Filled.Assessment,
         Icons.Outlined.Assessment,
         Screen.Stats.route
     )
     data object Accounts : BottomNavItem(
-        "Accounts",
+        R.string.nav_accounts,
         Icons.Filled.AccountBalance,
         Icons.Outlined.AccountBalance,
         Screen.Accounts.route
     )
     data object Categories : BottomNavItem(
-        "Categories",
+        R.string.nav_categories,
         Icons.Filled.Category,
         Icons.Outlined.Category,
         Screen.Categories.route
     )
     data object Settings : BottomNavItem(
-        "Settings",
+        R.string.nav_settings,
         Icons.Filled.Settings,
         Icons.Outlined.Settings,
         Screen.Settings.route
@@ -135,6 +142,19 @@ class MainActivity : ComponentActivity() {
     lateinit var preferencesManager: PreferencesManager
 
     private val openSettings = mutableStateOf(false)
+
+    override fun attachBaseContext(newBase: Context) {
+        val lang = LanguagePreferences.getLanguage(newBase)
+        super.attachBaseContext(LocaleHelper.wrapContext(newBase, lang))
+    }
+
+    override fun applyOverrideConfiguration(overrideConfiguration: Configuration?) {
+        if (overrideConfiguration != null) {
+            val lang = LanguagePreferences.getLanguage(this)
+            overrideConfiguration.setLocale(Locale.forLanguageTag(lang))
+        }
+        super.applyOverrideConfiguration(overrideConfiguration)
+    }
 
     override fun onResume() {
         super.onResume()
@@ -449,14 +469,15 @@ fun NavBarItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        val label = stringResource(item.labelResId)
         Icon(
             imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-            contentDescription = item.label,
+            contentDescription = label,
             tint = color,
             modifier = Modifier.size(24.dp)
         )
         Text(
-            text = item.label,
+            text = label,
             color = color,
             fontSize = 10.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,

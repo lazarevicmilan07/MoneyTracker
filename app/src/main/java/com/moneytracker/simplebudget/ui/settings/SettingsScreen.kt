@@ -34,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
@@ -101,6 +102,7 @@ import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.moneytracker.simplebudget.data.preferences.LanguagePreferences
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
 import com.moneytracker.simplebudget.domain.usecase.ExportPeriodParams
 import com.moneytracker.simplebudget.notifications.MonthlyReminderOption
@@ -140,6 +142,11 @@ fun SettingsScreen(
     var showBackupReminderTimePicker by remember { mutableStateOf(false) }
     var showBackupReminderDayOfWeekPicker by remember { mutableStateOf(false) }
     var showBackupReminderDayOfMonthPicker by remember { mutableStateOf(false) }
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    val currentLanguageCode = remember { LanguagePreferences.getLanguage(context) }
+    val currentLanguageName = remember(currentLanguageCode) {
+        LanguagePreferences.supportedLanguages.find { it.code == currentLanguageCode }?.nativeName ?: "English"
+    }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -357,6 +364,15 @@ fun SettingsScreen(
                             if (userPreferences.currencySymbolAfter) "After amount (100$sign)" else "Before amount (${sign}100)"
                         },
                         onClick = { viewModel.setCurrencySymbolAfter(!userPreferences.currencySymbolAfter) }
+                    )
+                }
+
+                item {
+                    SettingsItem(
+                        icon = Icons.Default.Language,
+                        title = "Language",
+                        subtitle = currentLanguageName,
+                        onClick = { showLanguageDialog = true }
                     )
                 }
 
@@ -751,6 +767,49 @@ fun SettingsScreen(
             dismissButton = {
                 TextButton(onClick = { showAboutDialog = false }) {
                     Text("Close")
+                }
+            }
+        )
+    }
+
+    // Language Picker Dialog
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            icon = {
+                Icon(
+                    Icons.Default.Language,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = { Text("Language") },
+            text = {
+                LazyColumn {
+                    items(LanguagePreferences.supportedLanguages) { lang ->
+                        ListItem(
+                            headlineContent = { Text(lang.nativeName) },
+                            trailingContent = {
+                                if (lang.code == currentLanguageCode) {
+                                    Icon(
+                                        Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            },
+                            modifier = Modifier.clickable {
+                                showLanguageDialog = false
+                                LanguagePreferences.setLanguage(context, lang.code)
+                                (context as? android.app.Activity)?.recreate()
+                            }
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text("Cancel")
                 }
             }
         )
