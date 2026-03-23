@@ -22,8 +22,7 @@ import com.moneytracker.simplebudget.ui.categories.CategoriesScreen
 import com.moneytracker.simplebudget.ui.dashboard.DashboardScreen
 import com.moneytracker.simplebudget.ui.dashboard.DashboardViewModel
 import com.moneytracker.simplebudget.ui.premium.PremiumScreen
-import com.moneytracker.simplebudget.ui.reports.MonthlyReportsScreen
-import com.moneytracker.simplebudget.ui.reports.YearlyReportsScreen
+import com.moneytracker.simplebudget.ui.reports.StatsScreen
 import com.moneytracker.simplebudget.ui.settings.SettingsScreen
 import com.moneytracker.simplebudget.ui.transaction.TransactionDetailScreen
 import com.moneytracker.simplebudget.ui.transaction.TransactionScreen
@@ -33,8 +32,7 @@ private fun getNavBarIndex(route: String?): Int {
     return when {
         route == null -> -1
         route == Screen.Dashboard.route -> 0
-        route == Screen.MonthlyReports.route -> 1
-        route == Screen.YearlyReports.route -> 1
+        route == Screen.Stats.route -> 1
         route == Screen.Accounts.route -> 2
         route == Screen.Categories.route -> 3
         route == Screen.Settings.route -> 4
@@ -46,8 +44,7 @@ private fun isNavBarRoute(route: String?): Boolean = getNavBarIndex(route) >= 0
 
 sealed class Screen(val route: String) {
     data object Dashboard : Screen("dashboard")
-    data object MonthlyReports : Screen("monthly_reports")
-    data object YearlyReports : Screen("yearly_reports")
+    data object Stats : Screen("stats")
     data object AddTransaction : Screen("add_transaction")
     data object EditTransaction : Screen("edit_transaction/{expenseId}") {
         fun createRoute(expenseId: Long) = "edit_transaction/$expenseId"
@@ -227,18 +224,11 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.MonthlyReports.route) {
+        composable(Screen.Stats.route) {
             val dashboardViewModel: DashboardViewModel = hiltViewModel()
             val currency by dashboardViewModel.currency.collectAsState()
             val symbolAfter by dashboardViewModel.currencySymbolAfter.collectAsState()
-            MonthlyReportsScreen(currency = currency, symbolAfter = symbolAfter)
-        }
-
-        composable(Screen.YearlyReports.route) {
-            val dashboardViewModel: DashboardViewModel = hiltViewModel()
-            val currency by dashboardViewModel.currency.collectAsState()
-            val symbolAfter by dashboardViewModel.currencySymbolAfter.collectAsState()
-            YearlyReportsScreen(currency = currency, symbolAfter = symbolAfter)
+            StatsScreen(currency = currency, symbolAfter = symbolAfter)
         }
     }
 }

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">CashFlow - Gerenciador de Gastos</string>
+    <string name="app_name_short">CashFlow</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_transactions">Transações</string>
+    <string name="nav_stats">Estatísticas</string>
+    <string name="nav_accounts">Contas</string>
+    <string name="nav_categories">Categorias</string>
+    <string name="nav_settings">Configurações</string>
+
+    <!-- Common Buttons -->
+    <string name="button_save">Salvar</string>
+    <string name="button_cancel">Cancelar</string>
+    <string name="button_delete">Excluir</string>
+    <string name="button_ok">OK</string>
+    <string name="button_close">Fechar</string>
+    <string name="button_done">Concluído</string>
+    <string name="button_clear">Limpar</string>
+    <string name="button_apply">Aplicar</string>
+    <string name="button_copy">Copiar</string>
+    <string name="button_continue">Continuar</string>
+    <string name="button_restore">Restaurar</string>
+
+    <!-- Common Labels -->
+    <string name="label_amount">Valor</string>
+    <string name="label_note">Nota</string>
+    <string name="label_date">Data</string>
+    <string name="label_category">Categoria</string>
+    <string name="label_account">Conta</string>
+    <string name="label_name">Nome</string>
+    <string name="label_icon">Ícone</string>
+    <string name="label_color">Cor</string>
+    <string name="label_type">Tipo</string>
+
+    <!-- Transaction Types -->
+    <string name="transaction_type_expense">Despesa</string>
+    <string name="transaction_type_income">Receita</string>
+    <string name="transaction_type_transfer">Transferência</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_back">Voltar</string>
+
+    <!-- Settings — Appearance -->
+    <string name="section_appearance">Aparência</string>
+    <string name="setting_theme">Tema</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Escuro</string>
+    <string name="setting_currency">Moeda</string>
+    <string name="setting_currency_position">Posição do símbolo monetário</string>
+    <string name="currency_position_after">Após o valor (100%s)</string>
+    <string name="currency_position_before">Antes do valor (%s100)</string>
+    <string name="setting_language">Idioma</string>
+
+    <!-- Settings — Notifications -->
+    <string name="section_notifications">Notificações</string>
+    <string name="setting_transaction_reminders">Lembretes de transações</string>
+    <string name="reminder_enabled_subtitle">Toque abaixo para configurar o horário</string>
+    <string name="reminder_disabled_subtitle">Receba lembretes para registrar suas transações</string>
+    <string name="notification_permission_required">Permissão de notificação necessária para lembretes</string>
+    <string name="setting_backup_reminders">Lembretes de backup</string>
+    <string name="backup_reminder_disabled_subtitle">Receba lembretes para fazer backup dos seus dados</string>
+    <string name="label_premium_feature">Recurso premium</string>
+    <string name="setting_remind_at">Lembrar às</string>
+    <string name="setting_day_of_week">Dia da semana</string>
+    <string name="setting_day_of_month">Dia do mês</string>
+    <string name="reminder_daily">Diário</string>
+    <string name="reminder_weekly">Semanal</string>
+    <string name="reminder_monthly">Mensal</string>
+
+    <!-- Settings — Data -->
+    <string name="section_data">Dados</string>
+    <string name="setting_export_excel">Exportar para Excel</string>
+    <string name="setting_export_excel_subtitle">Exportar dados para Excel</string>
+    <string name="setting_export_pdf">Exportar para PDF</string>
+    <string name="setting_export_pdf_subtitle">Gerar relatório de dados</string>
+    <string name="setting_backup">Backup</string>
+    <string name="setting_backup_subtitle">Criar backup dos dados (JSON)</string>
+    <string name="setting_restore">Restaurar</string>
+    <string name="setting_restore_subtitle">Restaurar do backup (JSON)</string>
+
+    <!-- Settings — About -->
+    <string name="section_about">Sobre</string>
+    <string name="setting_about">Sobre</string>
+    <string name="about_version">Versão 3.0.0</string>
+    <string name="about_app_name">CashFlow - Orçamento Simples</string>
+    <string name="about_privacy_policy">Política de privacidade</string>
+    <string name="about_rate_app">Avaliar o app</string>
+
+    <!-- Settings Dialogs -->
+    <string name="dialog_restore_title">Restaurar dados</string>
+    <string name="dialog_restore_warning">Isso excluirá permanentemente todos os seus dados atuais, incluindo transações, categorias, subcategorias e contas, e os substituirá pelos dados do arquivo de backup.\n\nEsta ação não pode ser desfeita. Tem certeza que deseja continuar?</string>
+    <string name="dialog_select_currency">Selecionar moeda</string>
+    <string name="currency_search_hint">Pesquisar moeda…</string>
+    <string name="dialog_language_title">Idioma</string>
+
+    <!-- Settings Loading States -->
+    <string name="loading_exporting">Exportando…</string>
+    <string name="loading_creating_backup">Criando backup…</string>
+    <string name="loading_restoring">Restaurando…</string>
+
+    <!-- Settings Toast Messages -->
+    <string name="message_export_success">%s exportado com sucesso</string>
+    <string name="message_backup_success">Backup criado com sucesso</string>
+    <string name="message_restore_success">Dados restaurados com sucesso</string>
+    <string name="message_premium_activated">Premium ativado! Todos os recursos desbloqueados.</string>
+
+    <!-- Premium Banner -->
+    <string name="premium_banner_title">Atualizar para Premium</string>
+    <string name="premium_banner_subtitle">Desbloqueie todos os recursos com uma compra única</string>
+
+    <!-- Period Selection Dialog -->
+    <string name="period_select_export">Selecionar período para exportar:</string>
+    <string name="period_monthly">Mensal</string>
+    <string name="period_monthly_description">Exportar dados de um mês específico</string>
+    <string name="period_yearly">Anual</string>
+    <string name="period_yearly_description">Exportar dados de um ano inteiro</string>
+    <string name="period_select_month_year">Selecionar mês e ano</string>
+    <string name="period_select_year">Selecionar ano</string>
+    <string name="dialog_export_excel_title">Exportar para Excel</string>
+    <string name="dialog_export_pdf_title">Exportar para PDF</string>
+    <string name="dialog_backup_title">Backup de dados</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Transações</string>
+    <string name="dashboard_selected_count">%d selecionado(s)</string>
+    <string name="dashboard_delete_transactions">Excluir transações</string>
+    <string name="dashboard_delete_confirm">Excluir %d transação(ões)? Esta ação não pode ser desfeita.</string>
+    <string name="dashboard_edit_transactions">Editar %d transação(ões)</string>
+    <string name="dashboard_edit_note">Editar nota</string>
+    <string name="dashboard_note_placeholder">Inserir nota para todas as transações selecionadas</string>
+    <string name="dashboard_filters">Filtros</string>
+    <string name="dashboard_filter_all">Todos</string>
+    <string name="dashboard_filter_expense">Despesa</string>
+    <string name="dashboard_filter_income">Receita</string>
+    <string name="dashboard_filter_transfer">Transferência</string>
+    <string name="dashboard_filter_category">Categoria</string>
+    <string name="dashboard_filter_subcategory">Subcategoria</string>
+    <string name="dashboard_filter_account">Conta</string>
+    <string name="dashboard_search">Pesquisar</string>
+    <string name="dashboard_search_placeholder">Pesquisar notas…</string>
+    <string name="dashboard_select_category">Selecionar categoria</string>
+    <string name="dashboard_select_account">Selecionar conta</string>
+    <string name="dashboard_clear_filters">Limpar filtros</string>
+    <string name="dashboard_expense_breakdown">Detalhamento de despesas</string>
+    <string name="dashboard_no_transactions">Nenhuma transação ainda</string>
+    <string name="dashboard_no_transactions_hint">Toque em + para adicionar sua primeira transação</string>
+    <string name="dashboard_no_transactions_filtered">Nenhuma transação corresponde aos seus filtros</string>
+    <string name="dashboard_showing_count">Exibindo %1$d de %2$d transações</string>
+
+    <!-- Transaction Screen -->
+    <string name="transaction_edit_title">Editar transação</string>
+    <string name="transaction_new_title">Nova transação</string>
+    <string name="transaction_copy_title">Copiar transação</string>
+    <string name="transaction_copy_date_question">Qual data a cópia deve usar?</string>
+    <string name="transaction_copy_today">Data de hoje</string>
+    <string name="transaction_copy_original">Data original</string>
+    <string name="transaction_delete_confirm">Tem certeza que deseja excluir esta transação?</string>
+    <string name="transaction_saved">Transação salva</string>
+
+    <!-- Transaction Detail Screen -->
+    <string name="transaction_detail_title">Detalhes da transação</string>
+    <string name="transaction_detail_delete">Excluir transação</string>
+    <string name="transaction_detail_delete_confirm">Tem certeza que deseja excluir este %1$s de %2$s?</string>
+    <string name="transaction_detail_from">De</string>
+    <string name="transaction_detail_to">Para</string>
+    <string name="transaction_uncategorized">Sem categoria</string>
+    <string name="transaction_deleted">Transação excluída</string>
+
+    <!-- Accounts Screen -->
+    <string name="accounts_title">Contas</string>
+    <string name="accounts_add">Adicionar conta</string>
+    <string name="accounts_total_balance">Saldo total</string>
+    <string name="accounts_your_accounts">Suas contas</string>
+    <string name="accounts_all_accounts">Todas as contas</string>
+    <string name="accounts_default_label">Padrão</string>
+    <string name="accounts_edit_title">Editar conta</string>
+    <string name="accounts_new_title">Nova conta</string>
+    <string name="accounts_field_name">Nome da conta</string>
+    <string name="accounts_field_type">Tipo de conta</string>
+    <string name="accounts_field_initial_balance">Saldo inicial</string>
+    <string name="accounts_delete_confirm">Tem certeza que deseja excluir \"%s\"? Todas as transações desta conta ficarão sem atribuição.</string>
+    <string name="accounts_saved">Conta salva</string>
+    <string name="accounts_deleted">Conta excluída</string>
+    <string name="accounts_set_default">Definir como padrão</string>
+    <string name="accounts_remove_default">Remover padrão</string>
+
+    <!-- Categories Screen -->
+    <string name="categories_title">Categorias</string>
+    <string name="categories_tab_expenses">Despesas</string>
+    <string name="categories_tab_income">Receitas</string>
+    <string name="categories_add">Adicionar categoria</string>
+    <string name="categories_edit_title">Editar categoria</string>
+    <string name="categories_new_title">Nova categoria</string>
+    <string name="categories_edit_subcategory">Editar subcategoria</string>
+    <string name="categories_new_subcategory">Nova subcategoria</string>
+    <string name="categories_delete_title">Excluir categoria</string>
+    <string name="categories_delete_confirm">Tem certeza que deseja excluir \"%s\"? As transações que usam esta categoria ficarão sem categoria.</string>
+    <string name="categories_saved">Categoria salva</string>
+    <string name="categories_deleted">Categoria excluída</string>
+    <string name="categories_add_subcategory">Adicionar subcategoria</string>
+    <string name="categories_drag_reorder">Arrastar para reordenar</string>
+    <string name="categories_collapse">Recolher</string>
+    <string name="categories_expand">Expandir</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_skip">Pular</string>
+    <string name="onboarding_next">Próximo</string>
+    <string name="onboarding_get_started">Começar</string>
+    <string name="onboarding_page1_title">Controle seu dinheiro</string>
+    <string name="onboarding_page1_subtitle">Controle de gastos sem esforço</string>
+    <string name="onboarding_page1_description">Registre suas despesas e receitas diárias em segundos. Mantenha suas finanças sob controle com uma interface limpa e intuitiva.</string>
+    <string name="onboarding_page2_title">Insights inteligentes</string>
+    <string name="onboarding_page2_subtitle">Relatórios mensais &amp; anuais</string>
+    <string name="onboarding_page2_description">Visualize seus padrões de gastos com belos gráficos. Obtenha análises mensais e visões gerais anuais.</string>
+    <string name="onboarding_page3_title">Fique organizado</string>
+    <string name="onboarding_page3_subtitle">Contas &amp; categorias</string>
+    <string name="onboarding_page3_description">Crie várias contas e categorias personalizadas para organizar suas finanças do seu jeito.</string>
+    <string name="onboarding_page4_title">Seus dados, seguros</string>
+    <string name="onboarding_page4_subtitle">Exportar &amp; backup</string>
+    <string name="onboarding_page4_description">Exporte seus registros como Excel ou PDF. Faça backup e restaure seus dados a qualquer momento.</string>
+
+    <!-- Premium Screen -->
+    <string name="premium_title">Desbloquear Premium</string>
+    <string name="premium_subtitle">Compra única, acesso vitalício</string>
+    <string name="premium_feature_backup">Backup &amp; restauração</string>
+    <string name="premium_feature_backup_desc">Nunca perca seus dados financeiros</string>
+    <string name="premium_feature_remove_ads">Remover anúncios</string>
+    <string name="premium_feature_remove_ads_desc">Aproveite uma experiência sem anúncios</string>
+    <string name="premium_one_time_payment">Pagamento único</string>
+    <string name="premium_restore_purchases">Restaurar compras</string>
+    <string name="premium_secure_payment">Pagamento seguro via Google Play</string>
+    <string name="premium_purchase_success">Premium desbloqueado! Obrigado!</string>
+    <string name="premium_purchase_canceled">Compra cancelada</string>
+
+    <!-- Reports / Stats -->
+    <string name="stats_title">Estatísticas</string>
+    <string name="monthly_reports_title">Relatórios mensais</string>
+    <string name="yearly_reports_title">Relatórios anuais</string>
+    <string name="reports_tab_monthly">Mensal</string>
+    <string name="reports_tab_yearly">Anual</string>
+    <string name="reports_expenses_by_category">Despesas por categoria</string>
+    <string name="reports_income_by_category">Receitas por categoria</string>
+    <string name="reports_no_data_month">Sem dados para este mês</string>
+    <string name="reports_no_data_hint">Adicione transações para ver relatórios</string>
+    <string name="reports_yearly_expenses_by_category">Despesas anuais por categoria</string>
+    <string name="reports_yearly_income_by_category">Receitas anuais por categoria</string>
+    <string name="reports_monthly_overview">Visão geral mensal</string>
+    <string name="reports_yearly_balance">Saldo anual</string>
+    <string name="reports_monthly_breakdown">Detalhamento mensal</string>
+    <string name="reports_no_data_year">Sem dados para este ano</string>
+    <string name="reports_no_data_year_hint">Adicione transações para ver relatórios anuais</string>
+</resources>

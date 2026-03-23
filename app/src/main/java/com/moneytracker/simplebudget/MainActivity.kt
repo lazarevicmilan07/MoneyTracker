@@ -2,6 +2,8 @@ package com.moneytracker.simplebudget
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnticipateOvershootInterpolator
@@ -9,13 +11,9 @@ import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedVisibility
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -27,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,7 +32,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Settings
@@ -51,6 +47,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +61,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -78,54 +76,60 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.moneytracker.simplebudget.BuildConfig
+import com.moneytracker.simplebudget.data.preferences.LanguagePreferences
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
 import com.moneytracker.simplebudget.navigation.NavGraph
 import com.moneytracker.simplebudget.navigation.Screen
 import com.moneytracker.simplebudget.ui.onboarding.OnboardingScreen
-import com.moneytracker.simplebudget.ui.theme.MoneyTrackerTheme
+import com.moneytracker.simplebudget.ui.theme.CashFlowTheme
+import com.moneytracker.simplebudget.util.LocaleHelper
 import kotlinx.coroutines.launch
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 import javax.inject.Inject
 
 sealed class BottomNavItem(
-    val label: String,
+    @StringRes val labelResId: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val route: String,
-    val hasSubmenu: Boolean = false
+    val route: String
 ) {
     data object Records : BottomNavItem(
-        "Transactions",
+        R.string.nav_transactions,
         Icons.Filled.Receipt,
         Icons.Outlined.Receipt,
         Screen.Dashboard.route
     )
     data object Stats : BottomNavItem(
-        "Stats",
+        R.string.nav_stats,
         Icons.Filled.Assessment,
         Icons.Outlined.Assessment,
-        "stats",
-        hasSubmenu = true
+        Screen.Stats.route
     )
     data object Accounts : BottomNavItem(
-        "Accounts",
+        R.string.nav_accounts,
         Icons.Filled.AccountBalance,
         Icons.Outlined.AccountBalance,
         Screen.Accounts.route
     )
     data object Categories : BottomNavItem(
-        "Categories",
+        R.string.nav_categories,
         Icons.Filled.Category,
         Icons.Outlined.Category,
         Screen.Categories.route
     )
     data object Settings : BottomNavItem(
-        "Settings",
+        R.string.nav_settings,
         Icons.Filled.Settings,
         Icons.Outlined.Settings,
         Screen.Settings.route
@@ -142,15 +146,69 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var preferencesManager: PreferencesManager
 
+    private val openSettings = mutableStateOf(false)
+
+    private lateinit var appUpdateManager: AppUpdateManager
+
+    override fun attachBaseContext(newBase: Context) {
+        val lang = LanguagePreferences.getLanguage(newBase)
+        super.attachBaseContext(LocaleHelper.wrapContext(newBase, lang))
+    }
+
+    override fun applyOverrideConfiguration(overrideConfiguration: Configuration?) {
+        if (overrideConfiguration != null) {
+            val lang = LanguagePreferences.getLanguage(this)
+            overrideConfiguration.setLocale(Locale.forLanguageTag(lang))
+        }
+        super.applyOverrideConfiguration(overrideConfiguration)
+    }
+
     override fun onResume() {
         super.onResume()
-        androidx.core.app.NotificationManagerCompat.from(this)
-            .cancel(com.moneytracker.simplebudget.notifications.ReminderNotificationHelper.NOTIFICATION_ID)
+        androidx.core.app.NotificationManagerCompat.from(this).apply {
+            cancel(com.moneytracker.simplebudget.notifications.ReminderNotificationHelper.NOTIFICATION_ID)
+            cancel(com.moneytracker.simplebudget.notifications.BackupReminderNotificationHelper.NOTIFICATION_ID)
+        }
+
+        // Resume a stalled immediate update (user backgrounded the update dialog and returned).
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    this,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build(),
+                    0
+                )
+            }
+        }
+    }
+
+    private fun checkForAppUpdate() {
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+            if (
+                appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    this,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build(),
+                    0
+                )
+            }
+        }
     }
 
     /** Handles re-delivery when the activity is already running (singleTop). */
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
+        if (intent.getBooleanExtra(
+                com.moneytracker.simplebudget.notifications.BackupReminderNotificationHelper.EXTRA_OPEN_SETTINGS,
+                false
+            )
+        ) {
+            openSettings.value = true
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -205,6 +263,17 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
+        if (intent.getBooleanExtra(
+                com.moneytracker.simplebudget.notifications.BackupReminderNotificationHelper.EXTRA_OPEN_SETTINGS,
+                false
+            )
+        ) {
+            openSettings.value = true
+        }
+
+        appUpdateManager = AppUpdateManagerFactory.create(this)
+        checkForAppUpdate()
+
         // Initialize Google Mobile Ads SDK
         MobileAds.initialize(this) {}
 
@@ -227,7 +296,7 @@ class MainActivity : ComponentActivity() {
                 showOnboarding = true
             }
 
-            MoneyTrackerTheme(darkTheme = isDarkMode) {
+            CashFlowTheme(darkTheme = isDarkMode) {
                 if (showOnboarding) {
                     OnboardingScreen(
                         onFinish = {
@@ -243,6 +312,16 @@ class MainActivity : ComponentActivity() {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination
 
+                    LaunchedEffect(openSettings.value) {
+                        if (openSettings.value) {
+                            openSettings.value = false
+                            navController.navigate(Screen.Settings.route) {
+                                popUpTo(Screen.Dashboard.route) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
                     val bottomNavItems = listOf(
                         BottomNavItem.Records,
                         BottomNavItem.Stats,
@@ -254,8 +333,7 @@ class MainActivity : ComponentActivity() {
                     // Main nav destinations where bottom nav should be visible
                     val mainNavRoutes = listOf(
                         Screen.Dashboard.route,
-                        Screen.MonthlyReports.route,
-                        Screen.YearlyReports.route,
+                        Screen.Stats.route,
                         Screen.Accounts.route,
                         Screen.Categories.route,
                         Screen.Settings.route
@@ -263,15 +341,7 @@ class MainActivity : ComponentActivity() {
 
                     val showBottomNav = currentDestination?.route in mainNavRoutes
 
-                    // Track stats submenu visibility
-                    var showStatsSubmenu by remember { mutableStateOf(false) }
-
-                    // Determine which nav item is selected
                     val currentRoute = currentDestination?.route
-                    val isStatsSelected = currentRoute in listOf(
-                        Screen.MonthlyReports.route,
-                        Screen.YearlyReports.route
-                    )
 
                     // Routes where the ad banner should be visible
                     val adRoutes = listOf(
@@ -320,21 +390,15 @@ class MainActivity : ComponentActivity() {
                                         CustomNavigationBar(
                                             items = bottomNavItems,
                                             currentRoute = currentRoute,
-                                            isStatsSelected = isStatsSelected,
                                             isDarkMode = isDarkMode,
                                             onItemClick = { item ->
-                                                if (item.hasSubmenu) {
-                                                    showStatsSubmenu = !showStatsSubmenu
-                                                } else {
-                                                    showStatsSubmenu = false
-                                                    if (currentRoute != item.route) {
-                                                        navController.navigate(item.route) {
-                                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                                saveState = false
-                                                            }
-                                                            launchSingleTop = true
-                                                            restoreState = false
+                                                if (currentRoute != item.route) {
+                                                    navController.navigate(item.route) {
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = false
                                                         }
+                                                        launchSingleTop = true
+                                                        restoreState = false
                                                     }
                                                 }
                                             }
@@ -362,63 +426,6 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                         )
 
-                        // Dismiss overlay when stats submenu is open (captures taps outside submenu)
-                        // Excludes the nav bar area so nav bar remains clickable
-                        if (showStatsSubmenu) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .navigationBarsPadding()
-                                    .padding(bottom = 56.dp) // Nav bar height
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) { showStatsSubmenu = false }
-                            )
-                        }
-
-                        // Stats submenu popup - positioned above nav bar (on top of overlay)
-                        if (showBottomNav) {
-                            AnimatedVisibility(
-                                visible = showStatsSubmenu,
-                                enter = fadeIn() + slideInVertically { it },
-                                exit = fadeOut() + slideOutVertically { it },
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .navigationBarsPadding()
-                                    .offset(x = (-60).dp, y = (-70).dp)
-                            ) {
-                                StatsSubmenu(
-                                    isDarkMode = isDarkMode,
-                                    currentRoute = currentRoute,
-                                    onMonthlyClick = {
-                                        showStatsSubmenu = false
-                                        if (currentRoute != Screen.MonthlyReports.route) {
-                                            navController.navigate(Screen.MonthlyReports.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = false
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = false
-                                            }
-                                        }
-                                    },
-                                    onYearlyClick = {
-                                        showStatsSubmenu = false
-                                        if (currentRoute != Screen.YearlyReports.route) {
-                                            navController.navigate(Screen.YearlyReports.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = false
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = false
-                                            }
-                                        }
-                                    },
-                                    onDismiss = { showStatsSubmenu = false }
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -430,7 +437,6 @@ class MainActivity : ComponentActivity() {
 fun CustomNavigationBar(
     items: List<BottomNavItem>,
     currentRoute: String?,
-    isStatsSelected: Boolean,
     isDarkMode: Boolean,
     onItemClick: (BottomNavItem) -> Unit
 ) {
@@ -458,10 +464,7 @@ fun CustomNavigationBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { item ->
-                val isSelected = when {
-                    item.hasSubmenu -> isStatsSelected
-                    else -> currentRoute == item.route
-                }
+                val isSelected = currentRoute == item.route
 
                 val itemColor = if (isSelected) selectedColor else unselectedColor
 
@@ -506,14 +509,15 @@ fun NavBarItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        val label = stringResource(item.labelResId)
         Icon(
             imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-            contentDescription = item.label,
+            contentDescription = label,
             tint = color,
             modifier = Modifier.size(24.dp)
         )
         Text(
-            text = item.label,
+            text = label,
             color = color,
             fontSize = 10.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
@@ -523,78 +527,3 @@ fun NavBarItem(
     }
 }
 
-@Composable
-fun StatsSubmenu(
-    isDarkMode: Boolean,
-    currentRoute: String?,
-    onMonthlyClick: () -> Unit,
-    onYearlyClick: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val backgroundColor = if (isDarkMode) Color(0xFF3D3D3D) else Color(0xFFEEEEE8)
-    val selectedColor = if (isDarkMode) NavBarAccent else NavBarAccentDark
-    val unselectedColor = if (isDarkMode) Color(0xFFAAAAAA) else Color(0xFF8A8A7A)
-
-    Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = backgroundColor,
-        shadowElevation = 8.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Monthly option
-            val isMonthlySelected = currentRoute == Screen.MonthlyReports.route
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable(onClick = onMonthlyClick)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .width(84.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Assessment,
-                    contentDescription = null,
-                    tint = if (isMonthlySelected) selectedColor else unselectedColor,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = "Monthly",
-                    color = if (isMonthlySelected) selectedColor else unselectedColor,
-                    fontSize = 12.sp,
-                    fontWeight = if (isMonthlySelected) FontWeight.SemiBold else FontWeight.Normal,
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-            }
-
-            // Yearly option
-            val isYearlySelected = currentRoute == Screen.YearlyReports.route
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .clickable(onClick = onYearlyClick)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .width(84.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = null,
-                    tint = if (isYearlySelected) selectedColor else unselectedColor,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = "Yearly",
-                    color = if (isYearlySelected) selectedColor else unselectedColor,
-                    fontSize = 12.sp,
-                    fontWeight = if (isYearlySelected) FontWeight.SemiBold else FontWeight.Normal,
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-            }
-        }
-    }
-}

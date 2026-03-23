@@ -1,5 +1,257 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Money Tracker - Simple Expense Manager</string>
-    <string name="app_name_short">Money Tracker</string>
+    <!-- App -->
+    <string name="app_name">CashFlow - Simple Expense Manager</string>
+    <string name="app_name_short">CashFlow</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_transactions">Transactions</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_accounts">Accounts</string>
+    <string name="nav_categories">Categories</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Common Buttons -->
+    <string name="button_save">Save</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_ok">OK</string>
+    <string name="button_close">Close</string>
+    <string name="button_done">Done</string>
+    <string name="button_clear">Clear</string>
+    <string name="button_apply">Apply</string>
+    <string name="button_copy">Copy</string>
+    <string name="button_continue">Continue</string>
+    <string name="button_restore">Restore</string>
+
+    <!-- Common Labels -->
+    <string name="label_amount">Amount</string>
+    <string name="label_note">Note</string>
+    <string name="label_date">Date</string>
+    <string name="label_category">Category</string>
+    <string name="label_account">Account</string>
+    <string name="label_name">Name</string>
+    <string name="label_icon">Icon</string>
+    <string name="label_color">Color</string>
+    <string name="label_type">Type</string>
+
+    <!-- Transaction Types -->
+    <string name="transaction_type_expense">Expense</string>
+    <string name="transaction_type_income">Income</string>
+    <string name="transaction_type_transfer">Transfer</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back</string>
+
+    <!-- Settings — Appearance -->
+    <string name="section_appearance">Appearance</string>
+    <string name="setting_theme">Theme</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="setting_currency">Currency</string>
+    <string name="setting_currency_position">Currency Sign Position</string>
+    <string name="currency_position_after">After amount (100%s)</string>
+    <string name="currency_position_before">Before amount (%s100)</string>
+    <string name="setting_language">Language</string>
+
+    <!-- Settings — Notifications -->
+    <string name="section_notifications">Notifications</string>
+    <string name="setting_transaction_reminders">Transaction Reminders</string>
+    <string name="reminder_enabled_subtitle">Tap below to configure schedule</string>
+    <string name="reminder_disabled_subtitle">Get reminded to log your transactions</string>
+    <string name="notification_permission_required">Notification permission is required for reminders</string>
+    <string name="setting_backup_reminders">Backup Reminders</string>
+    <string name="backup_reminder_disabled_subtitle">Get reminded to back up your data</string>
+    <string name="label_premium_feature">Premium feature</string>
+    <string name="setting_remind_at">Remind at</string>
+    <string name="setting_day_of_week">Day of week</string>
+    <string name="setting_day_of_month">Day of month</string>
+    <string name="reminder_daily">Daily</string>
+    <string name="reminder_weekly">Weekly</string>
+    <string name="reminder_monthly">Monthly</string>
+
+    <!-- Settings — Data -->
+    <string name="section_data">Data</string>
+    <string name="setting_export_excel">Export to Excel</string>
+    <string name="setting_export_excel_subtitle">Export data to Excel</string>
+    <string name="setting_export_pdf">Export to PDF</string>
+    <string name="setting_export_pdf_subtitle">Generate data report</string>
+    <string name="setting_backup">Backup</string>
+    <string name="setting_backup_subtitle">Create data backup (JSON)</string>
+    <string name="setting_restore">Restore</string>
+    <string name="setting_restore_subtitle">Restore from backup (JSON)</string>
+
+    <!-- Settings — About -->
+    <string name="section_about">About</string>
+    <string name="setting_about">About</string>
+    <string name="about_version">Version 3.1.0</string>
+    <string name="about_app_name">CashFlow - Simple Budget</string>
+    <string name="about_privacy_policy">Privacy Policy</string>
+    <string name="about_rate_app">Rate App</string>
+
+    <!-- Settings Dialogs -->
+    <string name="dialog_restore_title">Restore Data</string>
+    <string name="dialog_restore_warning">This will permanently delete all your current data including transactions, categories, subcategories, and accounts, and replace it with the data from the backup file.\n\nThis action cannot be undone. Are you sure you want to continue?</string>
+    <string name="dialog_select_currency">Select Currency</string>
+    <string name="currency_search_hint">Search currency…</string>
+    <string name="dialog_language_title">Language</string>
+
+    <!-- Settings Loading States -->
+    <string name="loading_exporting">Exporting…</string>
+    <string name="loading_creating_backup">Creating backup…</string>
+    <string name="loading_restoring">Restoring…</string>
+
+    <!-- Settings Toast Messages -->
+    <string name="message_export_success">%s exported successfully</string>
+    <string name="message_backup_success">Backup created successfully</string>
+    <string name="message_restore_success">Data restored successfully</string>
+    <string name="message_premium_activated">Premium activated! All features unlocked.</string>
+
+    <!-- Premium Banner -->
+    <string name="premium_banner_title">Upgrade to Premium</string>
+    <string name="premium_banner_subtitle">Unlock all features with a one-time purchase</string>
+
+    <!-- Period Selection Dialog -->
+    <string name="period_select_export">Select period for export:</string>
+    <string name="period_monthly">Monthly</string>
+    <string name="period_monthly_description">Export data for a specific month</string>
+    <string name="period_yearly">Yearly</string>
+    <string name="period_yearly_description">Export data for an entire year</string>
+    <string name="period_select_month_year">Select Month and Year</string>
+    <string name="period_select_year">Select Year</string>
+    <string name="dialog_export_excel_title">Export to Excel</string>
+    <string name="dialog_export_pdf_title">Export to PDF</string>
+    <string name="dialog_backup_title">Backup Data</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Transactions</string>
+    <string name="dashboard_selected_count">%d selected</string>
+    <string name="dashboard_delete_transactions">Delete Transactions</string>
+    <string name="dashboard_delete_confirm">Delete %d selected transaction(s)? This cannot be undone.</string>
+    <string name="dashboard_edit_transactions">Edit %d Transaction(s)</string>
+    <string name="dashboard_edit_note">Edit Note</string>
+    <string name="dashboard_note_placeholder">Enter note for all selected transactions</string>
+    <string name="dashboard_filters">Filters</string>
+    <string name="dashboard_filter_all">All</string>
+    <string name="dashboard_filter_expense">Expense</string>
+    <string name="dashboard_filter_income">Income</string>
+    <string name="dashboard_filter_transfer">Transfer</string>
+    <string name="dashboard_filter_category">Category</string>
+    <string name="dashboard_filter_subcategory">Subcategory</string>
+    <string name="dashboard_filter_account">Account</string>
+    <string name="dashboard_search">Search</string>
+    <string name="dashboard_search_placeholder">Search notes…</string>
+    <string name="dashboard_select_category">Select Category</string>
+    <string name="dashboard_select_account">Select Account</string>
+    <string name="dashboard_clear_filters">Clear filters</string>
+    <string name="dashboard_expense_breakdown">Expense Breakdown</string>
+    <string name="dashboard_no_transactions">No transactions yet</string>
+    <string name="dashboard_no_transactions_hint">Tap + to add your first transaction</string>
+    <string name="dashboard_no_transactions_filtered">No transactions match your filters</string>
+    <string name="dashboard_showing_count">Showing %1$d of %2$d transactions</string>
+
+    <!-- Transaction Screen -->
+    <string name="transaction_edit_title">Edit Transaction</string>
+    <string name="transaction_new_title">New Transaction</string>
+    <string name="transaction_copy_title">Copy Transaction</string>
+    <string name="transaction_copy_date_question">Which date should the copy use?</string>
+    <string name="transaction_copy_today">Today\'s Date</string>
+    <string name="transaction_copy_original">Original Date</string>
+    <string name="transaction_delete_confirm">Are you sure you want to delete this transaction?</string>
+    <string name="transaction_saved">Transaction saved</string>
+
+    <!-- Transaction Detail Screen -->
+    <string name="transaction_detail_title">Transaction Details</string>
+    <string name="transaction_detail_delete">Delete Transaction</string>
+    <string name="transaction_detail_delete_confirm">Are you sure you want to delete this %1$s of %2$s?</string>
+    <string name="transaction_detail_from">From</string>
+    <string name="transaction_detail_to">To</string>
+    <string name="transaction_uncategorized">Uncategorized</string>
+    <string name="transaction_deleted">Transaction deleted</string>
+
+    <!-- Accounts Screen -->
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_add">Add Account</string>
+    <string name="accounts_total_balance">Total Balance</string>
+    <string name="accounts_your_accounts">Your Accounts</string>
+    <string name="accounts_all_accounts">All Accounts</string>
+    <string name="accounts_default_label">Default</string>
+    <string name="accounts_edit_title">Edit Account</string>
+    <string name="accounts_new_title">New Account</string>
+    <string name="accounts_field_name">Account Name</string>
+    <string name="accounts_field_type">Account Type</string>
+    <string name="accounts_field_initial_balance">Initial Balance</string>
+    <string name="accounts_delete_confirm">Are you sure you want to delete \"%s\"? All transactions in this account will become unassigned.</string>
+    <string name="accounts_saved">Account saved</string>
+    <string name="accounts_deleted">Account deleted</string>
+    <string name="accounts_set_default">Set as default</string>
+    <string name="accounts_remove_default">Remove default</string>
+
+    <!-- Categories Screen -->
+    <string name="categories_title">Categories</string>
+    <string name="categories_tab_expenses">Expenses</string>
+    <string name="categories_tab_income">Income</string>
+    <string name="categories_add">Add Category</string>
+    <string name="categories_edit_title">Edit Category</string>
+    <string name="categories_new_title">New Category</string>
+    <string name="categories_edit_subcategory">Edit Subcategory</string>
+    <string name="categories_new_subcategory">New Subcategory</string>
+    <string name="categories_delete_title">Delete Category</string>
+    <string name="categories_delete_confirm">Are you sure you want to delete \"%s\"? Transactions using this category will become uncategorized.</string>
+    <string name="categories_saved">Category saved</string>
+    <string name="categories_deleted">Category deleted</string>
+    <string name="categories_add_subcategory">Add Subcategory</string>
+    <string name="categories_drag_reorder">Drag to reorder</string>
+    <string name="categories_collapse">Collapse</string>
+    <string name="categories_expand">Expand</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_page1_title">Track Your Money</string>
+    <string name="onboarding_page1_subtitle">Effortless expense tracking</string>
+    <string name="onboarding_page1_description">Log your daily expenses and income in seconds. Stay on top of your finances with a clean, intuitive interface designed for speed.</string>
+    <string name="onboarding_page2_title">Smart Insights</string>
+    <string name="onboarding_page2_subtitle">Monthly &amp; yearly reports</string>
+    <string name="onboarding_page2_description">Visualize your spending patterns with beautiful charts. Get monthly breakdowns and yearly overviews to understand where your money goes.</string>
+    <string name="onboarding_page3_title">Stay Organized</string>
+    <string name="onboarding_page3_subtitle">Accounts &amp; categories</string>
+    <string name="onboarding_page3_description">Create multiple accounts and custom categories to organize your finances your way. Tag every transaction for a clear financial picture.</string>
+    <string name="onboarding_page4_title">Your Data, Safe</string>
+    <string name="onboarding_page4_subtitle">Export &amp; backup</string>
+    <string name="onboarding_page4_description">Export your records as Excel or PDF. Backup and restore your data anytime so you never lose track of your financial history.</string>
+
+    <!-- Premium Screen -->
+    <string name="premium_title">Unlock Premium</string>
+    <string name="premium_subtitle">One-time purchase, lifetime access</string>
+    <string name="premium_feature_backup">Backup &amp; Restore</string>
+    <string name="premium_feature_backup_desc">Never lose your financial data</string>
+    <string name="premium_feature_remove_ads">Remove Ads</string>
+    <string name="premium_feature_remove_ads_desc">Enjoy an ad-free experience</string>
+    <string name="premium_one_time_payment">One-time payment</string>
+    <string name="premium_restore_purchases">Restore Purchases</string>
+    <string name="premium_secure_payment">Secure payment via Google Play</string>
+    <string name="premium_purchase_success">Premium unlocked! Thank you!</string>
+    <string name="premium_purchase_canceled">Purchase canceled</string>
+
+    <!-- Reports / Stats -->
+    <string name="stats_title">Stats</string>
+    <string name="monthly_reports_title">Monthly Reports</string>
+    <string name="yearly_reports_title">Yearly Reports</string>
+    <string name="reports_tab_monthly">Monthly</string>
+    <string name="reports_tab_yearly">Yearly</string>
+    <string name="reports_expenses_by_category">Expenses by Category</string>
+    <string name="reports_income_by_category">Income by Category</string>
+    <string name="reports_no_data_month">No data for this month</string>
+    <string name="reports_no_data_hint">Add transactions to see reports</string>
+    <string name="reports_yearly_expenses_by_category">Yearly Expenses by Category</string>
+    <string name="reports_yearly_income_by_category">Yearly Income by Category</string>
+    <string name="reports_monthly_overview">Monthly Overview</string>
+    <string name="reports_yearly_balance">Yearly Balance</string>
+    <string name="reports_monthly_breakdown">Monthly Breakdown</string>
+    <string name="reports_no_data_year">No data for this year</string>
+    <string name="reports_no_data_year_hint">Add transactions to see yearly reports</string>
 </resources>

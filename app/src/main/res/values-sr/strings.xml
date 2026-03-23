@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">CashFlow - Upravljač troškovima</string>
+    <string name="app_name_short">CashFlow</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_transactions">Transakcije</string>
+    <string name="nav_stats">Statistike</string>
+    <string name="nav_accounts">Računi</string>
+    <string name="nav_categories">Kategorije</string>
+    <string name="nav_settings">Podešavanja</string>
+
+    <!-- Common Buttons -->
+    <string name="button_save">Sačuvaj</string>
+    <string name="button_cancel">Otkaži</string>
+    <string name="button_delete">Obriši</string>
+    <string name="button_ok">OK</string>
+    <string name="button_close">Zatvori</string>
+    <string name="button_done">Gotovo</string>
+    <string name="button_clear">Obriši</string>
+    <string name="button_apply">Primeni</string>
+    <string name="button_copy">Kopiraj</string>
+    <string name="button_continue">Nastavi</string>
+    <string name="button_restore">Vrati</string>
+
+    <!-- Common Labels -->
+    <string name="label_amount">Iznos</string>
+    <string name="label_note">Napomena</string>
+    <string name="label_date">Datum</string>
+    <string name="label_category">Kategorija</string>
+    <string name="label_account">Račun</string>
+    <string name="label_name">Naziv</string>
+    <string name="label_icon">Ikona</string>
+    <string name="label_color">Boja</string>
+    <string name="label_type">Tip</string>
+
+    <!-- Transaction Types -->
+    <string name="transaction_type_expense">Rashod</string>
+    <string name="transaction_type_income">Prihod</string>
+    <string name="transaction_type_transfer">Transfer</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Podešavanja</string>
+    <string name="settings_back">Nazad</string>
+
+    <!-- Settings — Appearance -->
+    <string name="section_appearance">Izgled</string>
+    <string name="setting_theme">Tema</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_light">Svetla</string>
+    <string name="theme_dark">Tamna</string>
+    <string name="setting_currency">Valuta</string>
+    <string name="setting_currency_position">Pozicija simbola valute</string>
+    <string name="currency_position_after">Posle iznosa (100%s)</string>
+    <string name="currency_position_before">Pre iznosa (%s100)</string>
+    <string name="setting_language">Jezik</string>
+
+    <!-- Settings — Notifications -->
+    <string name="section_notifications">Obaveštenja</string>
+    <string name="setting_transaction_reminders">Podsjetnici za transakcije</string>
+    <string name="reminder_enabled_subtitle">Tapni ispod da podesite raspored</string>
+    <string name="reminder_disabled_subtitle">Dobijaj podsjetnike za unos transakcija</string>
+    <string name="notification_permission_required">Dozvola za obaveštenja je potrebna za podsetnike</string>
+    <string name="setting_backup_reminders">Podsetnici za backup</string>
+    <string name="backup_reminder_disabled_subtitle">Dobijaj podsetnike za pravljenje rezervnih kopija</string>
+    <string name="label_premium_feature">Premium funkcija</string>
+    <string name="setting_remind_at">Podseti u</string>
+    <string name="setting_day_of_week">Dan u nedelji</string>
+    <string name="setting_day_of_month">Dan u mesecu</string>
+    <string name="reminder_daily">Dnevno</string>
+    <string name="reminder_weekly">Nedeljno</string>
+    <string name="reminder_monthly">Mesečno</string>
+
+    <!-- Settings — Data -->
+    <string name="section_data">Podaci</string>
+    <string name="setting_export_excel">Izvezi u Excel</string>
+    <string name="setting_export_excel_subtitle">Izvezi podatke u Excel</string>
+    <string name="setting_export_pdf">Izvezi u PDF</string>
+    <string name="setting_export_pdf_subtitle">Generiši izveštaj o podacima</string>
+    <string name="setting_backup">Rezervna kopija</string>
+    <string name="setting_backup_subtitle">Napravi rezervnu kopiju podataka (JSON)</string>
+    <string name="setting_restore">Vrati podatke</string>
+    <string name="setting_restore_subtitle">Vrati podatke iz rezervne kopije (JSON)</string>
+
+    <!-- Settings — About -->
+    <string name="section_about">O aplikaciji</string>
+    <string name="setting_about">O aplikaciji</string>
+    <string name="about_version">Verzija 3.0.0</string>
+    <string name="about_app_name">CashFlow - Jednostavan budžet</string>
+    <string name="about_privacy_policy">Politika privatnosti</string>
+    <string name="about_rate_app">Oceni aplikaciju</string>
+
+    <!-- Settings Dialogs -->
+    <string name="dialog_restore_title">Vraćanje podataka</string>
+    <string name="dialog_restore_warning">Ovo će trajno obrisati sve vaše trenutne podatke uključujući transakcije, kategorije, potkategorije i račune, i zameniti ih podacima iz datoteke rezervne kopije.\n\nOva radnja se ne može poništiti. Jeste li sigurni da želite da nastavite?</string>
+    <string name="dialog_select_currency">Izaberi valutu</string>
+    <string name="currency_search_hint">Pretraži valutu…</string>
+    <string name="dialog_language_title">Jezik</string>
+
+    <!-- Settings Loading States -->
+    <string name="loading_exporting">Izvoženje…</string>
+    <string name="loading_creating_backup">Pravljenje rezervne kopije…</string>
+    <string name="loading_restoring">Vraćanje podataka…</string>
+
+    <!-- Settings Toast Messages -->
+    <string name="message_export_success">%s je uspešno izvežen</string>
+    <string name="message_backup_success">Rezervna kopija je uspešno napravljena</string>
+    <string name="message_restore_success">Podaci su uspešno vraćeni</string>
+    <string name="message_premium_activated">Premium aktiviran! Sve funkcije su otključane.</string>
+
+    <!-- Premium Banner -->
+    <string name="premium_banner_title">Nadogradi na Premium</string>
+    <string name="premium_banner_subtitle">Otključaj sve funkcije jednokratnom kupovinom</string>
+
+    <!-- Period Selection Dialog -->
+    <string name="period_select_export">Izaberi period za izvoz:</string>
+    <string name="period_monthly">Mesečno</string>
+    <string name="period_monthly_description">Izvezi podatke za određeni mesec</string>
+    <string name="period_yearly">Godišnje</string>
+    <string name="period_yearly_description">Izvezi podatke za čitavu godinu</string>
+    <string name="period_select_month_year">Izaberi mesec i godinu</string>
+    <string name="period_select_year">Izaberi godinu</string>
+    <string name="dialog_export_excel_title">Izvezi u Excel</string>
+    <string name="dialog_export_pdf_title">Izvezi u PDF</string>
+    <string name="dialog_backup_title">Pravljenje rezervne kopije</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Transakcije</string>
+    <string name="dashboard_selected_count">%d izabrano</string>
+    <string name="dashboard_delete_transactions">Obriši transakcije</string>
+    <string name="dashboard_delete_confirm">Obrisati %d transakciju(e)? Ova radnja se ne može poništiti.</string>
+    <string name="dashboard_edit_transactions">Izmeni %d transakciju(e)</string>
+    <string name="dashboard_edit_note">Izmeni napomenu</string>
+    <string name="dashboard_note_placeholder">Unesi napomenu za sve izabrane transakcije</string>
+    <string name="dashboard_filters">Filteri</string>
+    <string name="dashboard_filter_all">Sve</string>
+    <string name="dashboard_filter_expense">Rashod</string>
+    <string name="dashboard_filter_income">Prihod</string>
+    <string name="dashboard_filter_transfer">Transfer</string>
+    <string name="dashboard_filter_category">Kategorija</string>
+    <string name="dashboard_filter_subcategory">Potkategorija</string>
+    <string name="dashboard_filter_account">Račun</string>
+    <string name="dashboard_search">Pretraga</string>
+    <string name="dashboard_search_placeholder">Pretraži napomene…</string>
+    <string name="dashboard_select_category">Izaberi kategoriju</string>
+    <string name="dashboard_select_account">Izaberi račun</string>
+    <string name="dashboard_clear_filters">Obriši filtere</string>
+    <string name="dashboard_expense_breakdown">Raspored rashoda</string>
+    <string name="dashboard_no_transactions">Nema transakcija</string>
+    <string name="dashboard_no_transactions_hint">Tapni + da dodaš prvu transakciju</string>
+    <string name="dashboard_no_transactions_filtered">Nema transakcija koje odgovaraju filterima</string>
+    <string name="dashboard_showing_count">Prikazano %1$d od %2$d transakcija</string>
+
+    <!-- Transaction Screen -->
+    <string name="transaction_edit_title">Izmeni transakciju</string>
+    <string name="transaction_new_title">Nova transakcija</string>
+    <string name="transaction_copy_title">Kopiraj transakciju</string>
+    <string name="transaction_copy_date_question">Koji datum kopija treba da koristi?</string>
+    <string name="transaction_copy_today">Današnji datum</string>
+    <string name="transaction_copy_original">Originalni datum</string>
+    <string name="transaction_delete_confirm">Jeste li sigurni da želite da obrišete ovu transakciju?</string>
+    <string name="transaction_saved">Transakcija sačuvana</string>
+
+    <!-- Transaction Detail Screen -->
+    <string name="transaction_detail_title">Detalji transakcije</string>
+    <string name="transaction_detail_delete">Obriši transakciju</string>
+    <string name="transaction_detail_delete_confirm">Jeste li sigurni da želite da obrišete ovaj %1$s od %2$s?</string>
+    <string name="transaction_detail_from">Od</string>
+    <string name="transaction_detail_to">Do</string>
+    <string name="transaction_uncategorized">Bez kategorije</string>
+    <string name="transaction_deleted">Transakcija obrisana</string>
+
+    <!-- Accounts Screen -->
+    <string name="accounts_title">Računi</string>
+    <string name="accounts_add">Dodaj račun</string>
+    <string name="accounts_total_balance">Ukupni saldo</string>
+    <string name="accounts_your_accounts">Vaši računi</string>
+    <string name="accounts_all_accounts">Svi računi</string>
+    <string name="accounts_default_label">Podrazumevano</string>
+    <string name="accounts_edit_title">Izmeni račun</string>
+    <string name="accounts_new_title">Novi račun</string>
+    <string name="accounts_field_name">Naziv računa</string>
+    <string name="accounts_field_type">Tip računa</string>
+    <string name="accounts_field_initial_balance">Početni saldo</string>
+    <string name="accounts_delete_confirm">Jeste li sigurni da želite da obrišete \"%s\"? Sve transakcije ovog računa će ostati nedodeljene.</string>
+    <string name="accounts_saved">Račun sačuvan</string>
+    <string name="accounts_deleted">Račun obrisan</string>
+    <string name="accounts_set_default">Postavi kao podrazumevano</string>
+    <string name="accounts_remove_default">Ukloni kao podrazumevano</string>
+
+    <!-- Categories Screen -->
+    <string name="categories_title">Kategorije</string>
+    <string name="categories_tab_expenses">Rashodi</string>
+    <string name="categories_tab_income">Prihodi</string>
+    <string name="categories_add">Dodaj kategoriju</string>
+    <string name="categories_edit_title">Izmeni kategoriju</string>
+    <string name="categories_new_title">Nova kategorija</string>
+    <string name="categories_edit_subcategory">Izmeni potkategoriju</string>
+    <string name="categories_new_subcategory">Nova potkategorija</string>
+    <string name="categories_delete_title">Obriši kategoriju</string>
+    <string name="categories_delete_confirm">Jeste li sigurni da želite da obrišete \"%s\"? Transakcije koje koriste ovu kategoriju će ostati nekategorizovane.</string>
+    <string name="categories_saved">Kategorija sačuvana</string>
+    <string name="categories_deleted">Kategorija obrisana</string>
+    <string name="categories_add_subcategory">Dodaj potkategoriju</string>
+    <string name="categories_drag_reorder">Prevuci za promenu redosled</string>
+    <string name="categories_collapse">Skupi</string>
+    <string name="categories_expand">Proširi</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_skip">Preskoči</string>
+    <string name="onboarding_next">Sledeće</string>
+    <string name="onboarding_get_started">Počni</string>
+    <string name="onboarding_page1_title">Prati novac</string>
+    <string name="onboarding_page1_subtitle">Praćenje troškova bez napora</string>
+    <string name="onboarding_page1_description">Beležite dnevne troškove i prihode za sekunde. Kontrolišite finansije sa čistim, intuitivnim interfejsom.</string>
+    <string name="onboarding_page2_title">Pametni uvidi</string>
+    <string name="onboarding_page2_subtitle">Mesečni &amp; godišnji izveštaji</string>
+    <string name="onboarding_page2_description">Vizualizujte obrasce potrošnje sa lepim grafikonima. Dobijte mesečne raspored i godišnje preglede.</string>
+    <string name="onboarding_page3_title">Ostanite organizovani</string>
+    <string name="onboarding_page3_subtitle">Računi &amp; kategorije</string>
+    <string name="onboarding_page3_description">Kreirajte više računa i prilagođenih kategorija da organizujete finansije na svoj način.</string>
+    <string name="onboarding_page4_title">Vaši podaci, bezbedni</string>
+    <string name="onboarding_page4_subtitle">Izvoz &amp; rezervna kopija</string>
+    <string name="onboarding_page4_description">Izvezite zapise kao Excel ili PDF. Pravite rezervne kopije i vraćajte podatke u svakom trenutku.</string>
+
+    <!-- Premium Screen -->
+    <string name="premium_title">Otključaj Premium</string>
+    <string name="premium_subtitle">Jednokratna kupovina, doživotni pristup</string>
+    <string name="premium_feature_backup">Rezervna kopija &amp; vraćanje</string>
+    <string name="premium_feature_backup_desc">Nikada ne izgubite finansijske podatke</string>
+    <string name="premium_feature_remove_ads">Ukloni reklame</string>
+    <string name="premium_feature_remove_ads_desc">Uživajte u iskustvu bez reklama</string>
+    <string name="premium_one_time_payment">Jednokratna uplata</string>
+    <string name="premium_restore_purchases">Vrati kupovine</string>
+    <string name="premium_secure_payment">Bezbedno plaćanje putem Google Play</string>
+    <string name="premium_purchase_success">Premium otključan! Hvala!</string>
+    <string name="premium_purchase_canceled">Kupovina otkazana</string>
+
+    <!-- Reports / Stats -->
+    <string name="stats_title">Statistike</string>
+    <string name="monthly_reports_title">Mesečni izveštaji</string>
+    <string name="yearly_reports_title">Godišnji izveštaji</string>
+    <string name="reports_tab_monthly">Mesečno</string>
+    <string name="reports_tab_yearly">Godišnje</string>
+    <string name="reports_expenses_by_category">Rashodi po kategorijama</string>
+    <string name="reports_income_by_category">Prihodi po kategorijama</string>
+    <string name="reports_no_data_month">Nema podataka za ovaj mesec</string>
+    <string name="reports_no_data_hint">Dodajte transakcije da vidite izveštaje</string>
+    <string name="reports_yearly_expenses_by_category">Godišnji rashodi po kategorijama</string>
+    <string name="reports_yearly_income_by_category">Godišnji prihodi po kategorijama</string>
+    <string name="reports_monthly_overview">Mesečni pregled</string>
+    <string name="reports_yearly_balance">Godišnji saldo</string>
+    <string name="reports_monthly_breakdown">Mesečna raspodela</string>
+    <string name="reports_no_data_year">Nema podataka za ovu godinu</string>
+    <string name="reports_no_data_year_hint">Dodajte transakcije da vidite godišnje izveštaje</string>
+</resources>

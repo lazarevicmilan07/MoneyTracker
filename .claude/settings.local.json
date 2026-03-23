@@ -72,7 +72,20 @@
       "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew compileDebugKotlin 2>&1 | tail -30)",
       "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew assembleDebug 2>&1 | grep -v \"UP-TO-DATE\\\\|Caching\\\\|daemon\\\\|Starting\\\\|Build\\\\|action\\\\|Task :\" | tail -30)",
       "Bash(find \"C:/ComData/Projekti/WorkoutLog\" -name \"*.kt\" | xargs grep -l \"PendingIntent\\\\|Notification\" 2>/dev/null)",
-      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew assembleDebug 2>&1 | tail -6)"
+      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew assembleDebug 2>&1 | tail -6)",
+      "Bash(mkdir:*)",
+      "Bash(JAVA_HOME=\"C:/Program Files/Java/jdk-17\" ./gradlew assembleDebug 2>&1 | tail -40)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew assembleDebug 2>&1 | tail -40)",
+      "Bash(export:*)",
+      "Bash(grep:*)",
+      "Read(//c/Users/MilanLazarevic/.gradle/jdks//**)",
+      "Read(//c/ComData/Projekti/MoneyTracker/$LOCALAPPDATA/**)",
+      "Bash(cmd /c \"cd /d C:\\\\ComData\\\\Projekti\\\\MoneyTracker && gradlew.bat assembleDebug\" 2>&1; echo \"Exit: $?\")",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/ComData/Projekti/CashFlow/app/src/main/java/com/moneytracker/simplebudget/ui/reports/**)",
+      "Bash(done)",
+      "Bash(sed:*)"
     ]
   }
 }

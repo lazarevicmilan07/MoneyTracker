@@ -10,6 +10,8 @@ import com.moneytracker.simplebudget.data.preferences.UserPreferences
 import com.moneytracker.simplebudget.domain.usecase.BackupRestoreUseCase
 import com.moneytracker.simplebudget.domain.usecase.ExportPeriodParams
 import com.moneytracker.simplebudget.domain.usecase.ExportUseCase
+import com.moneytracker.simplebudget.notifications.BackupReminderManager
+import com.moneytracker.simplebudget.notifications.BackupReminderPreferences
 import com.moneytracker.simplebudget.notifications.ReminderManager
 import com.moneytracker.simplebudget.notifications.ReminderPreferences
 import com.moneytracker.simplebudget.notifications.ReminderSettings
@@ -31,13 +33,18 @@ class SettingsViewModel @Inject constructor(
     private val exportUseCase: ExportUseCase,
     private val backupRestoreUseCase: BackupRestoreUseCase,
     private val reminderPreferences: ReminderPreferences,
-    private val reminderManager: ReminderManager
+    private val reminderManager: ReminderManager,
+    private val backupReminderPreferences: BackupReminderPreferences,
+    private val backupReminderManager: BackupReminderManager
 ) : ViewModel() {
 
     val userPreferences: StateFlow<UserPreferences> = preferencesManager.userPreferences
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserPreferences())
 
     val reminderSettings: StateFlow<ReminderSettings> = reminderPreferences.settings
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ReminderSettings())
+
+    val backupReminderSettings: StateFlow<ReminderSettings> = backupReminderPreferences.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ReminderSettings())
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -153,6 +160,26 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             reminderPreferences.save(settings)
             if (settings.enabled) reminderManager.scheduleReminder(settings)
+        }
+    }
+
+    fun setBackupReminderEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled && !userPreferences.value.isPremium) {
+                _events.emit(SettingsEvent.ShowPremiumRequired("Backup Reminder"))
+                return@launch
+            }
+            val updated = backupReminderPreferences.settings.first().copy(enabled = enabled)
+            backupReminderPreferences.save(updated)
+            if (enabled) backupReminderManager.scheduleReminder(updated)
+            else backupReminderManager.cancelReminder()
+        }
+    }
+
+    fun updateBackupReminderSettings(settings: ReminderSettings) {
+        viewModelScope.launch {
+            backupReminderPreferences.save(settings)
+            if (settings.enabled) backupReminderManager.scheduleReminder(settings)
         }
     }
 }

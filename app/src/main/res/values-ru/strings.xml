@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">CashFlow - Простой учёт расходов</string>
+    <string name="app_name_short">CashFlow</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_transactions">Транзакции</string>
+    <string name="nav_stats">Статистика</string>
+    <string name="nav_accounts">Счета</string>
+    <string name="nav_categories">Категории</string>
+    <string name="nav_settings">Настройки</string>
+
+    <!-- Common Buttons -->
+    <string name="button_save">Сохранить</string>
+    <string name="button_cancel">Отмена</string>
+    <string name="button_delete">Удалить</string>
+    <string name="button_ok">ОК</string>
+    <string name="button_close">Закрыть</string>
+    <string name="button_done">Готово</string>
+    <string name="button_clear">Очистить</string>
+    <string name="button_apply">Применить</string>
+    <string name="button_copy">Копировать</string>
+    <string name="button_continue">Продолжить</string>
+    <string name="button_restore">Восстановить</string>
+
+    <!-- Common Labels -->
+    <string name="label_amount">Сумма</string>
+    <string name="label_note">Заметка</string>
+    <string name="label_date">Дата</string>
+    <string name="label_category">Категория</string>
+    <string name="label_account">Счёт</string>
+    <string name="label_name">Название</string>
+    <string name="label_icon">Иконка</string>
+    <string name="label_color">Цвет</string>
+    <string name="label_type">Тип</string>
+
+    <!-- Transaction Types -->
+    <string name="transaction_type_expense">Расход</string>
+    <string name="transaction_type_income">Доход</string>
+    <string name="transaction_type_transfer">Перевод</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_back">Назад</string>
+
+    <!-- Settings — Appearance -->
+    <string name="section_appearance">Внешний вид</string>
+    <string name="setting_theme">Тема</string>
+    <string name="theme_auto">Авто</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="setting_currency">Валюта</string>
+    <string name="setting_currency_position">Позиция знака валюты</string>
+    <string name="currency_position_after">После суммы (100%s)</string>
+    <string name="currency_position_before">Перед суммой (%s100)</string>
+    <string name="setting_language">Язык</string>
+
+    <!-- Settings — Notifications -->
+    <string name="section_notifications">Уведомления</string>
+    <string name="setting_transaction_reminders">Напоминания о транзакциях</string>
+    <string name="reminder_enabled_subtitle">Нажмите ниже для настройки расписания</string>
+    <string name="reminder_disabled_subtitle">Получайте напоминания о добавлении транзакций</string>
+    <string name="notification_permission_required">Для напоминаний необходимо разрешение на уведомления</string>
+    <string name="setting_backup_reminders">Напоминания о резервном копировании</string>
+    <string name="backup_reminder_disabled_subtitle">Получайте напоминания о резервном копировании данных</string>
+    <string name="label_premium_feature">Функция Premium</string>
+    <string name="setting_remind_at">Напоминать в</string>
+    <string name="setting_day_of_week">День недели</string>
+    <string name="setting_day_of_month">День месяца</string>
+    <string name="reminder_daily">Ежедневно</string>
+    <string name="reminder_weekly">Еженедельно</string>
+    <string name="reminder_monthly">Ежемесячно</string>
+
+    <!-- Settings — Data -->
+    <string name="section_data">Данные</string>
+    <string name="setting_export_excel">Экспорт в Excel</string>
+    <string name="setting_export_excel_subtitle">Экспортировать данные в Excel</string>
+    <string name="setting_export_pdf">Экспорт в PDF</string>
+    <string name="setting_export_pdf_subtitle">Создать отчёт о данных</string>
+    <string name="setting_backup">Резервная копия</string>
+    <string name="setting_backup_subtitle">Создать резервную копию данных (JSON)</string>
+    <string name="setting_restore">Восстановить</string>
+    <string name="setting_restore_subtitle">Восстановить из резервной копии (JSON)</string>
+
+    <!-- Settings — About -->
+    <string name="section_about">О приложении</string>
+    <string name="setting_about">О приложении</string>
+    <string name="about_version">Версия 3.0.0</string>
+    <string name="about_app_name">CashFlow - Простой бюджет</string>
+    <string name="about_privacy_policy">Политика конфиденциальности</string>
+    <string name="about_rate_app">Оценить приложение</string>
+
+    <!-- Settings Dialogs -->
+    <string name="dialog_restore_title">Восстановление данных</string>
+    <string name="dialog_restore_warning">Это безвозвратно удалит все ваши текущие данные, включая транзакции, категории, подкатегории и счета, и заменит их данными из файла резервной копии.\n\nЭто действие нельзя отменить. Вы уверены, что хотите продолжить?</string>
+    <string name="dialog_select_currency">Выбрать валюту</string>
+    <string name="currency_search_hint">Поиск валюты…</string>
+    <string name="dialog_language_title">Язык</string>
+
+    <!-- Settings Loading States -->
+    <string name="loading_exporting">Экспорт…</string>
+    <string name="loading_creating_backup">Создание резервной копии…</string>
+    <string name="loading_restoring">Восстановление…</string>
+
+    <!-- Settings Toast Messages -->
+    <string name="message_export_success">%s успешно экспортировано</string>
+    <string name="message_backup_success">Резервная копия успешно создана</string>
+    <string name="message_restore_success">Данные успешно восстановлены</string>
+    <string name="message_premium_activated">Premium активирован! Все функции разблокированы.</string>
+
+    <!-- Premium Banner -->
+    <string name="premium_banner_title">Перейти на Premium</string>
+    <string name="premium_banner_subtitle">Разблокируйте все функции одним платежом</string>
+
+    <!-- Period Selection Dialog -->
+    <string name="period_select_export">Выберите период для экспорта:</string>
+    <string name="period_monthly">Ежемесячно</string>
+    <string name="period_monthly_description">Экспортировать данные за определённый месяц</string>
+    <string name="period_yearly">Ежегодно</string>
+    <string name="period_yearly_description">Экспортировать данные за целый год</string>
+    <string name="period_select_month_year">Выбрать месяц и год</string>
+    <string name="period_select_year">Выбрать год</string>
+    <string name="dialog_export_excel_title">Экспорт в Excel</string>
+    <string name="dialog_export_pdf_title">Экспорт в PDF</string>
+    <string name="dialog_backup_title">Резервное копирование данных</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Транзакции</string>
+    <string name="dashboard_selected_count">%d выбрано</string>
+    <string name="dashboard_delete_transactions">Удалить транзакции</string>
+    <string name="dashboard_delete_confirm">Удалить %d транзакцию(й)? Это действие нельзя отменить.</string>
+    <string name="dashboard_edit_transactions">Изменить %d транзакцию(й)</string>
+    <string name="dashboard_edit_note">Изменить заметку</string>
+    <string name="dashboard_note_placeholder">Ввести заметку для всех выбранных транзакций</string>
+    <string name="dashboard_filters">Фильтры</string>
+    <string name="dashboard_filter_all">Все</string>
+    <string name="dashboard_filter_expense">Расход</string>
+    <string name="dashboard_filter_income">Доход</string>
+    <string name="dashboard_filter_transfer">Перевод</string>
+    <string name="dashboard_filter_category">Категория</string>
+    <string name="dashboard_filter_subcategory">Подкатегория</string>
+    <string name="dashboard_filter_account">Счёт</string>
+    <string name="dashboard_search">Поиск</string>
+    <string name="dashboard_search_placeholder">Поиск заметок…</string>
+    <string name="dashboard_select_category">Выбрать категорию</string>
+    <string name="dashboard_select_account">Выбрать счёт</string>
+    <string name="dashboard_clear_filters">Очистить фильтры</string>
+    <string name="dashboard_expense_breakdown">Разбивка расходов</string>
+    <string name="dashboard_no_transactions">Транзакций пока нет</string>
+    <string name="dashboard_no_transactions_hint">Нажмите +, чтобы добавить первую транзакцию</string>
+    <string name="dashboard_no_transactions_filtered">Транзакции не соответствуют фильтрам</string>
+    <string name="dashboard_showing_count">Показано %1$d из %2$d транзакций</string>
+
+    <!-- Transaction Screen -->
+    <string name="transaction_edit_title">Редактировать транзакцию</string>
+    <string name="transaction_new_title">Новая транзакция</string>
+    <string name="transaction_copy_title">Копировать транзакцию</string>
+    <string name="transaction_copy_date_question">Какую дату использовать для копии?</string>
+    <string name="transaction_copy_today">Сегодняшняя дата</string>
+    <string name="transaction_copy_original">Исходная дата</string>
+    <string name="transaction_delete_confirm">Вы уверены, что хотите удалить эту транзакцию?</string>
+    <string name="transaction_saved">Транзакция сохранена</string>
+
+    <!-- Transaction Detail Screen -->
+    <string name="transaction_detail_title">Детали транзакции</string>
+    <string name="transaction_detail_delete">Удалить транзакцию</string>
+    <string name="transaction_detail_delete_confirm">Вы уверены, что хотите удалить этот %1$s на сумму %2$s?</string>
+    <string name="transaction_detail_from">От</string>
+    <string name="transaction_detail_to">На</string>
+    <string name="transaction_uncategorized">Без категории</string>
+    <string name="transaction_deleted">Транзакция удалена</string>
+
+    <!-- Accounts Screen -->
+    <string name="accounts_title">Счета</string>
+    <string name="accounts_add">Добавить счёт</string>
+    <string name="accounts_total_balance">Общий баланс</string>
+    <string name="accounts_your_accounts">Ваши счета</string>
+    <string name="accounts_all_accounts">Все счета</string>
+    <string name="accounts_default_label">По умолчанию</string>
+    <string name="accounts_edit_title">Изменить счёт</string>
+    <string name="accounts_new_title">Новый счёт</string>
+    <string name="accounts_field_name">Название счёта</string>
+    <string name="accounts_field_type">Тип счёта</string>
+    <string name="accounts_field_initial_balance">Начальный баланс</string>
+    <string name="accounts_delete_confirm">Вы уверены, что хотите удалить \"%s\"? Все транзакции этого счёта станут неназначенными.</string>
+    <string name="accounts_saved">Счёт сохранён</string>
+    <string name="accounts_deleted">Счёт удалён</string>
+    <string name="accounts_set_default">Сделать основным</string>
+    <string name="accounts_remove_default">Убрать из основных</string>
+
+    <!-- Categories Screen -->
+    <string name="categories_title">Категории</string>
+    <string name="categories_tab_expenses">Расходы</string>
+    <string name="categories_tab_income">Доходы</string>
+    <string name="categories_add">Добавить категорию</string>
+    <string name="categories_edit_title">Изменить категорию</string>
+    <string name="categories_new_title">Новая категория</string>
+    <string name="categories_edit_subcategory">Изменить подкатегорию</string>
+    <string name="categories_new_subcategory">Новая подкатегория</string>
+    <string name="categories_delete_title">Удалить категорию</string>
+    <string name="categories_delete_confirm">Вы уверены, что хотите удалить \"%s\"? Транзакции с этой категорией станут некатегоризированными.</string>
+    <string name="categories_saved">Категория сохранена</string>
+    <string name="categories_deleted">Категория удалена</string>
+    <string name="categories_add_subcategory">Добавить подкатегорию</string>
+    <string name="categories_drag_reorder">Перетащите для изменения порядка</string>
+    <string name="categories_collapse">Свернуть</string>
+    <string name="categories_expand">Развернуть</string>
+
+    <!-- Onboarding Screen -->
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="onboarding_next">Далее</string>
+    <string name="onboarding_get_started">Начать</string>
+    <string name="onboarding_page1_title">Контролируйте деньги</string>
+    <string name="onboarding_page1_subtitle">Учёт расходов без усилий</string>
+    <string name="onboarding_page1_description">Записывайте ежедневные расходы и доходы за секунды. Управляйте финансами с чистым интуитивным интерфейсом.</string>
+    <string name="onboarding_page2_title">Умная аналитика</string>
+    <string name="onboarding_page2_subtitle">Ежемесячные &amp; годовые отчёты</string>
+    <string name="onboarding_page2_description">Визуализируйте расходы с красивыми диаграммами. Получайте ежемесячную детализацию и годовые обзоры.</string>
+    <string name="onboarding_page3_title">Оставайтесь организованными</string>
+    <string name="onboarding_page3_subtitle">Счета &amp; категории</string>
+    <string name="onboarding_page3_description">Создавайте несколько счётов и пользовательских категорий для удобной организации финансов.</string>
+    <string name="onboarding_page4_title">Ваши данные, в безопасности</string>
+    <string name="onboarding_page4_subtitle">Экспорт &amp; резервная копия</string>
+    <string name="onboarding_page4_description">Экспортируйте записи в Excel или PDF. Создавайте резервные копии и восстанавливайте данные в любое время.</string>
+
+    <!-- Premium Screen -->
+    <string name="premium_title">Разблокировать Premium</string>
+    <string name="premium_subtitle">Разовая покупка, пожизненный доступ</string>
+    <string name="premium_feature_backup">Резервное копирование &amp; восстановление</string>
+    <string name="premium_feature_backup_desc">Никогда не теряйте финансовые данные</string>
+    <string name="premium_feature_remove_ads">Отключить рекламу</string>
+    <string name="premium_feature_remove_ads_desc">Наслаждайтесь работой без рекламы</string>
+    <string name="premium_one_time_payment">Разовый платёж</string>
+    <string name="premium_restore_purchases">Восстановить покупки</string>
+    <string name="premium_secure_payment">Безопасная оплата через Google Play</string>
+    <string name="premium_purchase_success">Premium разблокирован! Спасибо!</string>
+    <string name="premium_purchase_canceled">Покупка отменена</string>
+
+    <!-- Reports / Stats -->
+    <string name="stats_title">Статистика</string>
+    <string name="monthly_reports_title">Ежемесячные отчёты</string>
+    <string name="yearly_reports_title">Годовые отчёты</string>
+    <string name="reports_tab_monthly">Ежемесячно</string>
+    <string name="reports_tab_yearly">Ежегодно</string>
+    <string name="reports_expenses_by_category">Расходы по категориям</string>
+    <string name="reports_income_by_category">Доходы по категориям</string>
+    <string name="reports_no_data_month">Нет данных за этот месяц</string>
+    <string name="reports_no_data_hint">Добавьте транзакции для просмотра отчётов</string>
+    <string name="reports_yearly_expenses_by_category">Годовые расходы по категориям</string>
+    <string name="reports_yearly_income_by_category">Годовые доходы по категориям</string>
+    <string name="reports_monthly_overview">Обзор за месяц</string>
+    <string name="reports_yearly_balance">Годовой баланс</string>
+    <string name="reports_monthly_breakdown">Ежемесячная разбивка</string>
+    <string name="reports_no_data_year">Нет данных за этот год</string>
+    <string name="reports_no_data_year_hint">Добавьте транзакции для просмотра годовых отчётов</string>
+</resources>
