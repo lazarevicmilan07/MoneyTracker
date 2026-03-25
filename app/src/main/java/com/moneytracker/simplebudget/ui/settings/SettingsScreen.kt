@@ -806,7 +806,13 @@ fun SettingsScreen(
                             modifier = Modifier.clickable {
                                 showLanguageDialog = false
                                 LanguagePreferences.setLanguage(context, lang.code)
-                                (context as? android.app.Activity)?.recreate()
+                                // On some OEM ROMs, LocalContext.current is a ContextWrapper
+                                // (e.g. ContextThemeWrapper) rather than the Activity itself,
+                                // so a direct cast fails and recreate() is never called.
+                                // Traverse the wrapper chain to find the real Activity.
+                                var ctx: android.content.Context = context
+                                while (ctx is android.content.ContextWrapper && ctx !is android.app.Activity) ctx = ctx.baseContext
+                                (ctx as? android.app.Activity)?.recreate()
                             }
                         )
                     }
@@ -1113,11 +1119,12 @@ fun CurrencyPickerDialog(
 
     var searchQuery by remember { mutableStateOf("") }
     val filteredCurrencies = remember(searchQuery) {
-        if (searchQuery.isBlank()) currencies
+        val list = if (searchQuery.isBlank()) currencies
         else currencies.filter { (code, name) ->
             code.contains(searchQuery, ignoreCase = true) ||
                 name.contains(searchQuery, ignoreCase = true)
         }
+        list.sortedBy { (_, name) -> name }
     }
 
     AlertDialog(

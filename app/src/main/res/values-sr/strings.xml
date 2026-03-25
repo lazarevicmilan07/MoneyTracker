@@ -160,6 +160,7 @@
     <string name="transaction_copy_today">Današnji datum</string>
     <string name="transaction_copy_original">Originalni datum</string>
     <string name="transaction_delete_confirm">Jeste li sigurni da želite da obrišete ovu transakciju?</string>
+    <string name="transaction_note_placeholder">Unesite napomenu</string>
     <string name="transaction_saved">Transakcija sačuvana</string>
 
     <!-- Transaction Detail Screen -->

@@ -30,11 +30,13 @@
 # Google Play Billing
 -keep class com.android.vending.billing.**
 
+# Google Play In-App Update
+# The library's internal classes use IPC to communicate with the Play Store app.
+# R8 must not rename them — the Play Store side binds to these class names exactly.
+-keep class com.google.android.play.core.** { *; }
+
 # AdMob
 -keep class com.google.android.gms.ads.** { *; }
-
-# Vico Charts
--keep class com.patrykandpatrick.vico.** { *; }
 
 # WorkManager
 -keep class * extends androidx.work.Worker

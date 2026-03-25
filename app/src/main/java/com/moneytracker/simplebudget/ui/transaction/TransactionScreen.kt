@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -602,7 +603,7 @@ fun TransactionFormFields(
                         ),
                         cursorBrush = SolidColor(typeColor),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, capitalization = KeyboardCapitalization.Sentences),
                         keyboardActions = KeyboardActions(
                             onDone = { viewModel.setCurrentField(TransactionField.NONE) }
                         ),
@@ -610,7 +611,7 @@ fun TransactionFormFields(
                             Box(contentAlignment = Alignment.CenterEnd) {
                                 if (uiState.note.isEmpty()) {
                                     Text(
-                                        text = stringResource(R.string.dashboard_note_placeholder),
+                                        text = stringResource(R.string.transaction_note_placeholder),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
                                         textAlign = TextAlign.End
@@ -623,7 +624,7 @@ fun TransactionFormFields(
                 } else {
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = if (uiState.note.isNotEmpty()) uiState.note else stringResource(R.string.dashboard_note_placeholder),
+                        text = if (uiState.note.isNotEmpty()) uiState.note else stringResource(R.string.transaction_note_placeholder),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (uiState.note.isNotEmpty()) MaterialTheme.colorScheme.onSurface
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),

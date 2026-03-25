@@ -160,6 +160,7 @@
     <string name="transaction_copy_today">Сегодняшняя дата</string>
     <string name="transaction_copy_original">Исходная дата</string>
     <string name="transaction_delete_confirm">Вы уверены, что хотите удалить эту транзакцию?</string>
+    <string name="transaction_note_placeholder">Введите заметку</string>
     <string name="transaction_saved">Транзакция сохранена</string>
 
     <!-- Transaction Detail Screen -->

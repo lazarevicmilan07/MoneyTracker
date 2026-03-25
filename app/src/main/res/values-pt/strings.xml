@@ -160,6 +160,7 @@
     <string name="transaction_copy_today">Data de hoje</string>
     <string name="transaction_copy_original">Data original</string>
     <string name="transaction_delete_confirm">Tem certeza que deseja excluir esta transação?</string>
+    <string name="transaction_note_placeholder">Inserir nota</string>
     <string name="transaction_saved">Transação salva</string>
 
     <!-- Transaction Detail Screen -->
