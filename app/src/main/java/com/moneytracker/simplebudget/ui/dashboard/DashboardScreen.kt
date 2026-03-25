@@ -86,7 +86,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -449,7 +451,8 @@ fun DashboardScreen(
                                 onValueChange = { noteInput = it },
                                 placeholder = { Text(stringResource(R.string.dashboard_note_placeholder)) },
                                 modifier = Modifier.fillMaxWidth(),
-                                maxLines = 3
+                                maxLines = 3,
+                                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
                             )
                         },
                         confirmButton = {
@@ -1045,6 +1048,7 @@ private fun FilterBottomSheet(
                 placeholder = { Text(stringResource(R.string.dashboard_search_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 trailingIcon = {
                     if (filter.searchQuery.isNotBlank()) {
                         IconButton(onClick = { onSearchQuery("") }) {
