@@ -1,4 +1,4 @@
-# Money Tracker – Simple Budget
+# CashFlow - Money Tracker
 
 A production-ready Android expense tracking app with offline-first architecture, clean Material 3 UI, and monetization support.
 
