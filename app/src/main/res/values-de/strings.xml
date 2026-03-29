@@ -18,7 +18,7 @@
     <string name="button_ok">OK</string>
     <string name="button_close">Schließen</string>
     <string name="button_done">Fertig</string>
-    <string name="button_clear">Löschen</string>
+    <string name="button_clear">Leeren</string>
     <string name="button_apply">Anwenden</string>
     <string name="button_copy">Kopieren</string>
     <string name="button_continue">Weiter</string>
@@ -101,7 +101,7 @@
     <!-- Settings Loading States -->
     <string name="loading_exporting">Exportiere…</string>
     <string name="loading_creating_backup">Backup wird erstellt…</string>
-    <string name="loading_restoring">Wiederherstellung…</string>
+    <string name="loading_restoring">Wird wiederhergestellt…</string>
 
     <!-- Settings Toast Messages -->
     <string name="message_export_success">%s erfolgreich exportiert</string>

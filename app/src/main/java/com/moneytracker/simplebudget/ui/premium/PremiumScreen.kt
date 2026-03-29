@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudSync
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -45,8 +48,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -93,17 +100,15 @@ fun PremiumScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(paddingValues)
-                .padding(24.dp),
+                .padding(horizontal = 24.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Premium Icon
             Box(
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(64.dp)
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
@@ -118,28 +123,28 @@ fun PremiumScreen(
                 Icon(
                     Icons.Default.Star,
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(32.dp),
                     tint = Color.White
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Unlock Premium",
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 text = "One-time purchase, lifetime access",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Features
             Card(
@@ -149,8 +154,8 @@ fun PremiumScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     PremiumFeatureItem(
                         icon = Icons.Default.CloudSync,
@@ -162,19 +167,65 @@ fun PremiumScreen(
                         title = "Remove Ads",
                         description = "Enjoy an ad-free experience"
                     )
+                    PremiumFeatureItem(
+                        icon = Icons.Default.AutoAwesome,
+                        title = "Budget Tracking",
+                        description = "Set limits and control your spending",
+                        comingSoon = true
+                    )
+                    PremiumFeatureItem(
+                        icon = Icons.Default.ShowChart,
+                        title = "Advanced Insights",
+                        description = "Understand your spending habits and trends",
+                        comingSoon = true
+                    )
+                    PremiumFeatureItem(
+                        icon = Icons.Default.Repeat,
+                        title = "Recurring Transactions",
+                        description = "Automatically track your regular payments",
+                        comingSoon = true
+                    )
+
+                    Text(
+                        text = "+ More features coming soon",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Price
             if (uiState.price != null) {
                 Text(
-                    text = uiState.price!!,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    text = "Launch special – unlock all current & future features",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "€5.00",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        textDecoration = TextDecoration.LineThrough
+                    )
+                    Text(
+                        text = uiState.price!!,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
                 Text(
                     text = "One-time payment",
                     style = MaterialTheme.typography.bodySmall,
@@ -230,8 +281,10 @@ fun PremiumScreen(
 fun PremiumFeatureItem(
     icon: ImageVector,
     title: String,
-    description: String
+    description: String,
+    comingSoon: Boolean = false
 ) {
+    val contentAlpha = if (comingSoon) 0.45f else 1f
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -239,25 +292,36 @@ fun PremiumFeatureItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = if (comingSoon) 0.05f else 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha),
                 modifier = Modifier.size(20.dp)
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
             )
             Text(
-                text = description,
+                text = if (comingSoon) buildAnnotatedString {
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))) {
+                        append(description)
+                        append(" ")
+                    }
+                    withStyle(SpanStyle(color = Color(0xFF2196F3))) {
+                        append("[Coming soon]")
+                    }
+                } else buildAnnotatedString {
+                    append(description)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )

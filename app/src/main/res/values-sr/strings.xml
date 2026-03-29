@@ -6,7 +6,7 @@
 
     <!-- Bottom Navigation -->
     <string name="nav_transactions">Transakcije</string>
-    <string name="nav_stats">Statistike</string>
+    <string name="nav_stats">Statistika</string>
     <string name="nav_accounts">Računi</string>
     <string name="nav_categories">Kategorije</string>
     <string name="nav_settings">Podešavanja</string>
@@ -18,7 +18,7 @@
     <string name="button_ok">OK</string>
     <string name="button_close">Zatvori</string>
     <string name="button_done">Gotovo</string>
-    <string name="button_clear">Obriši</string>
+    <string name="button_clear">Očisti</string>
     <string name="button_apply">Primeni</string>
     <string name="button_copy">Kopiraj</string>
     <string name="button_continue">Nastavi</string>
@@ -38,7 +38,7 @@
     <!-- Transaction Types -->
     <string name="transaction_type_expense">Rashod</string>
     <string name="transaction_type_income">Prihod</string>
-    <string name="transaction_type_transfer">Transfer</string>
+    <string name="transaction_type_transfer">Prenos</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Podešavanja</string>
@@ -58,9 +58,9 @@
 
     <!-- Settings — Notifications -->
     <string name="section_notifications">Obaveštenja</string>
-    <string name="setting_transaction_reminders">Podsjetnici za transakcije</string>
+    <string name="setting_transaction_reminders">Podsetnici za transakcije</string>
     <string name="reminder_enabled_subtitle">Tapni ispod da podesite raspored</string>
-    <string name="reminder_disabled_subtitle">Dobijaj podsjetnike za unos transakcija</string>
+    <string name="reminder_disabled_subtitle">Dobijaj podsetnike za unos transakcija</string>
     <string name="notification_permission_required">Dozvola za obaveštenja je potrebna za podsetnike</string>
     <string name="setting_backup_reminders">Podsetnici za backup</string>
     <string name="backup_reminder_disabled_subtitle">Dobijaj podsetnike za pravljenje rezervnih kopija</string>
@@ -137,7 +137,7 @@
     <string name="dashboard_filter_all">Sve</string>
     <string name="dashboard_filter_expense">Rashod</string>
     <string name="dashboard_filter_income">Prihod</string>
-    <string name="dashboard_filter_transfer">Transfer</string>
+    <string name="dashboard_filter_transfer">Prenos</string>
     <string name="dashboard_filter_category">Kategorija</string>
     <string name="dashboard_filter_subcategory">Potkategorija</string>
     <string name="dashboard_filter_account">Račun</string>
@@ -168,7 +168,7 @@
     <string name="transaction_detail_delete">Obriši transakciju</string>
     <string name="transaction_detail_delete_confirm">Jeste li sigurni da želite da obrišete ovaj %1$s od %2$s?</string>
     <string name="transaction_detail_from">Od</string>
-    <string name="transaction_detail_to">Do</string>
+    <string name="transaction_detail_to">Na</string>
     <string name="transaction_uncategorized">Bez kategorije</string>
     <string name="transaction_deleted">Transakcija obrisana</string>
 
@@ -204,7 +204,7 @@
     <string name="categories_saved">Kategorija sačuvana</string>
     <string name="categories_deleted">Kategorija obrisana</string>
     <string name="categories_add_subcategory">Dodaj potkategoriju</string>
-    <string name="categories_drag_reorder">Prevuci za promenu redosled</string>
+    <string name="categories_drag_reorder">Prevuci za promenu redosleda</string>
     <string name="categories_collapse">Skupi</string>
     <string name="categories_expand">Proširi</string>
 
@@ -217,7 +217,7 @@
     <string name="onboarding_page1_description">Beležite dnevne troškove i prihode za sekunde. Kontrolišite finansije sa čistim, intuitivnim interfejsom.</string>
     <string name="onboarding_page2_title">Pametni uvidi</string>
     <string name="onboarding_page2_subtitle">Mesečni &amp; godišnji izveštaji</string>
-    <string name="onboarding_page2_description">Vizualizujte obrasce potrošnje sa lepim grafikonima. Dobijte mesečne raspored i godišnje preglede.</string>
+    <string name="onboarding_page2_description">Vizualizujte obrasce potrošnje sa lepim grafikonima. Dobijte mesečne preglede i godišnje izveštaje.</string>
     <string name="onboarding_page3_title">Ostanite organizovani</string>
     <string name="onboarding_page3_subtitle">Računi &amp; kategorije</string>
     <string name="onboarding_page3_description">Kreirajte više računa i prilagođenih kategorija da organizujete finansije na svoj način.</string>
