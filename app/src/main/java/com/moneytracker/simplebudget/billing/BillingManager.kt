@@ -38,6 +38,12 @@ class BillingManager @Inject constructor(
     private val _purchaseState = MutableStateFlow<PurchaseState>(PurchaseState.Idle)
     val purchaseState: StateFlow<PurchaseState> = _purchaseState.asStateFlow()
 
+    private val _premiumPrice = MutableStateFlow<String?>(null)
+    val premiumPrice: StateFlow<String?> = _premiumPrice.asStateFlow()
+
+    private val _originalPrice = MutableStateFlow<String?>(null)
+    val originalPrice: StateFlow<String?> = _originalPrice.asStateFlow()
+
     init {
         setupBillingClient()
     }
@@ -82,33 +88,23 @@ class BillingManager @Inject constructor(
         billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 productDetails = productDetailsList.firstOrNull()
+                val offerDetails = productDetails?.oneTimePurchaseOfferDetails
+                _premiumPrice.value = offerDetails?.formattedPrice
+                _originalPrice.value = offerDetails?.let { calculateOriginalPrice(it) }
             }
         }
     }
 
-    suspend fun getPremiumPrice(): String? {
-        return productDetails?.oneTimePurchaseOfferDetails?.formattedPrice
-            ?: suspendCancellableCoroutine { continuation ->
-                val productList = listOf(
-                    QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId(PREMIUM_PRODUCT_ID)
-                        .setProductType(BillingClient.ProductType.INAPP)
-                        .build()
-                )
-
-                val params = QueryProductDetailsParams.newBuilder()
-                    .setProductList(productList)
-                    .build()
-
-                billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-                    if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                        productDetails = productDetailsList.firstOrNull()
-                        continuation.resume(productDetails?.oneTimePurchaseOfferDetails?.formattedPrice)
-                    } else {
-                        continuation.resume(null)
-                    }
-                } ?: continuation.resume(null)
-            }
+    private fun calculateOriginalPrice(offer: ProductDetails.OneTimePurchaseOfferDetails): String {
+        val originalMicros = (offer.priceAmountMicros * 1.4).toLong()
+        val originalAmount = originalMicros / 1_000_000.0
+        val currency = java.util.Currency.getInstance(offer.priceCurrencyCode)
+        val format = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.getDefault()).apply {
+            this.currency = currency
+            maximumFractionDigits = currency.defaultFractionDigits
+            minimumFractionDigits = currency.defaultFractionDigits
+        }
+        return format.format(originalAmount)
     }
 
     fun launchBillingFlow(activity: Activity) {

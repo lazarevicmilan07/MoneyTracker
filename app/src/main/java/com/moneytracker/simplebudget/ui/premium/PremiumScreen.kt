@@ -212,13 +212,15 @@ fun PremiumScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = "€5.00",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        textDecoration = TextDecoration.LineThrough
-                    )
+                    uiState.originalPrice?.let { originalPrice ->
+                        Text(
+                            text = originalPrice,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            textDecoration = TextDecoration.LineThrough
+                        )
+                    }
                     Text(
                         text = uiState.price!!,
                         style = MaterialTheme.typography.headlineLarge,

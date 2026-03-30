@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,19 +29,17 @@ class PremiumViewModel @Inject constructor(
     val events = _events.asSharedFlow()
 
     init {
-        loadPremiumDetails()
+        observePrice()
         observeBillingEvents()
     }
 
-    private fun loadPremiumDetails() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            val price = billingManager.getPremiumPrice()
-            _uiState.value = _uiState.value.copy(
-                isLoading = false,
-                price = price ?: "€3.00" // Fallback price
-            )
-        }
+    private fun observePrice() {
+        billingManager.premiumPrice
+            .onEach { price -> _uiState.value = _uiState.value.copy(price = price) }
+            .launchIn(viewModelScope)
+        billingManager.originalPrice
+            .onEach { price -> _uiState.value = _uiState.value.copy(originalPrice = price) }
+            .launchIn(viewModelScope)
     }
 
     private fun observeBillingEvents() {
@@ -87,7 +87,8 @@ class PremiumViewModel @Inject constructor(
 
 data class PremiumUiState(
     val isLoading: Boolean = false,
-    val price: String? = null
+    val price: String? = null,
+    val originalPrice: String? = null
 )
 
 sealed class PremiumEvent {
