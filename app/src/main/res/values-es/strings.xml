@@ -87,7 +87,7 @@
     <string name="section_about">Acerca de</string>
     <string name="setting_about">Acerca de</string>
     <string name="about_version">Versión</string>
-    <string name="about_app_name">CashFlow - Presupuesto Simple</string>
+    <string name="about_app_name">CashFlow - Money Tracker</string>
     <string name="about_privacy_policy">Política de privacidad</string>
     <string name="about_rate_app">Valorar la app</string>
 
@@ -132,7 +132,7 @@
     <string name="dashboard_delete_confirm">¿Eliminar %d transacción(es)? Esta acción no se puede deshacer.</string>
     <string name="dashboard_edit_transactions">Editar %d transacción(es)</string>
     <string name="dashboard_edit_note">Editar nota</string>
-    <string name="dashboard_note_placeholder">Introducir nota para todas las transacciones seleccionadas</string>
+    <string name="dashboard_note_placeholder">Escribe una nota para todas las transacciones seleccionadas</string>
     <string name="dashboard_filters">Filtros</string>
     <string name="dashboard_filter_all">Todos</string>
     <string name="dashboard_filter_expense">Gasto</string>
@@ -160,7 +160,7 @@
     <string name="transaction_copy_today">Fecha de hoy</string>
     <string name="transaction_copy_original">Fecha original</string>
     <string name="transaction_delete_confirm">¿Estás seguro de que quieres eliminar esta transacción?</string>
-    <string name="transaction_note_placeholder">Ingresar nota</string>
+    <string name="transaction_note_placeholder">Escribe una nota</string>
     <string name="transaction_saved">Transacción guardada</string>
 
     <!-- Transaction Detail Screen -->

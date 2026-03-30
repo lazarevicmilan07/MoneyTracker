@@ -87,7 +87,7 @@
     <string name="section_about">Sobre</string>
     <string name="setting_about">Sobre</string>
     <string name="about_version">Versão</string>
-    <string name="about_app_name">CashFlow - Orçamento Simples</string>
+    <string name="about_app_name">CashFlow - Money Tracker</string>
     <string name="about_privacy_policy">Política de privacidade</string>
     <string name="about_rate_app">Avaliar o app</string>
 
@@ -188,7 +188,7 @@
     <string name="accounts_saved">Conta salva</string>
     <string name="accounts_deleted">Conta excluída</string>
     <string name="accounts_set_default">Definir como padrão</string>
-    <string name="accounts_remove_default">Remover padrão</string>
+    <string name="accounts_remove_default">Remover como padrão</string>
 
     <!-- Categories Screen -->
     <string name="categories_title">Categorias</string>
@@ -215,7 +215,7 @@
     <string name="onboarding_page1_title">Controle seu dinheiro</string>
     <string name="onboarding_page1_subtitle">Controle de gastos sem esforço</string>
     <string name="onboarding_page1_description">Registre suas despesas e receitas diárias em segundos. Mantenha suas finanças sob controle com uma interface limpa e intuitiva.</string>
-    <string name="onboarding_page2_title">Insights inteligentes</string>
+    <string name="onboarding_page2_title">Análises inteligentes</string>
     <string name="onboarding_page2_subtitle">Relatórios mensais &amp; anuais</string>
     <string name="onboarding_page2_description">Visualize seus padrões de gastos com belos gráficos. Obtenha análises mensais e visões gerais anuais.</string>
     <string name="onboarding_page3_title">Fique organizado</string>

@@ -87,7 +87,7 @@
     <string name="section_about">О приложении</string>
     <string name="setting_about">О приложении</string>
     <string name="about_version">Версия</string>
-    <string name="about_app_name">CashFlow - Простой бюджет</string>
+    <string name="about_app_name">CashFlow - Money Tracker</string>
     <string name="about_privacy_policy">Политика конфиденциальности</string>
     <string name="about_rate_app">Оценить приложение</string>
 
@@ -220,7 +220,7 @@
     <string name="onboarding_page2_description">Визуализируйте расходы с красивыми диаграммами. Получайте ежемесячную детализацию и годовые обзоры.</string>
     <string name="onboarding_page3_title">Оставайтесь организованными</string>
     <string name="onboarding_page3_subtitle">Счета &amp; категории</string>
-    <string name="onboarding_page3_description">Создавайте несколько счётов и пользовательских категорий для удобной организации финансов.</string>
+    <string name="onboarding_page3_description">Создавайте несколько счётов и собственных категорий для удобной организации финансов.</string>
     <string name="onboarding_page4_title">Ваши данные, в безопасности</string>
     <string name="onboarding_page4_subtitle">Экспорт &amp; резервная копия</string>
     <string name="onboarding_page4_description">Экспортируйте записи в Excel или PDF. Создавайте резервные копии и восстанавливайте данные в любое время.</string>

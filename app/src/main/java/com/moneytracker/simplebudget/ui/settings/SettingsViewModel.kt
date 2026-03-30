@@ -107,11 +107,10 @@ class SettingsViewModel @Inject constructor(
 
     fun backup(context: Context, uri: Uri, period: ExportPeriodParams) {
         viewModelScope.launch {
-            // TODO: Restore premium check for release
-            // if (!userPreferences.value.isPremium) {
-            //     _events.emit(SettingsEvent.ShowPremiumRequired("Backup"))
-            //     return@launch
-            // }
+            if (!userPreferences.value.isPremium) {
+                _events.emit(SettingsEvent.ShowPremiumRequired("Backup"))
+                return@launch
+            }
             _uiState.value = _uiState.value.copy(isBackingUp = true)
             val result = backupRestoreUseCase.backup(context, uri, period)
             _uiState.value = _uiState.value.copy(isBackingUp = false)
@@ -125,11 +124,10 @@ class SettingsViewModel @Inject constructor(
 
     fun restore(context: Context, uri: Uri) {
         viewModelScope.launch {
-            // TODO: Restore premium check for release
-            // if (!userPreferences.value.isPremium) {
-            //     _events.emit(SettingsEvent.ShowPremiumRequired("Restore"))
-            //     return@launch
-            // }
+            if (!userPreferences.value.isPremium) {
+                _events.emit(SettingsEvent.ShowPremiumRequired("Restore"))
+                return@launch
+            }
             _uiState.value = _uiState.value.copy(isRestoring = true)
             val result = backupRestoreUseCase.restore(context, uri)
             _uiState.value = _uiState.value.copy(isRestoring = false)

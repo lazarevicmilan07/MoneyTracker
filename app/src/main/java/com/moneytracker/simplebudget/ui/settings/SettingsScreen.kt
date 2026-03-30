@@ -280,18 +280,9 @@ fun SettingsScreen(
                 contentPadding = PaddingValues(bottom = 120.dp)
             ) {
                 // Premium Banner
-                // TODO: Restore for release - navigate to premium purchase screen
-                // if (!userPreferences.isPremium) {
-                //     item {
-                //         PremiumBanner(onClick = onShowPremium)
-                //     }
-                // }
                 if (!userPreferences.isPremium) {
                     item {
-                        PremiumBanner(onClick = {
-                            viewModel.setPremium(true)
-                            Toast.makeText(context, context.getString(R.string.message_premium_activated), Toast.LENGTH_SHORT).show()
-                        })
+                        PremiumBanner(onClick = onShowPremium)
                     }
                 }
 
@@ -560,24 +551,6 @@ fun SettingsScreen(
                     )
                 }
 
-                // TODO: Restore premium gating for release
-                // item {
-                //     SettingsItem(
-                //         icon = Icons.Default.Backup,
-                //         title = "Backup",
-                //         subtitle = if (userPreferences.isPremium) "Create data backup (JSON)" else "Premium feature",
-                //         onClick = {
-                //             if (userPreferences.isPremium) {
-                //                 pendingAction = PendingExportAction.BACKUP
-                //                 periodDialogTitle = "Backup Data"
-                //                 showPeriodDialog = true
-                //             } else {
-                //                 onShowPremium()
-                //             }
-                //         },
-                //         isPremium = !userPreferences.isPremium
-                //     )
-                // }
                 item {
                     val backupTitle = stringResource(R.string.dialog_backup_title)
                     SettingsItem(
@@ -585,37 +558,31 @@ fun SettingsScreen(
                         title = stringResource(R.string.setting_backup),
                         subtitle = stringResource(R.string.setting_backup_subtitle),
                         onClick = {
-                            pendingAction = PendingExportAction.BACKUP
-                            periodDialogTitle = backupTitle
-                            showPeriodDialog = true
-                        }
+                            if (userPreferences.isPremium) {
+                                pendingAction = PendingExportAction.BACKUP
+                                periodDialogTitle = backupTitle
+                                showPeriodDialog = true
+                            } else {
+                                onShowPremium()
+                            }
+                        },
+                        isPremium = !userPreferences.isPremium
                     )
                 }
 
-                // TODO: Restore premium gating for release
-                // item {
-                //     SettingsItem(
-                //         icon = Icons.Default.Restore,
-                //         title = "Restore",
-                //         subtitle = if (userPreferences.isPremium) "Restore from backup (JSON)" else "Premium feature",
-                //         onClick = {
-                //             if (userPreferences.isPremium) {
-                //                 showRestoreConfirmDialog = true
-                //             } else {
-                //                 onShowPremium()
-                //             }
-                //         },
-                //         isPremium = !userPreferences.isPremium
-                //     )
-                // }
                 item {
                     SettingsItem(
                         icon = Icons.Default.Restore,
                         title = stringResource(R.string.setting_restore),
                         subtitle = stringResource(R.string.setting_restore_subtitle),
                         onClick = {
-                            showRestoreConfirmDialog = true
-                        }
+                            if (userPreferences.isPremium) {
+                                showRestoreConfirmDialog = true
+                            } else {
+                                onShowPremium()
+                            }
+                        },
+                        isPremium = !userPreferences.isPremium
                     )
                 }
 
