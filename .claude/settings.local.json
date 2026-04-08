@@ -96,7 +96,8 @@
       "Read(//c/ComData/Projekti/**)",
       "Read(//c/ComData/Projekti//**)",
       "Bash(git clone:*)",
-      "Bash(./gradlew compileDebugKotlin)"
+      "Bash(./gradlew compileDebugKotlin)",
+      "Bash(wait)"
     ]
   }
 }

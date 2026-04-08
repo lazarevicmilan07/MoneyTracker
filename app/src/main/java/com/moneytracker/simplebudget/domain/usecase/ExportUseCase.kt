@@ -32,8 +32,11 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFFont
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import com.itextpdf.layout.element.AreaBreak
+import com.itextpdf.layout.properties.AreaBreakType
 import java.time.LocalDate
 import java.time.Month
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
@@ -244,94 +247,110 @@ class ExportUseCase @Inject constructor(
         if (colCount > 1) sheet.addMergedRegion(CellRangeAddress(rowIdx, rowIdx, 0, colCount - 1))
     }
 
-    suspend fun exportToExcel(context: Context, uri: Uri, period: ExportPeriodParams): Result<Unit> = runCatching {
+    private fun writeExcelPeriod(
+        workbook: XSSFWorkbook,
+        s: XlStyles,
+        period: ExportPeriodParams,
+        allExpenses: List<Expense>,
+        categoriesMap: Map<Long, com.moneytracker.simplebudget.domain.model.Category>,
+        accountsMap: Map<Long, com.moneytracker.simplebudget.domain.model.Account>,
+        currency: String,
+        symbolAfter: Boolean
+    ) {
+        val expenses = filterExpensesByPeriod(allExpenses, period)
+        val totalIncome = expenses.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+        val totalExpense = expenses.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        val netBalance = totalIncome - totalExpense
+
+        val sheet = workbook.createSheet(period.getPeriodTitle())
+        val COL = 8
+        var r = 0
+
+        xlMergedRow(sheet, r++, COL, "CashFlow  ·  ${period.getPeriodTitle()}", s.title, 36f)
+        sheet.createRow(r++)
+
+        xlMergedRow(sheet, r++, COL, "SUMMARY", s.summaryHeader, 22f)
+        listOf(
+            Triple("Total Income",   formatCurrency(totalIncome,  currency, symbolAfter), s.income),
+            Triple("Total Expenses", formatCurrency(totalExpense, currency, symbolAfter), s.expense),
+            Triple("Net Balance",    formatCurrency(netBalance,   currency, symbolAfter), if (netBalance >= 0) s.income else s.expense),
+            Triple("Transactions",   expenses.size.toString(),                             s.dataNormal)
+        ).forEach { (label, value, valueStyle) ->
+            sheet.createRow(r++).apply {
+                heightInPoints = 18f
+                createCell(0).apply { setCellValue(label); cellStyle = s.summaryLabel }
+                createCell(1).apply { setCellValue(value); cellStyle = valueStyle }
+                for (c in 2 until COL) createCell(c).cellStyle = s.summaryLabel
+            }
+        }
+        sheet.createRow(r++)
+
+        xlMergedRow(sheet, r++, COL, "TRANSACTIONS", s.section, 22f)
+        sheet.createRow(r++).apply {
+            heightInPoints = 20f
+            listOf("Date", "Type", "Category", "Subcategory", "Account", "Amount", "Currency", "Note")
+                .forEachIndexed { c, h -> createCell(c).apply { setCellValue(h); cellStyle = s.tblHeader } }
+        }
+
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        expenses.forEachIndexed { i, expense ->
+            val alt = i % 2 == 1
+            val baseStyle = if (alt) s.dataAlt else s.dataNormal
+            val amtStyle = when (expense.type) {
+                TransactionType.INCOME  -> if (alt) s.incomeAlt  else s.income
+                TransactionType.EXPENSE -> if (alt) s.expenseAlt else s.expense
+                else                    -> baseStyle
+            }
+            val categoryName    = expense.categoryId?.let { categoriesMap[it]?.name } ?: ""
+            val subcategoryName = expense.subcategoryId?.let { categoriesMap[it]?.name } ?: ""
+            val accountName     = expense.accountId?.let { accountsMap[it]?.name } ?: ""
+
+            sheet.createRow(r++).apply {
+                heightInPoints = 18f
+                createCell(0).apply { setCellValue(expense.date.format(dateFormatter));                    cellStyle = baseStyle }
+                createCell(1).apply { setCellValue(expense.type.name);                                    cellStyle = baseStyle }
+                createCell(2).apply { setCellValue(categoryName);                                          cellStyle = baseStyle }
+                createCell(3).apply { setCellValue(subcategoryName);                                       cellStyle = baseStyle }
+                createCell(4).apply { setCellValue(accountName);                                           cellStyle = baseStyle }
+                createCell(5).apply { setCellValue(formatCurrency(expense.amount, currency, symbolAfter)); cellStyle = amtStyle  }
+                createCell(6).apply { setCellValue(currency);                                              cellStyle = baseStyle }
+                createCell(7).apply { setCellValue(expense.note);                                          cellStyle = baseStyle }
+            }
+        }
+
+        sheet.setColumnWidth(0, 22 * 256)
+        sheet.setColumnWidth(1, 18 * 256)
+        sheet.setColumnWidth(2, 18 * 256)
+        sheet.setColumnWidth(3, 18 * 256)
+        sheet.setColumnWidth(4, 18 * 256)
+        sheet.setColumnWidth(5, 16 * 256)
+        sheet.setColumnWidth(6, 10 * 256)
+        sheet.setColumnWidth(7, 35 * 256)
+    }
+
+    suspend fun exportToExcel(
+        context: Context, uri: Uri,
+        isMonthly: Boolean, months: List<YearMonth>, years: List<Int>
+    ): Result<Unit> = runCatching {
         withContext(Dispatchers.IO) {
             val allExpenses = expenseRepository.getAllExpensesSync()
-            val expenses = filterExpensesByPeriod(allExpenses, period)
             val categories = categoryRepository.getAllCategories().first()
             val accounts = accountRepository.getAllAccounts().first()
             val currency = preferencesManager.currency.first()
             val symbolAfter = preferencesManager.currencySymbolAfter.first()
-
             val categoriesMap = categories.associateBy { it.id }
             val accountsMap = accounts.associateBy { it.id }
 
-            val totalIncome = expenses.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
-            val totalExpense = expenses.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-            val netBalance = totalIncome - totalExpense
+            val periods = if (isMonthly)
+                months.map { ExportPeriodParams(it.year, it.monthValue) }
+            else
+                years.map { ExportPeriodParams(it) }
 
             val workbook = XSSFWorkbook()
             val s = buildXlStyles(workbook)
-            val sheet = workbook.createSheet("Expenses")
-            val COL = 8
-            var r = 0
-
-            // Title
-            xlMergedRow(sheet, r++, COL, "CashFlow  ·  ${period.getPeriodTitle()}", s.title, 36f)
-            sheet.createRow(r++) // spacer
-
-            // Summary
-            xlMergedRow(sheet, r++, COL, "SUMMARY", s.summaryHeader, 22f)
-            listOf(
-                Triple("Total Income",   formatCurrency(totalIncome,  currency, symbolAfter), s.income),
-                Triple("Total Expenses", formatCurrency(totalExpense, currency, symbolAfter), s.expense),
-                Triple("Net Balance",    formatCurrency(netBalance,   currency, symbolAfter), if (netBalance >= 0) s.income else s.expense),
-                Triple("Transactions",   expenses.size.toString(),                             s.dataNormal)
-            ).forEach { (label, value, valueStyle) ->
-                sheet.createRow(r++).apply {
-                    heightInPoints = 18f
-                    createCell(0).apply { setCellValue(label); cellStyle = s.summaryLabel }
-                    createCell(1).apply { setCellValue(value); cellStyle = valueStyle }
-                    for (c in 2 until COL) createCell(c).cellStyle = s.summaryLabel
-                }
+            periods.forEach { period ->
+                writeExcelPeriod(workbook, s, period, allExpenses, categoriesMap, accountsMap, currency, symbolAfter)
             }
-            sheet.createRow(r++) // spacer
-
-            // Transactions
-            xlMergedRow(sheet, r++, COL, "TRANSACTIONS", s.section, 22f)
-            sheet.createRow(r++).apply {
-                heightInPoints = 20f
-                listOf("Date", "Type", "Category", "Subcategory", "Account", "Amount", "Currency", "Note")
-                    .forEachIndexed { c, h -> createCell(c).apply { setCellValue(h); cellStyle = s.tblHeader } }
-            }
-
-            val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-
-            expenses.forEachIndexed { i, expense ->
-                val alt = i % 2 == 1
-                val baseStyle = if (alt) s.dataAlt else s.dataNormal
-                val amtStyle = when (expense.type) {
-                    TransactionType.INCOME   -> if (alt) s.incomeAlt  else s.income
-                    TransactionType.EXPENSE  -> if (alt) s.expenseAlt else s.expense
-                    else                     -> baseStyle
-                }
-                val categoryName    = expense.categoryId?.let { categoriesMap[it]?.name } ?: ""
-                val subcategoryName = expense.subcategoryId?.let { categoriesMap[it]?.name } ?: ""
-                val accountName     = expense.accountId?.let { accountsMap[it]?.name } ?: ""
-
-                sheet.createRow(r++).apply {
-                    heightInPoints = 18f
-                    createCell(0).apply { setCellValue(expense.date.format(dateFormatter));                    cellStyle = baseStyle }
-                    createCell(1).apply { setCellValue(expense.type.name);                                    cellStyle = baseStyle }
-                    createCell(2).apply { setCellValue(categoryName);                                          cellStyle = baseStyle }
-                    createCell(3).apply { setCellValue(subcategoryName);                                       cellStyle = baseStyle }
-                    createCell(4).apply { setCellValue(accountName);                                           cellStyle = baseStyle }
-                    createCell(5).apply { setCellValue(formatCurrency(expense.amount, currency, symbolAfter)); cellStyle = amtStyle  }
-                    createCell(6).apply { setCellValue(currency);                                              cellStyle = baseStyle }
-                    createCell(7).apply { setCellValue(expense.note);                                          cellStyle = baseStyle }
-                }
-            }
-
-            // Column widths (units: 1/256th of character width)
-            sheet.setColumnWidth(0, 22 * 256)  // wider for summary labels ("Total Expenses")
-            sheet.setColumnWidth(1, 18 * 256)  // wider for formatted currency amounts
-            sheet.setColumnWidth(2, 18 * 256)
-            sheet.setColumnWidth(3, 18 * 256)
-            sheet.setColumnWidth(4, 18 * 256)
-            sheet.setColumnWidth(5, 16 * 256)
-            sheet.setColumnWidth(6, 10 * 256)
-            sheet.setColumnWidth(7, 35 * 256)
-
             context.contentResolver.openOutputStream(uri)?.use { workbook.write(it) }
             workbook.close()
         }
@@ -474,68 +493,87 @@ class ExportUseCase @Inject constructor(
         }
     }
 
-    suspend fun exportToPdf(context: Context, uri: Uri, period: ExportPeriodParams): Result<Unit> = runCatching {
+    private fun writePdfPeriod(
+        document: Document,
+        period: ExportPeriodParams,
+        allExpenses: List<Expense>,
+        categoriesMap: Map<Long, com.moneytracker.simplebudget.domain.model.Category>,
+        accountsMap: Map<Long, com.moneytracker.simplebudget.domain.model.Account>,
+        currency: String,
+        symbolAfter: Boolean
+    ) {
+        val expenses = filterExpensesByPeriod(allExpenses, period)
+        val totalIncome  = expenses.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+        val totalExpense = expenses.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
+        val netBalance   = totalIncome - totalExpense
+
+        document.setMargins(0f, 0f, 36f, 0f)
+        pdfHeader(document, "Expense Report", period.getPeriodTitle())
+        document.setLeftMargin(36f)
+        document.setRightMargin(36f)
+
+        pdfMetricCards(document, totalIncome, totalExpense, netBalance, expenses.size, currency, symbolAfter)
+        pdfSectionTitle(document, "Transactions")
+
+        val table = Table(
+            UnitValue.createPercentArray(floatArrayOf(1.4f, 0.9f, 1.3f, 1.3f, 1.2f, 1.1f, 2f))
+        ).useAllAvailableWidth()
+
+        pdfTblHeader(table, "Date", "Type", "Category", "Subcategory", "Account", "Amount", "Note")
+
+        val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH)
+        expenses.forEachIndexed { index, expense ->
+            val categoryName    = expense.categoryId?.let { categoriesMap[it]?.name } ?: ""
+            val subcategoryName = expense.subcategoryId?.let { categoriesMap[it]?.name } ?: ""
+            val accountName     = expense.accountId?.let { accountsMap[it]?.name } ?: ""
+
+            pdfDataRow(
+                table,
+                listOf(
+                    expense.date.format(dateFormatter),
+                    expense.type.name,
+                    categoryName,
+                    subcategoryName,
+                    accountName,
+                    formatCurrency(expense.amount, currency, symbolAfter),
+                    expense.note
+                ),
+                index,
+                amountIndex = 5,
+                type = expense.type
+            )
+        }
+        document.add(table)
+    }
+
+    suspend fun exportToPdf(
+        context: Context, uri: Uri,
+        isMonthly: Boolean, months: List<YearMonth>, years: List<Int>
+    ): Result<Unit> = runCatching {
         withContext(Dispatchers.IO) {
             val allExpenses = expenseRepository.getAllExpensesSync()
-            val expenses = filterExpensesByPeriod(allExpenses, period)
             val categories = categoryRepository.getAllCategories().first()
             val accounts = accountRepository.getAllAccounts().first()
             val currency = preferencesManager.currency.first()
             val symbolAfter = preferencesManager.currencySymbolAfter.first()
-
             val categoriesMap = categories.associateBy { it.id }
             val accountsMap = accounts.associateBy { it.id }
 
-            val totalIncome  = expenses.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
-            val totalExpense = expenses.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
-            val netBalance   = totalIncome - totalExpense
+            val periods = if (isMonthly)
+                months.map { ExportPeriodParams(it.year, it.monthValue) }
+            else
+                years.map { ExportPeriodParams(it) }
 
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                 val pdfWriter = PdfWriter(outputStream)
                 val pdfDocument = PdfDocument(pdfWriter)
                 val document = Document(pdfDocument)
-                document.setMargins(0f, 0f, 36f, 0f) // no top margin — header bleeds to edge
 
-                pdfHeader(document, "Expense Report", period.getPeriodTitle())
-
-                // Add side margins after the header
-                document.setLeftMargin(36f)
-                document.setRightMargin(36f)
-
-                pdfMetricCards(document, totalIncome, totalExpense, netBalance, expenses.size, currency, symbolAfter)
-                pdfSectionTitle(document, "Transactions")
-
-                val table = Table(
-                    UnitValue.createPercentArray(floatArrayOf(1.4f, 0.9f, 1.3f, 1.3f, 1.2f, 1.1f, 2f))
-                ).useAllAvailableWidth()
-
-                pdfTblHeader(table, "Date", "Type", "Category", "Subcategory", "Account", "Amount", "Note")
-
-                val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.ENGLISH)
-
-                expenses.forEachIndexed { index, expense ->
-                    val categoryName    = expense.categoryId?.let { categoriesMap[it]?.name } ?: ""
-                    val subcategoryName = expense.subcategoryId?.let { categoriesMap[it]?.name } ?: ""
-                    val accountName     = expense.accountId?.let { accountsMap[it]?.name } ?: ""
-
-                    pdfDataRow(
-                        table,
-                        listOf(
-                            expense.date.format(dateFormatter),
-                            expense.type.name,
-                            categoryName,
-                            subcategoryName,
-                            accountName,
-                            formatCurrency(expense.amount, currency, symbolAfter),
-                            expense.note
-                        ),
-                        index,
-                        amountIndex = 5,
-                        type = expense.type
-                    )
+                periods.forEachIndexed { index, period ->
+                    if (index > 0) document.add(AreaBreak(AreaBreakType.NEXT_PAGE))
+                    writePdfPeriod(document, period, allExpenses, categoriesMap, accountsMap, currency, symbolAfter)
                 }
 
-                document.add(table)
                 document.close()
             }
         }

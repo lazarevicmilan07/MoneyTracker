@@ -106,13 +106,31 @@ import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneytracker.simplebudget.data.preferences.LanguagePreferences
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
-import com.moneytracker.simplebudget.domain.usecase.ExportPeriodParams
 import com.moneytracker.simplebudget.notifications.MonthlyReminderOption
 import com.moneytracker.simplebudget.notifications.ReminderFrequency
 import com.moneytracker.simplebudget.notifications.ReminderSettings
 import java.time.DayOfWeek
+import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+
+private data class PendingMultiExport(
+    val isMonthly: Boolean,
+    val months: List<YearMonth>,
+    val years: List<Int>
+) {
+    fun filename(prefix: String, ext: String): String = if (isMonthly) {
+        if (months.size == 1)
+            "${prefix}_${months[0].year}_${"%02d".format(months[0].monthValue)}.$ext"
+        else {
+            val f = months.first(); val l = months.last()
+            "${prefix}_${f.year}_${"%02d".format(f.monthValue)}_to_${l.year}_${"%02d".format(l.monthValue)}.$ext"
+        }
+    } else {
+        if (years.size == 1) "${prefix}_${years[0]}.$ext"
+        else "${prefix}_${years.first()}_to_${years.last()}.$ext"
+    }
+}
 
 enum class PendingExportAction {
     EXCEL, PDF, BACKUP
@@ -131,11 +149,11 @@ fun SettingsScreen(
     val backupReminderSettings by viewModel.backupReminderSettings.collectAsState()
     val context = LocalContext.current
 
-    // Track which action is pending and the selected period
-    var pendingAction by remember { mutableStateOf<PendingExportAction?>(null) }
-    var selectedPeriod by remember { mutableStateOf<ExportPeriod?>(null) }
-    var showPeriodDialog by remember { mutableStateOf(false) }
-    var periodDialogTitle by remember { mutableStateOf("") }
+    // Multi-period state shared by Excel, PDF and Backup
+    var pendingMultiExport by remember { mutableStateOf<PendingMultiExport?>(null) }
+    var showMultiPeriodDialog by remember { mutableStateOf(false) }
+    var multiPeriodDialogTitle by remember { mutableStateOf("") }
+    var pendingMultiAction by remember { mutableStateOf<PendingExportAction?>(null) }
     var showRestoreConfirmDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showReminderTimePicker by remember { mutableStateOf(false) }
@@ -168,45 +186,33 @@ fun SettingsScreen(
         contract = ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     ) { uri ->
         uri?.let {
-            selectedPeriod?.let { period ->
-                viewModel.exportToExcel(
-                    context,
-                    it,
-                    ExportPeriodParams(period.year, period.month)
-                )
+            pendingMultiExport?.let { p ->
+                viewModel.exportToExcel(context, it, p.isMonthly, p.months, p.years)
             }
         }
-        selectedPeriod = null
+        pendingMultiExport = null
     }
 
     val pdfExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/pdf")
     ) { uri ->
         uri?.let {
-            selectedPeriod?.let { period ->
-                viewModel.exportToPdf(
-                    context,
-                    it,
-                    ExportPeriodParams(period.year, period.month)
-                )
+            pendingMultiExport?.let { p ->
+                viewModel.exportToPdf(context, it, p.isMonthly, p.months, p.years)
             }
         }
-        selectedPeriod = null
+        pendingMultiExport = null
     }
 
     val backupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         uri?.let {
-            selectedPeriod?.let { period ->
-                viewModel.backup(
-                    context,
-                    it,
-                    ExportPeriodParams(period.year, period.month)
-                )
+            pendingMultiExport?.let { p ->
+                viewModel.backup(context, it, p.isMonthly, p.months, p.years)
             }
         }
-        selectedPeriod = null
+        pendingMultiExport = null
     }
 
     val restoreLauncher = rememberLauncherForActivityResult(
@@ -237,22 +243,16 @@ fun SettingsScreen(
         }
     }
 
-    // Handle period selection result
-    LaunchedEffect(selectedPeriod, pendingAction) {
-        if (selectedPeriod != null && pendingAction != null) {
-            when (pendingAction) {
-                PendingExportAction.EXCEL -> {
-                    excelExportLauncher.launch(selectedPeriod!!.getFileName("expenses", "xlsx"))
-                }
-                PendingExportAction.PDF -> {
-                    pdfExportLauncher.launch(selectedPeriod!!.getFileName("expense_report", "pdf"))
-                }
-                PendingExportAction.BACKUP -> {
-                    backupLauncher.launch(selectedPeriod!!.getFileName("backup", "json"))
-                }
+    // Launch file picker after multi-period selection (Excel, PDF, Backup)
+    LaunchedEffect(pendingMultiExport, pendingMultiAction) {
+        if (pendingMultiExport != null && pendingMultiAction != null) {
+            when (pendingMultiAction) {
+                PendingExportAction.EXCEL  -> excelExportLauncher.launch(pendingMultiExport!!.filename("expenses", "xlsx"))
+                PendingExportAction.PDF    -> pdfExportLauncher.launch(pendingMultiExport!!.filename("expense_report", "pdf"))
+                PendingExportAction.BACKUP -> backupLauncher.launch(pendingMultiExport!!.filename("backup", "json"))
                 null -> {}
             }
-            pendingAction = null
+            pendingMultiAction = null
         }
     }
 
@@ -529,10 +529,11 @@ fun SettingsScreen(
                         icon = Icons.Default.GridOn,
                         title = stringResource(R.string.setting_export_excel),
                         subtitle = stringResource(R.string.setting_export_excel_subtitle),
+                        isLoading = uiState.isExportingExcel,
                         onClick = {
-                            pendingAction = PendingExportAction.EXCEL
-                            periodDialogTitle = excelTitle
-                            showPeriodDialog = true
+                            pendingMultiAction = PendingExportAction.EXCEL
+                            multiPeriodDialogTitle = excelTitle
+                            showMultiPeriodDialog = true
                         }
                     )
                 }
@@ -543,10 +544,11 @@ fun SettingsScreen(
                         icon = Icons.Default.PictureAsPdf,
                         title = stringResource(R.string.setting_export_pdf),
                         subtitle = stringResource(R.string.setting_export_pdf_subtitle),
+                        isLoading = uiState.isExportingPdf,
                         onClick = {
-                            pendingAction = PendingExportAction.PDF
-                            periodDialogTitle = pdfTitle
-                            showPeriodDialog = true
+                            pendingMultiAction = PendingExportAction.PDF
+                            multiPeriodDialogTitle = pdfTitle
+                            showMultiPeriodDialog = true
                         }
                     )
                 }
@@ -557,11 +559,12 @@ fun SettingsScreen(
                         icon = Icons.Default.Backup,
                         title = stringResource(R.string.setting_backup),
                         subtitle = stringResource(R.string.setting_backup_subtitle),
+                        isLoading = uiState.isBackingUp,
                         onClick = {
                             if (userPreferences.isPremium) {
-                                pendingAction = PendingExportAction.BACKUP
-                                periodDialogTitle = backupTitle
-                                showPeriodDialog = true
+                                pendingMultiAction = PendingExportAction.BACKUP
+                                multiPeriodDialogTitle = backupTitle
+                                showMultiPeriodDialog = true
                             } else {
                                 onShowPremium()
                             }
@@ -609,16 +612,17 @@ fun SettingsScreen(
     }
 
     // Period Selection Dialog
-    if (showPeriodDialog) {
-        PeriodSelectionDialog(
-            title = periodDialogTitle,
+    // Multi-period dialog for Excel / PDF export
+    if (showMultiPeriodDialog) {
+        MultiPeriodSelectionDialog(
+            title = multiPeriodDialogTitle,
             onDismiss = {
-                showPeriodDialog = false
-                pendingAction = null
+                showMultiPeriodDialog = false
+                pendingMultiAction = null
             },
-            onPeriodSelected = { period ->
-                showPeriodDialog = false
-                selectedPeriod = period
+            onConfirm = { isMonthly, months, years ->
+                showMultiPeriodDialog = false
+                pendingMultiExport = PendingMultiExport(isMonthly, months, years)
             }
         )
     }
@@ -868,7 +872,7 @@ fun SettingsScreen(
     }
 
     // Loading Overlay
-    if (uiState.isExporting || uiState.isBackingUp || uiState.isRestoring) {
+    if (uiState.isExportingExcel || uiState.isExportingPdf || uiState.isBackingUp || uiState.isRestoring) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -882,7 +886,7 @@ fun SettingsScreen(
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     Text(
                         text = when {
-                            uiState.isExporting -> stringResource(R.string.loading_exporting)
+                            uiState.isExportingExcel || uiState.isExportingPdf -> stringResource(R.string.loading_exporting)
                             uiState.isBackingUp -> stringResource(R.string.loading_creating_backup)
                             else -> stringResource(R.string.loading_restoring)
                         }
@@ -952,7 +956,8 @@ fun SettingsItem(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    isPremium: Boolean = false
+    isPremium: Boolean = false,
+    isLoading: Boolean = false
 ) {
     ListItem(
         headlineContent = { Text(title) },
@@ -965,21 +970,13 @@ fun SettingsItem(
             )
         },
         trailingContent = {
-            if (isPremium) {
-                Icon(
-                    Icons.Default.Lock,
-                    contentDescription = "Premium",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            } else {
-                Icon(
-                    Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
+            when {
+                isLoading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                isPremium -> Icon(Icons.Default.Lock, contentDescription = "Premium", tint = MaterialTheme.colorScheme.primary)
+                else -> Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
             }
         },
-        modifier = Modifier.clickable(onClick = onClick)
+        modifier = Modifier.clickable(enabled = !isLoading, onClick = onClick)
     )
 }
 
