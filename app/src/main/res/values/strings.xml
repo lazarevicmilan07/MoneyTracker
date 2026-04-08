@@ -140,6 +140,10 @@
     <string name="dashboard_filter_transfer">Transfer</string>
     <string name="dashboard_filter_category">Category</string>
     <string name="dashboard_filter_subcategory">Subcategory</string>
+    <string name="dashboard_filter_income_categories">Income Categories</string>
+    <string name="dashboard_filter_expense_categories">Expense Categories</string>
+    <string name="dashboard_filter_income_subcategories">Income Subcategories</string>
+    <string name="dashboard_filter_expense_subcategories">Expense Subcategories</string>
     <string name="dashboard_filter_account">Account</string>
     <string name="dashboard_search">Search</string>
     <string name="dashboard_search_placeholder">Search notes…</string>
