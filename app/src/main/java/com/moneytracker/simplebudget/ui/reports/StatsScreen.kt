@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneytracker.simplebudget.R
+import com.moneytracker.simplebudget.ui.settings.SettingsViewModel
 import com.moneytracker.simplebudget.ui.components.CollapsibleSummaryCard
 import com.moneytracker.simplebudget.ui.components.MonthSelector
 import com.moneytracker.simplebudget.ui.components.MonthYearPickerDialog
@@ -61,9 +64,14 @@ fun StatsScreen(
     currency: String,
     symbolAfter: Boolean = true,
     monthlyViewModel: MonthlyReportsViewModel = hiltViewModel(),
-    yearlyViewModel: YearlyReportsViewModel = hiltViewModel()
+    yearlyViewModel: YearlyReportsViewModel = hiltViewModel(),
+    settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     var isMonthly by remember { mutableStateOf(true) }
+    val userPreferences by settingsViewModel.userPreferences.collectAsState()
+    val displayMode = SubcategoryDisplayMode.entries.getOrElse(
+        userPreferences.subcategoryDisplayModeOrdinal
+    ) { SubcategoryDisplayMode.BOTTOM_SHEET }
     val monthlyListState = rememberLazyListState()
     val yearlyListState = rememberLazyListState()
     val activeListState = if (isMonthly) monthlyListState else yearlyListState
@@ -77,7 +85,8 @@ fun StatsScreen(
                 actions = {
                     TogglePill(leftLabel = stringResource(R.string.reports_tab_monthly), rightLabel = stringResource(R.string.reports_tab_yearly), leftSelected = isMonthly, onSelect = { isMonthly = it })
                     Spacer(modifier = Modifier.width(8.dp))
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         floatingActionButton = {
@@ -95,7 +104,8 @@ fun StatsScreen(
                 viewModel = monthlyViewModel,
                 collapseProgress = collapseProgress,
                 paddingValues = paddingValues,
-                listState = monthlyListState
+                listState = monthlyListState,
+                displayMode = displayMode
             )
         } else {
             YearlyStatsContent(
@@ -104,7 +114,8 @@ fun StatsScreen(
                 viewModel = yearlyViewModel,
                 collapseProgress = collapseProgress,
                 paddingValues = paddingValues,
-                listState = yearlyListState
+                listState = yearlyListState,
+                displayMode = displayMode
             )
         }
     }
@@ -117,7 +128,8 @@ private fun MonthlyStatsContent(
     viewModel: MonthlyReportsViewModel,
     collapseProgress: Float,
     paddingValues: PaddingValues,
-    listState: androidx.compose.foundation.lazy.LazyListState
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    displayMode: SubcategoryDisplayMode
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedMonth by viewModel.selectedMonth.collectAsState()
@@ -229,21 +241,25 @@ private fun MonthlyStatsContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     if (uiState.expenseBreakdown.isNotEmpty()) {
-                        BreakdownCard(
+                        SubcategoryAwareBreakdownCard(
                             title = stringResource(R.string.reports_expenses_by_category),
                             breakdown = uiState.expenseBreakdown,
+                            subcategoryBreakdowns = uiState.expenseSubcategoryBreakdowns,
                             currency = currency,
-                            color = ExpenseRed,
-                            symbolAfter = symbolAfter
+                            accentColor = ExpenseRed,
+                            symbolAfter = symbolAfter,
+                            displayMode = displayMode
                         )
                     }
                     if (uiState.incomeBreakdown.isNotEmpty()) {
-                        BreakdownCard(
+                        SubcategoryAwareBreakdownCard(
                             title = stringResource(R.string.reports_income_by_category),
                             breakdown = uiState.incomeBreakdown,
+                            subcategoryBreakdowns = uiState.incomeSubcategoryBreakdowns,
                             currency = currency,
-                            color = IncomeGreen,
-                            symbolAfter = symbolAfter
+                            accentColor = IncomeGreen,
+                            symbolAfter = symbolAfter,
+                            displayMode = displayMode
                         )
                     }
                     if (uiState.expenseBreakdown.isEmpty() && uiState.incomeBreakdown.isEmpty() && !uiState.isLoading) {
@@ -262,7 +278,8 @@ private fun YearlyStatsContent(
     viewModel: YearlyReportsViewModel,
     collapseProgress: Float,
     paddingValues: PaddingValues,
-    listState: androidx.compose.foundation.lazy.LazyListState
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    displayMode: SubcategoryDisplayMode
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedYear by viewModel.selectedYear.collectAsState()
@@ -375,7 +392,10 @@ private fun YearlyStatsContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     if (uiState.monthlyData.isNotEmpty()) {
-                        Card(modifier = Modifier.fillMaxWidth()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
                                     text = stringResource(R.string.reports_monthly_overview),
@@ -393,21 +413,25 @@ private fun YearlyStatsContent(
                         }
                     }
                     if (uiState.expenseBreakdown.isNotEmpty()) {
-                        BreakdownCard(
+                        SubcategoryAwareBreakdownCard(
                             title = stringResource(R.string.reports_yearly_expenses_by_category),
                             breakdown = uiState.expenseBreakdown,
+                            subcategoryBreakdowns = uiState.expenseSubcategoryBreakdowns,
                             currency = currency,
-                            color = ExpenseRed,
-                            symbolAfter = symbolAfter
+                            accentColor = ExpenseRed,
+                            symbolAfter = symbolAfter,
+                            displayMode = displayMode
                         )
                     }
                     if (uiState.incomeBreakdown.isNotEmpty()) {
-                        BreakdownCard(
+                        SubcategoryAwareBreakdownCard(
                             title = stringResource(R.string.reports_yearly_income_by_category),
                             breakdown = uiState.incomeBreakdown,
+                            subcategoryBreakdowns = uiState.incomeSubcategoryBreakdowns,
                             currency = currency,
-                            color = IncomeGreen,
-                            symbolAfter = symbolAfter
+                            accentColor = IncomeGreen,
+                            symbolAfter = symbolAfter,
+                            displayMode = displayMode
                         )
                     }
                     if (uiState.monthlyData.any { it.income > 0 || it.expense > 0 }) {

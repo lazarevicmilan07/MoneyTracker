@@ -28,14 +28,15 @@ import java.time.YearMonth
 import javax.inject.Inject
 
 data class TransactionFilter(
-    val transactionType: TransactionType? = null,
-    val categoryId: Long? = null,
-    val subcategoryId: Long? = null,
-    val accountId: Long? = null,
+    val transactionTypes: Set<TransactionType> = emptySet(),
+    val categoryIds: Set<Long> = emptySet(),
+    val subcategoryIds: Set<Long> = emptySet(),
+    val accountIds: Set<Long> = emptySet(),
     val searchQuery: String = ""
 ) {
     val isActive: Boolean
-        get() = transactionType != null || categoryId != null || subcategoryId != null || accountId != null || searchQuery.isNotBlank()
+        get() = transactionTypes.isNotEmpty() || categoryIds.isNotEmpty() ||
+                subcategoryIds.isNotEmpty() || accountIds.isNotEmpty() || searchQuery.isNotBlank()
 }
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -67,11 +68,20 @@ class DashboardViewModel @Inject constructor(
         if (!filter.isActive) {
             state.recentTransactions
         } else {
+            // Which parent categories have at least one subcategory selected
+            val parentIdsWithSubFilter = filter.subcategoryIds
+                .mapNotNull { subId -> state.categories.find { it.id == subId }?.parentCategoryId }
+                .toSet()
+
             state.recentTransactions.filter { txn ->
-                (filter.transactionType == null || txn.expense.type == filter.transactionType) &&
-                (filter.categoryId == null || txn.expense.categoryId == filter.categoryId) &&
-                (filter.subcategoryId == null || txn.expense.subcategoryId == filter.subcategoryId) &&
-                (filter.accountId == null || txn.expense.accountId == filter.accountId) &&
+                (filter.transactionTypes.isEmpty() || txn.expense.type in filter.transactionTypes) &&
+                (filter.categoryIds.isEmpty() || txn.expense.categoryId in filter.categoryIds) &&
+                // Only enforce subcategory match if this transaction's category has subcategories selected;
+                // categories with no subcategory selected are not restricted to a specific subcategory
+                (filter.subcategoryIds.isEmpty() ||
+                    txn.expense.categoryId !in parentIdsWithSubFilter ||
+                    txn.expense.subcategoryId in filter.subcategoryIds) &&
+                (filter.accountIds.isEmpty() || txn.expense.accountId in filter.accountIds || txn.expense.toAccountId in filter.accountIds) &&
                 (filter.searchQuery.isBlank() || txn.expense.note.contains(filter.searchQuery, ignoreCase = true))
             }
         }
@@ -179,24 +189,50 @@ class DashboardViewModel @Inject constructor(
         _selectedMonth.value = _selectedMonth.value.plusMonths(1)
     }
 
-    fun setTransactionTypeFilter(type: TransactionType?) {
-        _filter.value = _filter.value.copy(transactionType = type)
+    fun toggleTransactionTypeFilter(type: TransactionType?) {
+        _filter.update { current ->
+            if (type == null) current.copy(transactionTypes = emptySet())
+            else {
+                val updated = if (type in current.transactionTypes) current.transactionTypes - type
+                              else current.transactionTypes + type
+                current.copy(transactionTypes = updated)
+            }
+        }
     }
 
-    fun setCategoryFilter(categoryId: Long?) {
-        _filter.value = _filter.value.copy(categoryId = categoryId, subcategoryId = null)
+    fun toggleCategoryFilter(categoryId: Long) {
+        val allCategories = _uiState.value.categories
+        _filter.update { current ->
+            if (categoryId in current.categoryIds) {
+                val childIds = allCategories.filter { it.parentCategoryId == categoryId }.map { it.id }.toSet()
+                current.copy(
+                    categoryIds = current.categoryIds - categoryId,
+                    subcategoryIds = current.subcategoryIds - childIds
+                )
+            } else {
+                current.copy(categoryIds = current.categoryIds + categoryId)
+            }
+        }
     }
 
-    fun setSubcategoryFilter(subcategoryId: Long?) {
-        _filter.value = _filter.value.copy(subcategoryId = subcategoryId)
+    fun toggleSubcategoryFilter(subcategoryId: Long) {
+        _filter.update { current ->
+            val updated = if (subcategoryId in current.subcategoryIds) current.subcategoryIds - subcategoryId
+                          else current.subcategoryIds + subcategoryId
+            current.copy(subcategoryIds = updated)
+        }
     }
 
-    fun setAccountFilter(accountId: Long?) {
-        _filter.value = _filter.value.copy(accountId = accountId)
+    fun toggleAccountFilter(accountId: Long) {
+        _filter.update { current ->
+            val updated = if (accountId in current.accountIds) current.accountIds - accountId
+                          else current.accountIds + accountId
+            current.copy(accountIds = updated)
+        }
     }
 
     fun setSearchQuery(query: String) {
-        _filter.value = _filter.value.copy(searchQuery = query)
+        _filter.update { it.copy(searchQuery = query) }
     }
 
     fun clearFilters() {

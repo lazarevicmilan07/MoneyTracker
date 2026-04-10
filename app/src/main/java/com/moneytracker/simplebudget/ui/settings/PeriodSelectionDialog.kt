@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.moneytracker.simplebudget.R
 import java.time.LocalDate
 import java.time.Month
+import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -92,6 +93,7 @@ fun PeriodSelectionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -238,25 +240,12 @@ private fun MonthYearPickerContent(
                 ) {
                     for (col in 0..3) {
                         val monthIndex = row * 4 + col + 1
-                        val isSelected = monthIndex == selectedMonth
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { onMonthChange(monthIndex) },
-                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                                   else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = months[monthIndex - 1],
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                textAlign = TextAlign.Center,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                       else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        }
+                        SelectableCell(
+                            text = months[monthIndex - 1],
+                            isSelected = monthIndex == selectedMonth,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onMonthChange(monthIndex) }
+                        )
                     }
                 }
             }
@@ -280,25 +269,12 @@ private fun YearPickerContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 rowYears.forEach { year ->
-                    val isSelected = year == selectedYear
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { onYearChange(year) },
-                        color = if (isSelected) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = year.toString(),
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            textAlign = TextAlign.Center,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                   else MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                        )
-                    }
+                    SelectableCell(
+                        text = year.toString(),
+                        isSelected = year == selectedYear,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onYearChange(year) }
+                    )
                 }
                 // Fill remaining space if row has fewer than 4 items
                 repeat(4 - rowYears.size) {
@@ -306,6 +282,233 @@ private fun YearPickerContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MultiPeriodSelectionDialog(
+    title: String,
+    onDismiss: () -> Unit,
+    onConfirm: (isMonthly: Boolean, months: List<YearMonth>, years: List<Int>) -> Unit
+) {
+    var step by remember { mutableIntStateOf(1) }
+    var selectedType by remember { mutableStateOf<PeriodType?>(null) }
+
+    var selectedMonthPairs by remember { mutableStateOf(setOf<Pair<Int, Int>>()) }
+    var navYear by remember { mutableIntStateOf(LocalDate.now().year) }
+    var selectedYearSet by remember { mutableStateOf(setOf<Int>()) }
+
+    val currentYear = LocalDate.now().year
+
+    val selectionCount = if (selectedType == PeriodType.MONTH) selectedMonthPairs.size else selectedYearSet.size
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (step > 1) {
+                    IconButton(onClick = { step = 1 }, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(
+                    text = when (step) {
+                        1 -> title
+                        2 -> if (selectedType == PeriodType.MONTH) stringResource(R.string.period_select_month_year) else stringResource(R.string.period_select_year)
+                        else -> title
+                    },
+                    style = if (step == 2) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall
+                )
+            }
+        },
+        text = {
+            when (step) {
+                1 -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.period_select_export),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        PeriodTypeOption(
+                            icon = Icons.Default.CalendarToday,
+                            title = stringResource(R.string.period_monthly),
+                            description = stringResource(R.string.period_monthly_description),
+                            onClick = { selectedType = PeriodType.MONTH; step = 2 }
+                        )
+                        PeriodTypeOption(
+                            icon = Icons.Default.CalendarMonth,
+                            title = stringResource(R.string.period_yearly),
+                            description = stringResource(R.string.period_yearly_description),
+                            onClick = { selectedType = PeriodType.YEAR; step = 2 }
+                        )
+                    }
+                }
+                2 -> {
+                    Column {
+                        if (selectedType == PeriodType.MONTH) {
+                            MultiSelectMonthContent(
+                                selectedMonthPairs = selectedMonthPairs,
+                                navYear = navYear,
+                                onNavYearChange = { navYear = it },
+                                onToggleMonth = { monthIndex ->
+                                    val key = navYear to monthIndex
+                                    selectedMonthPairs = if (key in selectedMonthPairs)
+                                        selectedMonthPairs - key else selectedMonthPairs + key
+                                }
+                            )
+                        } else {
+                            MultiSelectYearContent(
+                                selectedYearSet = selectedYearSet,
+                                currentYear = currentYear,
+                                onToggleYear = { yr ->
+                                    selectedYearSet = if (yr in selectedYearSet)
+                                        selectedYearSet - yr else selectedYearSet + yr
+                                }
+                            )
+                        }
+                        if (selectionCount > 0) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "$selectionCount selected",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (step == 2) {
+                TextButton(
+                    onClick = {
+                        if (selectedType == PeriodType.MONTH) {
+                            val months = selectedMonthPairs
+                                .sortedWith(compareBy({ it.first }, { it.second }))
+                                .map { (y, m) -> YearMonth.of(y, m) }
+                            onConfirm(true, months, emptyList())
+                        } else {
+                            onConfirm(false, emptyList(), selectedYearSet.sorted())
+                        }
+                    },
+                    enabled = selectionCount > 0
+                ) {
+                    Text(stringResource(R.string.button_ok))
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.button_cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun MultiSelectMonthContent(
+    selectedMonthPairs: Set<Pair<Int, Int>>,
+    navYear: Int,
+    onNavYearChange: (Int) -> Unit,
+    onToggleMonth: (Int) -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { onNavYearChange(navYear - 1) }) {
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Previous year")
+            }
+            Text(
+                text = navYear.toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            IconButton(onClick = { onNavYearChange(navYear + 1) }) {
+                Icon(Icons.Default.ChevronRight, contentDescription = "Next year")
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (row in 0..2) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    for (col in 0..3) {
+                        val monthIndex = row * 4 + col + 1
+                        SelectableCell(
+                            text = months[monthIndex - 1],
+                            isSelected = (navYear to monthIndex) in selectedMonthPairs,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onToggleMonth(monthIndex) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MultiSelectYearContent(
+    selectedYearSet: Set<Int>,
+    currentYear: Int,
+    onToggleYear: (Int) -> Unit
+) {
+    val years = (currentYear - 10)..(currentYear + 5)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        years.chunked(4).forEach { rowYears ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowYears.forEach { year ->
+                    SelectableCell(
+                        text = year.toString(),
+                        isSelected = year in selectedYearSet,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onToggleYear(year) }
+                    )
+                }
+                repeat(4 - rowYears.size) { Spacer(modifier = Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectableCell(
+    text: String,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick),
+        color = if (isSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(vertical = 12.dp),
+            textAlign = TextAlign.Center,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+        )
     }
 }
 

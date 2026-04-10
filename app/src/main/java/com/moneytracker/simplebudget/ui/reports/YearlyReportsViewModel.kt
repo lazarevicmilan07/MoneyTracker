@@ -98,6 +98,9 @@ class YearlyReportsViewModel @Inject constructor(
             )
         }
 
+        val expenseSubcategoryBreakdowns = buildSubcategoryBreakdowns(expenseBreakdown, expenses, TransactionType.EXPENSE, categoriesMap)
+        val incomeSubcategoryBreakdowns = buildSubcategoryBreakdowns(incomeBreakdown, expenses, TransactionType.INCOME, categoriesMap)
+
         YearlyReportsUiState(
             isLoading = false,
             totalIncome = totalIncome,
@@ -105,7 +108,9 @@ class YearlyReportsViewModel @Inject constructor(
             balance = totalIncome - totalExpense,
             expenseBreakdown = expenseBreakdown,
             incomeBreakdown = incomeBreakdown,
-            monthlyData = monthlyData
+            monthlyData = monthlyData,
+            expenseSubcategoryBreakdowns = expenseSubcategoryBreakdowns,
+            incomeSubcategoryBreakdowns = incomeSubcategoryBreakdowns
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), YearlyReportsUiState())
 
@@ -129,7 +134,9 @@ data class YearlyReportsUiState(
     val balance: Double = 0.0,
     val expenseBreakdown: List<CategoryBreakdown> = emptyList(),
     val incomeBreakdown: List<CategoryBreakdown> = emptyList(),
-    val monthlyData: List<MonthData> = emptyList()
+    val monthlyData: List<MonthData> = emptyList(),
+    val expenseSubcategoryBreakdowns: Map<Long, List<CategoryBreakdown>> = emptyMap(),
+    val incomeSubcategoryBreakdowns: Map<Long, List<CategoryBreakdown>> = emptyMap()
 )
 
 data class MonthData(

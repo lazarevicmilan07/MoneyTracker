@@ -80,6 +80,7 @@ fun MonthYearPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text(stringResource(R.string.period_select_month_year), style = MaterialTheme.typography.titleMedium) },
         text = {
             Column {

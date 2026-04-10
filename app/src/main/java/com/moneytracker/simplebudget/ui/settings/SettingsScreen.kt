@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.GridOn
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
@@ -50,6 +52,9 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -66,6 +71,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -106,13 +112,32 @@ import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneytracker.simplebudget.data.preferences.LanguagePreferences
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
-import com.moneytracker.simplebudget.domain.usecase.ExportPeriodParams
+import com.moneytracker.simplebudget.ui.reports.SubcategoryDisplayMode
 import com.moneytracker.simplebudget.notifications.MonthlyReminderOption
 import com.moneytracker.simplebudget.notifications.ReminderFrequency
 import com.moneytracker.simplebudget.notifications.ReminderSettings
 import java.time.DayOfWeek
+import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+
+private data class PendingMultiExport(
+    val isMonthly: Boolean,
+    val months: List<YearMonth>,
+    val years: List<Int>
+) {
+    fun filename(prefix: String, ext: String): String = if (isMonthly) {
+        if (months.size == 1)
+            "${prefix}_${months[0].year}_${"%02d".format(months[0].monthValue)}.$ext"
+        else {
+            val f = months.first(); val l = months.last()
+            "${prefix}_${f.year}_${"%02d".format(f.monthValue)}_to_${l.year}_${"%02d".format(l.monthValue)}.$ext"
+        }
+    } else {
+        if (years.size == 1) "${prefix}_${years[0]}.$ext"
+        else "${prefix}_${years.first()}_to_${years.last()}.$ext"
+    }
+}
 
 enum class PendingExportAction {
     EXCEL, PDF, BACKUP
@@ -131,11 +156,11 @@ fun SettingsScreen(
     val backupReminderSettings by viewModel.backupReminderSettings.collectAsState()
     val context = LocalContext.current
 
-    // Track which action is pending and the selected period
-    var pendingAction by remember { mutableStateOf<PendingExportAction?>(null) }
-    var selectedPeriod by remember { mutableStateOf<ExportPeriod?>(null) }
-    var showPeriodDialog by remember { mutableStateOf(false) }
-    var periodDialogTitle by remember { mutableStateOf("") }
+    // Multi-period state shared by Excel, PDF and Backup
+    var pendingMultiExport by remember { mutableStateOf<PendingMultiExport?>(null) }
+    var showMultiPeriodDialog by remember { mutableStateOf(false) }
+    var multiPeriodDialogTitle by remember { mutableStateOf("") }
+    var pendingMultiAction by remember { mutableStateOf<PendingExportAction?>(null) }
     var showRestoreConfirmDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showReminderTimePicker by remember { mutableStateOf(false) }
@@ -168,45 +193,33 @@ fun SettingsScreen(
         contract = ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     ) { uri ->
         uri?.let {
-            selectedPeriod?.let { period ->
-                viewModel.exportToExcel(
-                    context,
-                    it,
-                    ExportPeriodParams(period.year, period.month)
-                )
+            pendingMultiExport?.let { p ->
+                viewModel.exportToExcel(context, it, p.isMonthly, p.months, p.years)
             }
         }
-        selectedPeriod = null
+        pendingMultiExport = null
     }
 
     val pdfExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/pdf")
     ) { uri ->
         uri?.let {
-            selectedPeriod?.let { period ->
-                viewModel.exportToPdf(
-                    context,
-                    it,
-                    ExportPeriodParams(period.year, period.month)
-                )
+            pendingMultiExport?.let { p ->
+                viewModel.exportToPdf(context, it, p.isMonthly, p.months, p.years)
             }
         }
-        selectedPeriod = null
+        pendingMultiExport = null
     }
 
     val backupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         uri?.let {
-            selectedPeriod?.let { period ->
-                viewModel.backup(
-                    context,
-                    it,
-                    ExportPeriodParams(period.year, period.month)
-                )
+            pendingMultiExport?.let { p ->
+                viewModel.backup(context, it, p.isMonthly, p.months, p.years)
             }
         }
-        selectedPeriod = null
+        pendingMultiExport = null
     }
 
     val restoreLauncher = rememberLauncherForActivityResult(
@@ -237,22 +250,16 @@ fun SettingsScreen(
         }
     }
 
-    // Handle period selection result
-    LaunchedEffect(selectedPeriod, pendingAction) {
-        if (selectedPeriod != null && pendingAction != null) {
-            when (pendingAction) {
-                PendingExportAction.EXCEL -> {
-                    excelExportLauncher.launch(selectedPeriod!!.getFileName("expenses", "xlsx"))
-                }
-                PendingExportAction.PDF -> {
-                    pdfExportLauncher.launch(selectedPeriod!!.getFileName("expense_report", "pdf"))
-                }
-                PendingExportAction.BACKUP -> {
-                    backupLauncher.launch(selectedPeriod!!.getFileName("backup", "json"))
-                }
+    // Launch file picker after multi-period selection (Excel, PDF, Backup)
+    LaunchedEffect(pendingMultiExport, pendingMultiAction) {
+        if (pendingMultiExport != null && pendingMultiAction != null) {
+            when (pendingMultiAction) {
+                PendingExportAction.EXCEL  -> excelExportLauncher.launch(pendingMultiExport!!.filename("expenses", "xlsx"))
+                PendingExportAction.PDF    -> pdfExportLauncher.launch(pendingMultiExport!!.filename("expense_report", "pdf"))
+                PendingExportAction.BACKUP -> backupLauncher.launch(pendingMultiExport!!.filename("backup", "json"))
                 null -> {}
             }
-            pendingAction = null
+            pendingMultiAction = null
         }
     }
 
@@ -266,7 +273,8 @@ fun SettingsScreen(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.settings_back))
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { paddingValues ->
@@ -366,6 +374,15 @@ fun SettingsScreen(
                         title = stringResource(R.string.setting_language),
                         subtitle = currentLanguageName,
                         onClick = { showLanguageDialog = true }
+                    )
+                }
+
+                item {
+                    SubcategoryModeSelectorItem(
+                        currentMode = SubcategoryDisplayMode.entries.getOrElse(
+                            userPreferences.subcategoryDisplayModeOrdinal
+                        ) { SubcategoryDisplayMode.BOTTOM_SHEET },
+                        onModeChange = { viewModel.setSubcategoryDisplayMode(it) }
                     )
                 }
 
@@ -529,10 +546,11 @@ fun SettingsScreen(
                         icon = Icons.Default.GridOn,
                         title = stringResource(R.string.setting_export_excel),
                         subtitle = stringResource(R.string.setting_export_excel_subtitle),
+                        isLoading = uiState.isExportingExcel,
                         onClick = {
-                            pendingAction = PendingExportAction.EXCEL
-                            periodDialogTitle = excelTitle
-                            showPeriodDialog = true
+                            pendingMultiAction = PendingExportAction.EXCEL
+                            multiPeriodDialogTitle = excelTitle
+                            showMultiPeriodDialog = true
                         }
                     )
                 }
@@ -543,10 +561,11 @@ fun SettingsScreen(
                         icon = Icons.Default.PictureAsPdf,
                         title = stringResource(R.string.setting_export_pdf),
                         subtitle = stringResource(R.string.setting_export_pdf_subtitle),
+                        isLoading = uiState.isExportingPdf,
                         onClick = {
-                            pendingAction = PendingExportAction.PDF
-                            periodDialogTitle = pdfTitle
-                            showPeriodDialog = true
+                            pendingMultiAction = PendingExportAction.PDF
+                            multiPeriodDialogTitle = pdfTitle
+                            showMultiPeriodDialog = true
                         }
                     )
                 }
@@ -557,11 +576,12 @@ fun SettingsScreen(
                         icon = Icons.Default.Backup,
                         title = stringResource(R.string.setting_backup),
                         subtitle = stringResource(R.string.setting_backup_subtitle),
+                        isLoading = uiState.isBackingUp,
                         onClick = {
                             if (userPreferences.isPremium) {
-                                pendingAction = PendingExportAction.BACKUP
-                                periodDialogTitle = backupTitle
-                                showPeriodDialog = true
+                                pendingMultiAction = PendingExportAction.BACKUP
+                                multiPeriodDialogTitle = backupTitle
+                                showMultiPeriodDialog = true
                             } else {
                                 onShowPremium()
                             }
@@ -609,16 +629,17 @@ fun SettingsScreen(
     }
 
     // Period Selection Dialog
-    if (showPeriodDialog) {
-        PeriodSelectionDialog(
-            title = periodDialogTitle,
+    // Multi-period dialog for Excel / PDF export
+    if (showMultiPeriodDialog) {
+        MultiPeriodSelectionDialog(
+            title = multiPeriodDialogTitle,
             onDismiss = {
-                showPeriodDialog = false
-                pendingAction = null
+                showMultiPeriodDialog = false
+                pendingMultiAction = null
             },
-            onPeriodSelected = { period ->
-                showPeriodDialog = false
-                selectedPeriod = period
+            onConfirm = { isMonthly, months, years ->
+                showMultiPeriodDialog = false
+                pendingMultiExport = PendingMultiExport(isMonthly, months, years)
             }
         )
     }
@@ -746,18 +767,18 @@ fun SettingsScreen(
 
     // Language Picker Dialog
     if (showLanguageDialog) {
-        AlertDialog(
+        ModalBottomSheet(
             onDismissRequest = { showLanguageDialog = false },
-            icon = {
-                Icon(
-                    Icons.Default.Language,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text(
+                    text = stringResource(R.string.dialog_language_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-            },
-            title = { Text(stringResource(R.string.dialog_language_title)) },
-            text = {
-                LazyColumn {
+                LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
                     items(LanguagePreferences.supportedLanguages) { lang ->
                         ListItem(
                             headlineContent = { Text(lang.nativeName) },
@@ -773,24 +794,16 @@ fun SettingsScreen(
                             modifier = Modifier.clickable {
                                 showLanguageDialog = false
                                 LanguagePreferences.setLanguage(context, lang.code)
-                                // On some OEM ROMs, LocalContext.current is a ContextWrapper
-                                // (e.g. ContextThemeWrapper) rather than the Activity itself,
-                                // so a direct cast fails and recreate() is never called.
-                                // Traverse the wrapper chain to find the real Activity.
                                 var ctx: android.content.Context = context
                                 while (ctx is android.content.ContextWrapper && ctx !is android.app.Activity) ctx = ctx.baseContext
                                 (ctx as? android.app.Activity)?.recreate()
                             }
                         )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showLanguageDialog = false }) {
-                    Text(stringResource(R.string.button_cancel))
-                }
             }
-        )
+        }
     }
 
     // Reminder Time Picker
@@ -868,7 +881,7 @@ fun SettingsScreen(
     }
 
     // Loading Overlay
-    if (uiState.isExporting || uiState.isBackingUp || uiState.isRestoring) {
+    if (uiState.isExportingExcel || uiState.isExportingPdf || uiState.isBackingUp || uiState.isRestoring) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -882,7 +895,7 @@ fun SettingsScreen(
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     Text(
                         text = when {
-                            uiState.isExporting -> stringResource(R.string.loading_exporting)
+                            uiState.isExportingExcel || uiState.isExportingPdf -> stringResource(R.string.loading_exporting)
                             uiState.isBackingUp -> stringResource(R.string.loading_creating_backup)
                             else -> stringResource(R.string.loading_restoring)
                         }
@@ -952,7 +965,8 @@ fun SettingsItem(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    isPremium: Boolean = false
+    isPremium: Boolean = false,
+    isLoading: Boolean = false
 ) {
     ListItem(
         headlineContent = { Text(title) },
@@ -965,21 +979,13 @@ fun SettingsItem(
             )
         },
         trailingContent = {
-            if (isPremium) {
-                Icon(
-                    Icons.Default.Lock,
-                    contentDescription = "Premium",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            } else {
-                Icon(
-                    Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
+            when {
+                isLoading -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                isPremium -> Icon(Icons.Default.Lock, contentDescription = "Premium", tint = MaterialTheme.colorScheme.primary)
+                else -> Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
             }
         },
-        modifier = Modifier.clickable(onClick = onClick)
+        modifier = Modifier.clickable(enabled = !isLoading, onClick = onClick)
     )
 }
 
@@ -1011,6 +1017,59 @@ fun SettingsSwitch(
     )
 }
 
+@Composable
+private fun SubcategoryModeSelectorItem(
+    currentMode: SubcategoryDisplayMode,
+    onModeChange: (SubcategoryDisplayMode) -> Unit
+) {
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.setting_stats_mode)) },
+        leadingContent = {
+            Icon(
+                Icons.Default.PieChart,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        },
+        trailingContent = {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(2.dp)
+            ) {
+                SubcategoryDisplayMode.entries.forEach { mode ->
+                    val isSelected = currentMode == mode
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else Color.Transparent
+                            )
+                            .clickable { onModeChange(mode) }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = when (mode) {
+                                SubcategoryDisplayMode.BOTTOM_SHEET -> stringResource(R.string.stats_mode_sheet)
+                                SubcategoryDisplayMode.DRILL_DOWN -> stringResource(R.string.stats_mode_drill)
+                                SubcategoryDisplayMode.EXPANDABLE_LIST -> stringResource(R.string.stats_mode_list)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencyPickerDialog(
     currentCurrency: String,
@@ -1094,23 +1153,32 @@ fun CurrencyPickerDialog(
         list.sortedBy { (_, name) -> name }
     }
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.dialog_select_currency)) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text(stringResource(R.string.currency_search_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyColumn {
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(modifier = Modifier.fillMaxHeight().padding(horizontal = 16.dp)) {
+            Text(
+                text = stringResource(R.string.dialog_select_currency),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text(stringResource(R.string.currency_search_hint)) },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+            LazyColumn(modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 32.dp)) {
                 items(filteredCurrencies) { (code, name) ->
                     ListItem(
-                        headlineContent = { Text(code) },
+                        headlineContent = {
+                            Text(code, fontWeight = FontWeight.SemiBold)
+                        },
                         supportingContent = { Text(name) },
                         trailingContent = {
                             if (code == currentCurrency) {
@@ -1123,16 +1191,11 @@ fun CurrencyPickerDialog(
                         },
                         modifier = Modifier.clickable { onCurrencySelected(code) }
                     )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 }
             }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
         }
-    )
+    }
 }
 
 @Composable

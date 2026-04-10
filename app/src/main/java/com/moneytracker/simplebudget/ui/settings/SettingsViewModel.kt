@@ -7,9 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
 import com.moneytracker.simplebudget.data.preferences.UserPreferences
+import com.moneytracker.simplebudget.ui.reports.SubcategoryDisplayMode
 import com.moneytracker.simplebudget.domain.usecase.BackupRestoreUseCase
 import com.moneytracker.simplebudget.domain.usecase.ExportPeriodParams
 import com.moneytracker.simplebudget.domain.usecase.ExportUseCase
+import java.time.YearMonth
 import com.moneytracker.simplebudget.notifications.BackupReminderManager
 import com.moneytracker.simplebudget.notifications.BackupReminderPreferences
 import com.moneytracker.simplebudget.notifications.ReminderManager
@@ -71,6 +73,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setSubcategoryDisplayMode(mode: SubcategoryDisplayMode) {
+        viewModelScope.launch {
+            preferencesManager.setSubcategoryDisplayModeOrdinal(mode.ordinal)
+        }
+    }
+
     fun showCurrencyPicker() {
         _uiState.value = _uiState.value.copy(showCurrencyPicker = true)
     }
@@ -79,11 +87,11 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(showCurrencyPicker = false)
     }
 
-    fun exportToExcel(context: Context, uri: Uri, period: ExportPeriodParams) {
+    fun exportToExcel(context: Context, uri: Uri, isMonthly: Boolean, months: List<YearMonth>, years: List<Int>) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isExporting = true)
-            val result = exportUseCase.exportToExcel(context, uri, period)
-            _uiState.value = _uiState.value.copy(isExporting = false)
+            _uiState.value = _uiState.value.copy(isExportingExcel = true)
+            val result = exportUseCase.exportToExcel(context, uri, isMonthly, months, years)
+            _uiState.value = _uiState.value.copy(isExportingExcel = false)
             if (result.isSuccess) {
                 _events.emit(SettingsEvent.ExportSuccess("Excel"))
             } else {
@@ -92,11 +100,11 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun exportToPdf(context: Context, uri: Uri, period: ExportPeriodParams) {
+    fun exportToPdf(context: Context, uri: Uri, isMonthly: Boolean, months: List<YearMonth>, years: List<Int>) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isExporting = true)
-            val result = exportUseCase.exportToPdf(context, uri, period)
-            _uiState.value = _uiState.value.copy(isExporting = false)
+            _uiState.value = _uiState.value.copy(isExportingPdf = true)
+            val result = exportUseCase.exportToPdf(context, uri, isMonthly, months, years)
+            _uiState.value = _uiState.value.copy(isExportingPdf = false)
             if (result.isSuccess) {
                 _events.emit(SettingsEvent.ExportSuccess("PDF"))
             } else {
@@ -105,14 +113,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun backup(context: Context, uri: Uri, period: ExportPeriodParams) {
+    fun backup(context: Context, uri: Uri, isMonthly: Boolean, months: List<YearMonth>, years: List<Int>) {
         viewModelScope.launch {
             if (!userPreferences.value.isPremium) {
                 _events.emit(SettingsEvent.ShowPremiumRequired("Backup"))
                 return@launch
             }
             _uiState.value = _uiState.value.copy(isBackingUp = true)
-            val result = backupRestoreUseCase.backup(context, uri, period)
+            val result = backupRestoreUseCase.backup(context, uri, isMonthly, months, years)
             _uiState.value = _uiState.value.copy(isBackingUp = false)
             if (result.isSuccess) {
                 _events.emit(SettingsEvent.BackupSuccess)
@@ -184,7 +192,8 @@ class SettingsViewModel @Inject constructor(
 
 data class SettingsUiState(
     val showCurrencyPicker: Boolean = false,
-    val isExporting: Boolean = false,
+    val isExportingExcel: Boolean = false,
+    val isExportingPdf: Boolean = false,
     val isBackingUp: Boolean = false,
     val isRestoring: Boolean = false
 )

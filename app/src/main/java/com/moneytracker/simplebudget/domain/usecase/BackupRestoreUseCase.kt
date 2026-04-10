@@ -21,6 +21,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.time.LocalDate
+import java.time.YearMonth
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,17 +38,21 @@ class BackupRestoreUseCase @Inject constructor(
         ignoreUnknownKeys = true
     }
 
-    private fun filterExpensesByPeriod(expenses: List<Expense>, period: ExportPeriodParams): List<Expense> {
-        val startDate = period.getStartDate()
-        val endDate = period.getEndDate()
-        return expenses.filter { expense ->
-            !expense.date.isBefore(startDate) && !expense.date.isAfter(endDate)
-        }
-    }
+    suspend fun backup(
+        context: Context, uri: Uri,
+        isMonthly: Boolean, months: List<YearMonth>, years: List<Int>
+    ): Result<Unit> = runCatching {
+        val periods = if (isMonthly)
+            months.map { ExportPeriodParams(it.year, it.monthValue) }
+        else
+            years.map { ExportPeriodParams(it) }
 
-    suspend fun backup(context: Context, uri: Uri, period: ExportPeriodParams): Result<Unit> = runCatching {
         val allExpenses = expenseRepository.getAllExpensesSync()
-        val expenses = filterExpensesByPeriod(allExpenses, period)
+        val expenses = allExpenses.filter { expense ->
+            periods.any { period ->
+                !expense.date.isBefore(period.getStartDate()) && !expense.date.isAfter(period.getEndDate())
+            }
+        }
         val categories = categoryRepository.getAllCategoriesSync()
         val accounts = accountRepository.getAllAccountsSync()
         val prefs = preferencesManager.userPreferences.first()
@@ -55,8 +60,7 @@ class BackupRestoreUseCase @Inject constructor(
         val backupData = BackupData(
             version = BACKUP_VERSION,
             timestamp = System.currentTimeMillis(),
-            periodYear = period.year,
-            periodMonth = period.month,
+            periods = periods.map { it.getPeriodTitle() },
             currency = prefs.currency,
             currencySymbolAfter = prefs.currencySymbolAfter,
             expenses = expenses.map { it.toBackupExpense() },
@@ -157,8 +161,7 @@ class BackupRestoreUseCase @Inject constructor(
 data class BackupData(
     val version: Int,
     val timestamp: Long,
-    val periodYear: Int? = null,
-    val periodMonth: Int? = null,
+    val periods: List<String>? = null,   // e.g. ["January 2024", "February 2024"]
     val currency: String? = null,
     val currencySymbolAfter: Boolean? = null,
     val expenses: List<BackupExpense>,

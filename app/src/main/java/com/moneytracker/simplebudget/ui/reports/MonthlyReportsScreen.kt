@@ -1,7 +1,17 @@
 package com.moneytracker.simplebudget.ui.reports
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -28,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -134,7 +146,8 @@ fun MonthlyReportsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.monthly_reports_title)) }
+                title = { Text(stringResource(R.string.monthly_reports_title)) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         floatingActionButton = {
@@ -281,7 +294,8 @@ fun BreakdownCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Legend
-            breakdown.forEach { item ->
+            val intPercentages = breakdown.map { it.percentage }.toRoundedPercentages()
+            breakdown.forEachIndexed { index, item ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -302,7 +316,7 @@ fun BreakdownCard(
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = "${item.percentage.toInt()}%",
+                        text = "${intPercentages[index]}%",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
@@ -326,11 +340,16 @@ fun PieChart(
     currency: String,
     accentColor: Color = Color.Unspecified,
     symbolAfter: Boolean = true,
+    onSliceSelected: ((Int) -> Unit)? = null,
+    showTooltip: Boolean = true,
+    resetKey: Any = Unit,
+    // When provided, overrides internal single-selection with external multi-selection (list mode)
+    selectedIndices: Set<Int>? = null,
     modifier: Modifier = Modifier
 ) {
     val total = breakdown.sumOf { it.amount }.toFloat()
-    var selectedIndex by remember { mutableIntStateOf(-1) }
-    val gapDegrees = if (breakdown.size > 1) 2.5f else 0f
+    // Internal single-selection state — only used when selectedIndices is null
+    var selectedIndex by remember(resetKey) { mutableIntStateOf(-1) }
 
     val sliceAngles = remember(breakdown, total) {
         var cumulative = -90f
@@ -342,10 +361,27 @@ fun PieChart(
         }
     }
 
+    // Per-slice animated scale — driven by external set or internal index
+    val scales = breakdown.indices.map { i ->
+        val isThisSelected = if (selectedIndices != null) i in selectedIndices else i == selectedIndex
+        animateFloatAsState(
+            targetValue = if (isThisSelected) 1.15f else 1.0f,
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+            label = "slice_scale_$i"
+        ).value
+    }
+
+    // Entrance sweep animation — restarts when breakdown changes (e.g. month switch)
+    val animProgress = remember(breakdown) { Animatable(0f) }
+    LaunchedEffect(breakdown) {
+        animProgress.snapTo(0f)
+        animProgress.animateTo(1f, tween(700, easing = FastOutSlowInEasing))
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.Center) {
             Canvas(
-                modifier = modifier.pointerInput(breakdown) {
+                modifier = modifier.pointerInput(breakdown, resetKey) {
                     detectTapGestures { offset ->
                         val cx = size.width / 2f
                         val cy = size.height / 2f
@@ -353,76 +389,95 @@ fun PieChart(
                         val dy = offset.y - cy
                         val dist = kotlin.math.sqrt(dx * dx + dy * dy)
                         val outerR = minOf(size.width, size.height) / 2f * 0.85f
-                        val innerR = outerR * 0.35f
+                        val innerR = outerR * 0.60f
                         if (dist in innerR..outerR) {
                             var angle = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
                             if (angle < -90f) angle += 360f
                             val tapped = sliceAngles.indexOfFirst { (start, sweep) ->
                                 angle >= start && angle < start + sweep
                             }
-                            selectedIndex = if (tapped == selectedIndex) -1 else tapped
+                            if (selectedIndices != null) {
+                                // External mode: just fire callback, external state owns selection
+                                if (tapped != -1) onSliceSelected?.invoke(tapped)
+                            } else {
+                                selectedIndex = if (tapped == selectedIndex) -1 else tapped
+                                if (tapped != -1) onSliceSelected?.invoke(tapped)
+                            }
                         } else {
-                            selectedIndex = -1
+                            if (selectedIndices != null) {
+                                // Center-hole tap in external mode → clear all
+                                if (dist < innerR) onSliceSelected?.invoke(-1)
+                            } else {
+                                selectedIndex = -1
+                            }
                         }
                     }
                 }
             ) {
                 val canvasSize = size.minDimension
                 val outerRadius = canvasSize / 2f * 0.85f
-                val strokeWidth = outerRadius * 0.6f
-                val arcRadius = outerRadius - strokeWidth / 2f
+                val strokeWidth = outerRadius * 0.37f
+                val arcRadius = outerRadius * 0.85f
                 val centerX = size.width / 2f
                 val centerY = size.height / 2f
 
+                val gapDegrees = if (breakdown.size > 1) 1.5f else 0f
+
+                val totalFilled = 360f * animProgress.value
+
                 sliceAngles.forEachIndexed { index, (start, sweep) ->
                     val sliceColor = breakdown[index].category?.color ?: Color.Gray
-                    val isSelected = index == selectedIndex
-                    val drawStroke = if (isSelected) strokeWidth * 1.15f else strokeWidth
+                    val isThisSelected = if (selectedIndices != null) index in selectedIndices else index == selectedIndex
+                    val isAnySelected = if (selectedIndices != null) selectedIndices.isNotEmpty() else selectedIndex != -1
+                    val drawStroke = strokeWidth * scales[index]
                     val adjustedSweep = (sweep - gapDegrees).coerceAtLeast(0.5f)
                     val adjustedStart = start + gapDegrees / 2f
+
+                    // Clip to entrance animation progress (sweep in from 12 o'clock)
+                    val relativeStart = adjustedStart + 90f
+                    val visibleSweep = (totalFilled - relativeStart).coerceIn(0f, adjustedSweep)
+                    if (visibleSweep <= 0f) return@forEachIndexed
+
                     drawArc(
-                        color = if (selectedIndex != -1 && !isSelected) sliceColor.copy(alpha = 0.4f) else sliceColor,
+                        color = if (isAnySelected && !isThisSelected) sliceColor.copy(alpha = 0.4f) else sliceColor,
                         startAngle = adjustedStart,
-                        sweepAngle = adjustedSweep,
+                        sweepAngle = visibleSweep,
                         useCenter = false,
                         topLeft = Offset(centerX - arcRadius, centerY - arcRadius),
                         size = Size(arcRadius * 2f, arcRadius * 2f),
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
                             width = drawStroke,
-                            cap = androidx.compose.ui.graphics.StrokeCap.Butt
+                            cap = StrokeCap.Butt
                         )
                     )
                 }
             }
-        }
 
-        if (selectedIndex in breakdown.indices) {
-            val item = breakdown[selectedIndex]
-            val tooltipColor = if (accentColor != Color.Unspecified) accentColor else MaterialTheme.colorScheme.onSurface
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                verticalAlignment = Alignment.Top
-            ) {
-                Text(
-                    text = "${item.category?.name ?: stringResource(R.string.transaction_uncategorized)}: ",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = tooltipColor
-                )
-                CurrencyAmountText(
-                    amount = item.amount,
-                    currencyCode = currency,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = tooltipColor,
-                    symbolAfter = symbolAfter
-                )
-                Text(
-                    text = " (${item.percentage.toInt()}%)",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = tooltipColor
-                )
+            // Center label: 100% at rest; selected slice % (single); sum % (multi)
+            if (showTooltip) {
+                val intPercentages = breakdown.map { it.percentage }.toRoundedPercentages()
+                val labelText = when {
+                    selectedIndices != null && selectedIndices.isNotEmpty() ->
+                        "${breakdown.filterIndexed { i, _ -> i in selectedIndices }.sumOf { it.percentage.toDouble() }.roundToInt()}%"
+                    selectedIndices != null -> "100%"
+                    selectedIndex in breakdown.indices -> "${intPercentages[selectedIndex]}%"
+                    else -> "100%"
+                }
+                AnimatedContent(
+                    targetState = labelText,
+                    transitionSpec = {
+                        (fadeIn(tween(160)) + slideInVertically { it / 2 }) togetherWith
+                                (fadeOut(tween(100)) + slideOutVertically { -it / 2 })
+                    },
+                    label = "center_label"
+                ) { text ->
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }
@@ -454,5 +509,19 @@ fun EmptyReportsState() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
         }
+    }
+}
+
+/**
+ * Distributes integer percentages so they always sum to exactly 100,
+ * using the largest-remainder method (Hamilton method).
+ */
+internal fun List<Float>.toRoundedPercentages(): List<Int> {
+    if (isEmpty()) return emptyList()
+    val floors = map { it.toInt() }
+    val remainder = (100 - floors.sum()).coerceAtLeast(0)
+    val sortedByFraction = indices.sortedByDescending { this[it] - floors[it] }
+    return floors.toMutableList().also { result ->
+        sortedByFraction.take(remainder).forEach { i -> result[i]++ }
     }
 }

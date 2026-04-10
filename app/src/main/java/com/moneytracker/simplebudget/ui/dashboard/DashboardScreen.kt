@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -67,6 +68,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -87,10 +89,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -102,6 +106,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneytracker.simplebudget.R
 import com.moneytracker.simplebudget.domain.model.Account
 import com.moneytracker.simplebudget.domain.model.Category
+import com.moneytracker.simplebudget.domain.model.CategoryType
 import com.moneytracker.simplebudget.domain.model.TransactionType
 import com.moneytracker.simplebudget.domain.model.CategoryBreakdown
 import com.moneytracker.simplebudget.domain.model.ExpenseWithCategory
@@ -191,6 +196,7 @@ fun DashboardScreen(
                     if (isMultiSelectMode) Text(stringResource(R.string.dashboard_selected_count, selectedTransactionIds.size))
                     else Text(stringResource(R.string.dashboard_title))
                 },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                 actions = {
                     if (isMultiSelectMode) {
                         IconButton(onClick = { showDeleteConfirmDialog = true }) {
@@ -211,10 +217,10 @@ fun DashboardScreen(
                             BadgedBox(
                                 badge = {
                                     val activeCount = listOfNotNull(
-                                        filter.transactionType,
-                                        filter.categoryId,
-                                        filter.subcategoryId,
-                                        filter.accountId,
+                                        filter.transactionTypes.takeIf { it.isNotEmpty() },
+                                        filter.categoryIds.takeIf { it.isNotEmpty() },
+                                        filter.subcategoryIds.takeIf { it.isNotEmpty() },
+                                        filter.accountIds.takeIf { it.isNotEmpty() },
                                         filter.searchQuery.takeIf { it.isNotBlank() }
                                     ).size
                                     if (activeCount > 0) {
@@ -305,10 +311,10 @@ fun DashboardScreen(
                         filter = filter,
                         categories = uiState.categories,
                         accounts = uiState.accounts,
-                        onTypeFilter = viewModel::setTransactionTypeFilter,
-                        onCategoryFilter = viewModel::setCategoryFilter,
-                        onSubcategoryFilter = viewModel::setSubcategoryFilter,
-                        onAccountFilter = viewModel::setAccountFilter,
+                        onToggleTypeFilter = viewModel::toggleTransactionTypeFilter,
+                        onToggleCategoryFilter = viewModel::toggleCategoryFilter,
+                        onToggleSubcategoryFilter = viewModel::toggleSubcategoryFilter,
+                        onToggleAccountFilter = viewModel::toggleAccountFilter,
                         onSearchQuery = viewModel::setSearchQuery,
                         onClearFilters = viewModel::clearFilters,
                         onDismiss = { showFilterSheet = false }
@@ -938,24 +944,46 @@ private fun FilterBottomSheet(
     filter: TransactionFilter,
     categories: List<Category>,
     accounts: List<Account>,
-    onTypeFilter: (TransactionType?) -> Unit,
-    onCategoryFilter: (Long?) -> Unit,
-    onSubcategoryFilter: (Long?) -> Unit,
-    onAccountFilter: (Long?) -> Unit,
+    onToggleTypeFilter: (TransactionType?) -> Unit,
+    onToggleCategoryFilter: (Long) -> Unit,
+    onToggleSubcategoryFilter: (Long) -> Unit,
+    onToggleAccountFilter: (Long) -> Unit,
     onSearchQuery: (String) -> Unit,
     onClearFilters: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val parentCategories = remember(categories) { categories.filter { it.parentCategoryId == null } }
-    val subcategories = remember(categories, filter.categoryId) {
-        if (filter.categoryId != null) categories.filter { it.parentCategoryId == filter.categoryId } else emptyList()
+    val allParentCategories = remember(categories) { categories.filter { it.parentCategoryId == null } }
+    val expenseCategories = remember(allParentCategories) { allParentCategories.filter { it.categoryType == CategoryType.EXPENSE } }
+    val incomeCategories = remember(allParentCategories) { allParentCategories.filter { it.categoryType == CategoryType.INCOME } }
+
+    // Subcategories split by their parent's type
+    val incomeCategoryIds = remember(incomeCategories) { incomeCategories.map { it.id }.toSet() }
+    val expenseCategoryIds = remember(expenseCategories) { expenseCategories.map { it.id }.toSet() }
+    val incomeSubcategories = remember(categories, filter.categoryIds) {
+        val selectedIncomeParents = filter.categoryIds.intersect(incomeCategoryIds)
+        if (selectedIncomeParents.isEmpty()) emptyList()
+        else categories.filter { it.parentCategoryId in selectedIncomeParents }
     }
+    val expenseSubcategories = remember(categories, filter.categoryIds) {
+        val selectedExpenseParents = filter.categoryIds.intersect(expenseCategoryIds)
+        if (selectedExpenseParents.isEmpty()) emptyList()
+        else categories.filter { it.parentCategoryId in selectedExpenseParents }
+    }
+
+    // Derive which category sections to show based on non-TRANSFER selected types
+    val nonTransferTypes = filter.transactionTypes - TransactionType.TRANSFER
+    val showCategorySection = filter.transactionTypes.isEmpty() || nonTransferTypes.isNotEmpty()
+    val showExpenseCategories = TransactionType.EXPENSE in nonTransferTypes || filter.transactionTypes.isEmpty()
+    val showIncomeCategories = TransactionType.INCOME in nonTransferTypes || filter.transactionTypes.isEmpty()
+    val labelStyle = MaterialTheme.typography.labelSmall
+    val labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxHeight()
     ) {
         Column(
             modifier = Modifier
@@ -971,77 +999,111 @@ private fun FilterBottomSheet(
             Spacer(modifier = Modifier.height(8.dp))
 
             // Transaction type
-            Text(stringResource(R.string.label_type), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            Text(stringResource(R.string.label_type), style = labelStyle, color = labelColor)
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 FilterChip(
-                    selected = filter.transactionType == null,
-                    onClick = { onTypeFilter(null) },
+                    selected = filter.transactionTypes.isEmpty(),
+                    onClick = { onToggleTypeFilter(null) },
                     label = { Text(stringResource(R.string.dashboard_filter_all)) }
                 )
                 FilterChip(
-                    selected = filter.transactionType == TransactionType.EXPENSE,
-                    onClick = { onTypeFilter(if (filter.transactionType == TransactionType.EXPENSE) null else TransactionType.EXPENSE) },
+                    selected = TransactionType.EXPENSE in filter.transactionTypes,
+                    onClick = { onToggleTypeFilter(TransactionType.EXPENSE) },
                     label = { Text(stringResource(R.string.dashboard_filter_expense)) }
                 )
                 FilterChip(
-                    selected = filter.transactionType == TransactionType.INCOME,
-                    onClick = { onTypeFilter(if (filter.transactionType == TransactionType.INCOME) null else TransactionType.INCOME) },
+                    selected = TransactionType.INCOME in filter.transactionTypes,
+                    onClick = { onToggleTypeFilter(TransactionType.INCOME) },
                     label = { Text(stringResource(R.string.dashboard_filter_income)) }
                 )
                 FilterChip(
-                    selected = filter.transactionType == TransactionType.TRANSFER,
-                    onClick = { onTypeFilter(if (filter.transactionType == TransactionType.TRANSFER) null else TransactionType.TRANSFER) },
+                    selected = TransactionType.TRANSFER in filter.transactionTypes,
+                    onClick = { onToggleTypeFilter(TransactionType.TRANSFER) },
                     label = { Text(stringResource(R.string.dashboard_filter_transfer)) }
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Category
-            Text(stringResource(R.string.dashboard_filter_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-            FlowChipsRow(
-                items = parentCategories,
-                selectedId = filter.categoryId,
-                allLabel = stringResource(R.string.dashboard_filter_all),
-                nameSelector = { it.name },
-                idSelector = { it.id },
-                onSelected = { onCategoryFilter(it) }
-            )
-
-            // Subcategory
-            if (filter.categoryId != null && subcategories.isNotEmpty()) {
+            // Category sections (hidden when only TRANSFER is selected)
+            if (showCategorySection) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(stringResource(R.string.dashboard_filter_subcategory), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                FlowChipsRow(
-                    items = subcategories,
-                    selectedId = filter.subcategoryId,
-                    allLabel = stringResource(R.string.dashboard_filter_all),
-                    nameSelector = { it.name },
-                    idSelector = { it.id },
-                    onSelected = { onSubcategoryFilter(it) }
-                )
+
+                if (showExpenseCategories && showIncomeCategories) {
+                    // Both income and expense types active — show two labeled sections
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_income_categories),
+                        categories = incomeCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = incomeSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_income_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_expense_categories),
+                        categories = expenseCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = expenseSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_expense_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor
+                    )
+                } else if (showIncomeCategories) {
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_category),
+                        categories = incomeCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = incomeSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_income_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor,
+                        subcategorySpacerHeight = 8.dp
+                    )
+                } else {
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_category),
+                        categories = expenseCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = expenseSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_expense_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor,
+                        subcategorySpacerHeight = 8.dp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Account
-            Text(stringResource(R.string.dashboard_filter_account), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-            FlowChipsRow(
+            Text(stringResource(R.string.dashboard_filter_account), style = labelStyle, color = labelColor)
+            MultiSelectChipsRow(
                 items = accounts,
-                selectedId = filter.accountId,
-                allLabel = stringResource(R.string.dashboard_filter_all),
+                selectedIds = filter.accountIds,
                 nameSelector = { it.name },
                 idSelector = { it.id },
-                onSelected = { onAccountFilter(it) }
+                onToggle = onToggleAccountFilter
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Search
-            Text(stringResource(R.string.dashboard_search), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            Text(stringResource(R.string.dashboard_search), style = labelStyle, color = labelColor)
             OutlinedTextField(
                 value = filter.searchQuery,
                 onValueChange = onSearchQuery,
@@ -1266,6 +1328,66 @@ private fun <T> FlowChipsRow(
             FilterChip(
                 selected = selectedId == id,
                 onClick = { onSelected(if (selectedId == id) null else id) },
+                label = { Text(nameSelector(item), style = MaterialTheme.typography.labelSmall) },
+                modifier = Modifier.height(32.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CategoryFilterSection(
+    categoryLabel: String,
+    categories: List<Category>,
+    selectedCategoryIds: Set<Long>,
+    subcategories: List<Category>,
+    subcategoryLabel: String,
+    selectedSubcategoryIds: Set<Long>,
+    onToggleCategory: (Long) -> Unit,
+    onToggleSubcategory: (Long) -> Unit,
+    labelStyle: TextStyle,
+    labelColor: Color,
+    subcategorySpacerHeight: Dp = 4.dp
+) {
+    Text(categoryLabel, style = labelStyle, color = labelColor)
+    MultiSelectChipsRow(
+        items = categories,
+        selectedIds = selectedCategoryIds,
+        nameSelector = { it.name },
+        idSelector = { it.id },
+        onToggle = onToggleCategory
+    )
+    if (subcategories.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(subcategorySpacerHeight))
+        Text(subcategoryLabel, style = labelStyle, color = labelColor)
+        MultiSelectChipsRow(
+            items = subcategories,
+            selectedIds = selectedSubcategoryIds,
+            nameSelector = { it.name },
+            idSelector = { it.id },
+            onToggle = onToggleSubcategory
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun <T> MultiSelectChipsRow(
+    items: List<T>,
+    selectedIds: Set<Long>,
+    nameSelector: (T) -> String,
+    idSelector: (T) -> Long,
+    onToggle: (Long) -> Unit
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        items.forEach { item ->
+            val id = idSelector(item)
+            FilterChip(
+                selected = id in selectedIds,
+                onClick = { onToggle(id) },
                 label = { Text(nameSelector(item), style = MaterialTheme.typography.labelSmall) },
                 modifier = Modifier.height(32.dp)
             )

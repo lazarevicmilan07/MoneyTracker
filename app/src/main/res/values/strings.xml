@@ -55,6 +55,10 @@
     <string name="currency_position_after">After amount (100%s)</string>
     <string name="currency_position_before">Before amount (%s100)</string>
     <string name="setting_language">Language</string>
+    <string name="setting_stats_mode">Stats Breakdown Mode</string>
+    <string name="stats_mode_sheet">Sheet</string>
+    <string name="stats_mode_drill">Drill</string>
+    <string name="stats_mode_list">List</string>
 
     <!-- Settings — Notifications -->
     <string name="section_notifications">Notifications</string>
@@ -140,6 +144,10 @@
     <string name="dashboard_filter_transfer">Transfer</string>
     <string name="dashboard_filter_category">Category</string>
     <string name="dashboard_filter_subcategory">Subcategory</string>
+    <string name="dashboard_filter_income_categories">Income Categories</string>
+    <string name="dashboard_filter_expense_categories">Expense Categories</string>
+    <string name="dashboard_filter_income_subcategories">Income Subcategories</string>
+    <string name="dashboard_filter_expense_subcategories">Expense Subcategories</string>
     <string name="dashboard_filter_account">Account</string>
     <string name="dashboard_search">Search</string>
     <string name="dashboard_search_placeholder">Search notes…</string>

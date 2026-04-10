@@ -40,6 +40,7 @@ import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ripple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -463,7 +464,7 @@ fun CustomNavigationBar(
     onItemClick: (BottomNavItem) -> Unit
 ) {
     val backgroundColor = if (isDarkMode) {
-        Color(0xFF1E1E1E)
+        MaterialTheme.colorScheme.surface
     } else {
         Color(0xFFF5F5F0)
     }
