@@ -249,7 +249,7 @@ private fun SubcategoryDetailSheet(
 
         if (subBreakdown.isEmpty()) {
             Text(
-                text = "No subcategory breakdown available",
+                text = stringResource(R.string.stats_no_subcategory),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
@@ -326,7 +326,7 @@ private fun DrillDownModeContent(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Tap a slice to drill into subcategories",
+                    text = stringResource(R.string.stats_drill_hint),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -386,7 +386,7 @@ private fun DrillDownModeContent(
                 Spacer(modifier = Modifier.height(8.dp))
                 if (subBreakdown.isEmpty()) {
                     Text(
-                        text = "No subcategory breakdown available",
+                        text = stringResource(R.string.stats_no_subcategory),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier.padding(vertical = 16.dp)

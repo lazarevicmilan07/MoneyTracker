@@ -255,4 +255,12 @@
     <string name="reports_monthly_breakdown">Detalhamento mensal</string>
     <string name="reports_no_data_year">Sem dados para este ano</string>
     <string name="reports_no_data_year_hint">Adicione transações para ver relatórios anuais</string>
+
+    <!-- Stats breakdown modes -->
+    <string name="setting_stats_mode">Modo de detalhamento</string>
+    <string name="stats_mode_sheet">Folha</string>
+    <string name="stats_mode_drill">Detalhe</string>
+    <string name="stats_mode_list">Lista</string>
+    <string name="stats_drill_hint">Toque num segmento para ver subcategorias</string>
+    <string name="stats_no_subcategory">Sem detalhamento de subcategorias</string>
 </resources>

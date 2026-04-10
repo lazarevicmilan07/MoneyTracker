@@ -255,4 +255,12 @@
     <string name="reports_monthly_breakdown">Desglose mensual</string>
     <string name="reports_no_data_year">Sin datos para este año</string>
     <string name="reports_no_data_year_hint">Añade transacciones para ver informes anuales</string>
+
+    <!-- Stats breakdown modes -->
+    <string name="setting_stats_mode">Modo de desglose</string>
+    <string name="stats_mode_sheet">Hoja</string>
+    <string name="stats_mode_drill">Detalle</string>
+    <string name="stats_mode_list">Lista</string>
+    <string name="stats_drill_hint">Toca un segmento para ver subcategorías</string>
+    <string name="stats_no_subcategory">Sin desglose de subcategorías</string>
 </resources>

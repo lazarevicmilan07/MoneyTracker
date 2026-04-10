@@ -255,4 +255,12 @@
     <string name="reports_monthly_breakdown">Monatliche Aufschlüsselung</string>
     <string name="reports_no_data_year">Keine Daten für dieses Jahr</string>
     <string name="reports_no_data_year_hint">Füge Transaktionen hinzu, um Jahresberichte zu sehen</string>
+
+    <!-- Stats breakdown modes -->
+    <string name="setting_stats_mode">Aufschlüsselungsansicht</string>
+    <string name="stats_mode_sheet">Blatt</string>
+    <string name="stats_mode_drill">Detail</string>
+    <string name="stats_mode_list">Liste</string>
+    <string name="stats_drill_hint">Segment antippen für Unterkategorien</string>
+    <string name="stats_no_subcategory">Keine Unterkategorien verfügbar</string>
 </resources>

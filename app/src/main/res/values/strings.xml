@@ -59,6 +59,8 @@
     <string name="stats_mode_sheet">Sheet</string>
     <string name="stats_mode_drill">Drill</string>
     <string name="stats_mode_list">List</string>
+    <string name="stats_drill_hint">Tap a slice to drill into subcategories</string>
+    <string name="stats_no_subcategory">No subcategory breakdown available</string>
 
     <!-- Settings — Notifications -->
     <string name="section_notifications">Notifications</string>

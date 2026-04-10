@@ -255,4 +255,12 @@
     <string name="reports_monthly_breakdown">Répartition mensuelle</string>
     <string name="reports_no_data_year">Aucune donnée pour cette année</string>
     <string name="reports_no_data_year_hint">Ajoutez des transactions pour voir les rapports annuels</string>
+
+    <!-- Stats breakdown modes -->
+    <string name="setting_stats_mode">Mode de répartition</string>
+    <string name="stats_mode_sheet">Feuille</string>
+    <string name="stats_mode_drill">Détail</string>
+    <string name="stats_mode_list">Liste</string>
+    <string name="stats_drill_hint">Appuyez sur une tranche pour les sous-catégories</string>
+    <string name="stats_no_subcategory">Pas de répartition des sous-catégories</string>
 </resources>

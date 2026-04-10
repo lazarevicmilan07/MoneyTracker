@@ -255,4 +255,12 @@
     <string name="reports_monthly_breakdown">Mesečna raspodela</string>
     <string name="reports_no_data_year">Nema podataka za ovu godinu</string>
     <string name="reports_no_data_year_hint">Dodajte transakcije da vidite godišnje izveštaje</string>
+
+    <!-- Stats breakdown modes -->
+    <string name="setting_stats_mode">Prikaz raspodele</string>
+    <string name="stats_mode_sheet">Kartica</string>
+    <string name="stats_mode_drill">Uvid</string>
+    <string name="stats_mode_list">Lista</string>
+    <string name="stats_drill_hint">Tapnite deo za prikaz potkategorija</string>
+    <string name="stats_no_subcategory">Nema podataka po potkategorijama</string>
 </resources>

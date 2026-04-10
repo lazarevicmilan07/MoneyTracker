@@ -255,4 +255,12 @@
     <string name="reports_monthly_breakdown">Ежемесячная разбивка</string>
     <string name="reports_no_data_year">Нет данных за этот год</string>
     <string name="reports_no_data_year_hint">Добавьте транзакции для просмотра годовых отчётов</string>
+
+    <!-- Stats breakdown modes -->
+    <string name="setting_stats_mode">Режим разбивки</string>
+    <string name="stats_mode_sheet">Лист</string>
+    <string name="stats_mode_drill">Детали</string>
+    <string name="stats_mode_list">Список</string>
+    <string name="stats_drill_hint">Нажмите на сегмент для подкатегорий</string>
+    <string name="stats_no_subcategory">Нет данных по подкатегориям</string>
 </resources>
