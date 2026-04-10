@@ -89,10 +89,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -1030,85 +1032,59 @@ private fun FilterBottomSheet(
 
                 if (showExpenseCategories && showIncomeCategories) {
                     // Both income and expense types active — show two labeled sections
-                    Text(stringResource(R.string.dashboard_filter_income_categories), style = labelStyle, color = labelColor)
-                    MultiSelectChipsRow(
-                        items = incomeCategories,
-                        selectedIds = filter.categoryIds,
-                        nameSelector = { it.name },
-                        idSelector = { it.id },
-                        onToggle = onToggleCategoryFilter
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_income_categories),
+                        categories = incomeCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = incomeSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_income_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor
                     )
-                    if (incomeSubcategories.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(stringResource(R.string.dashboard_filter_income_subcategories), style = labelStyle, color = labelColor)
-                        MultiSelectChipsRow(
-                            items = incomeSubcategories,
-                            selectedIds = filter.subcategoryIds,
-                            nameSelector = { it.name },
-                            idSelector = { it.id },
-                            onToggle = onToggleSubcategoryFilter
-                        )
-                    }
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(stringResource(R.string.dashboard_filter_expense_categories), style = labelStyle, color = labelColor)
-                    MultiSelectChipsRow(
-                        items = expenseCategories,
-                        selectedIds = filter.categoryIds,
-                        nameSelector = { it.name },
-                        idSelector = { it.id },
-                        onToggle = onToggleCategoryFilter
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_expense_categories),
+                        categories = expenseCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = expenseSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_expense_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor
                     )
-                    if (expenseSubcategories.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(stringResource(R.string.dashboard_filter_expense_subcategories), style = labelStyle, color = labelColor)
-                        MultiSelectChipsRow(
-                            items = expenseSubcategories,
-                            selectedIds = filter.subcategoryIds,
-                            nameSelector = { it.name },
-                            idSelector = { it.id },
-                            onToggle = onToggleSubcategoryFilter
-                        )
-                    }
                 } else if (showIncomeCategories) {
-                    Text(stringResource(R.string.dashboard_filter_category), style = labelStyle, color = labelColor)
-                    MultiSelectChipsRow(
-                        items = incomeCategories,
-                        selectedIds = filter.categoryIds,
-                        nameSelector = { it.name },
-                        idSelector = { it.id },
-                        onToggle = onToggleCategoryFilter
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_category),
+                        categories = incomeCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = incomeSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_income_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor,
+                        subcategorySpacerHeight = 8.dp
                     )
-                    if (incomeSubcategories.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(stringResource(R.string.dashboard_filter_income_subcategories), style = labelStyle, color = labelColor)
-                        MultiSelectChipsRow(
-                            items = incomeSubcategories,
-                            selectedIds = filter.subcategoryIds,
-                            nameSelector = { it.name },
-                            idSelector = { it.id },
-                            onToggle = onToggleSubcategoryFilter
-                        )
-                    }
                 } else {
-                    Text(stringResource(R.string.dashboard_filter_category), style = labelStyle, color = labelColor)
-                    MultiSelectChipsRow(
-                        items = expenseCategories,
-                        selectedIds = filter.categoryIds,
-                        nameSelector = { it.name },
-                        idSelector = { it.id },
-                        onToggle = onToggleCategoryFilter
+                    CategoryFilterSection(
+                        categoryLabel = stringResource(R.string.dashboard_filter_category),
+                        categories = expenseCategories,
+                        selectedCategoryIds = filter.categoryIds,
+                        subcategories = expenseSubcategories,
+                        subcategoryLabel = stringResource(R.string.dashboard_filter_expense_subcategories),
+                        selectedSubcategoryIds = filter.subcategoryIds,
+                        onToggleCategory = onToggleCategoryFilter,
+                        onToggleSubcategory = onToggleSubcategoryFilter,
+                        labelStyle = labelStyle,
+                        labelColor = labelColor,
+                        subcategorySpacerHeight = 8.dp
                     )
-                    if (expenseSubcategories.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(stringResource(R.string.dashboard_filter_expense_subcategories), style = labelStyle, color = labelColor)
-                        MultiSelectChipsRow(
-                            items = expenseSubcategories,
-                            selectedIds = filter.subcategoryIds,
-                            nameSelector = { it.name },
-                            idSelector = { it.id },
-                            onToggle = onToggleSubcategoryFilter
-                        )
-                    }
                 }
             }
 
@@ -1356,6 +1332,41 @@ private fun <T> FlowChipsRow(
                 modifier = Modifier.height(32.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun CategoryFilterSection(
+    categoryLabel: String,
+    categories: List<Category>,
+    selectedCategoryIds: Set<Long>,
+    subcategories: List<Category>,
+    subcategoryLabel: String,
+    selectedSubcategoryIds: Set<Long>,
+    onToggleCategory: (Long) -> Unit,
+    onToggleSubcategory: (Long) -> Unit,
+    labelStyle: TextStyle,
+    labelColor: Color,
+    subcategorySpacerHeight: Dp = 4.dp
+) {
+    Text(categoryLabel, style = labelStyle, color = labelColor)
+    MultiSelectChipsRow(
+        items = categories,
+        selectedIds = selectedCategoryIds,
+        nameSelector = { it.name },
+        idSelector = { it.id },
+        onToggle = onToggleCategory
+    )
+    if (subcategories.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(subcategorySpacerHeight))
+        Text(subcategoryLabel, style = labelStyle, color = labelColor)
+        MultiSelectChipsRow(
+            items = subcategories,
+            selectedIds = selectedSubcategoryIds,
+            nameSelector = { it.name },
+            idSelector = { it.id },
+            onToggle = onToggleSubcategory
+        )
     }
 }
 

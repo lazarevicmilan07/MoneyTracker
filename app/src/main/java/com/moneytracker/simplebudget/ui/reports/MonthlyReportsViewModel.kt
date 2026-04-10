@@ -7,6 +7,7 @@ import com.moneytracker.simplebudget.data.repository.CategoryRepository
 import com.moneytracker.simplebudget.data.repository.ExpenseRepository
 import com.moneytracker.simplebudget.domain.model.Category
 import com.moneytracker.simplebudget.domain.model.CategoryBreakdown
+import com.moneytracker.simplebudget.domain.model.Expense
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,47 +80,8 @@ class MonthlyReportsViewModel @Inject constructor(
             )
         }.sortedByDescending { it.amount }
 
-        val expenseSubcategoryBreakdowns = expenseBreakdown.mapNotNull { parent ->
-            val parentId = parent.category?.id ?: return@mapNotNull null
-            val subExpenses = expenses.filter {
-                it.type == TransactionType.EXPENSE && it.categoryId == parentId && it.subcategoryId != null
-            }
-            if (subExpenses.isEmpty()) return@mapNotNull null
-            val subTotal = subExpenses.sumOf { it.amount }
-            val subBreakdown = subExpenses
-                .groupBy { it.subcategoryId }
-                .map { (subId, exps) ->
-                    val amount = exps.sumOf { it.amount }
-                    CategoryBreakdown(
-                        category = subId?.let { categoriesMap[it] },
-                        amount = amount,
-                        percentage = if (subTotal > 0) (amount / subTotal * 100).toFloat() else 0f
-                    )
-                }
-                .sortedByDescending { it.amount }
-            parentId to subBreakdown
-        }.toMap()
-
-        val incomeSubcategoryBreakdowns = incomeBreakdown.mapNotNull { parent ->
-            val parentId = parent.category?.id ?: return@mapNotNull null
-            val subExpenses = expenses.filter {
-                it.type == TransactionType.INCOME && it.categoryId == parentId && it.subcategoryId != null
-            }
-            if (subExpenses.isEmpty()) return@mapNotNull null
-            val subTotal = subExpenses.sumOf { it.amount }
-            val subBreakdown = subExpenses
-                .groupBy { it.subcategoryId }
-                .map { (subId, exps) ->
-                    val amount = exps.sumOf { it.amount }
-                    CategoryBreakdown(
-                        category = subId?.let { categoriesMap[it] },
-                        amount = amount,
-                        percentage = if (subTotal > 0) (amount / subTotal * 100).toFloat() else 0f
-                    )
-                }
-                .sortedByDescending { it.amount }
-            parentId to subBreakdown
-        }.toMap()
+        val expenseSubcategoryBreakdowns = buildSubcategoryBreakdowns(expenseBreakdown, expenses, TransactionType.EXPENSE, categoriesMap)
+        val incomeSubcategoryBreakdowns = buildSubcategoryBreakdowns(incomeBreakdown, expenses, TransactionType.INCOME, categoriesMap)
 
         MonthlyReportsUiState(
             isLoading = false,
@@ -156,3 +118,30 @@ data class MonthlyReportsUiState(
     val expenseSubcategoryBreakdowns: Map<Long, List<CategoryBreakdown>> = emptyMap(),
     val incomeSubcategoryBreakdowns: Map<Long, List<CategoryBreakdown>> = emptyMap()
 )
+
+internal fun buildSubcategoryBreakdowns(
+    parentBreakdown: List<CategoryBreakdown>,
+    expenses: List<Expense>,
+    type: TransactionType,
+    categoriesMap: Map<Long, Category>
+): Map<Long, List<CategoryBreakdown>> =
+    parentBreakdown.mapNotNull { parent ->
+        val parentId = parent.category?.id ?: return@mapNotNull null
+        val subExpenses = expenses.filter {
+            it.type == type && it.categoryId == parentId && it.subcategoryId != null
+        }
+        if (subExpenses.isEmpty()) return@mapNotNull null
+        val subTotal = subExpenses.sumOf { it.amount }
+        val subBreakdown = subExpenses
+            .groupBy { it.subcategoryId }
+            .map { (subId, exps) ->
+                val amount = exps.sumOf { it.amount }
+                CategoryBreakdown(
+                    category = subId?.let { categoriesMap[it] },
+                    amount = amount,
+                    percentage = if (subTotal > 0) (amount / subTotal * 100).toFloat() else 0f
+                )
+            }
+            .sortedByDescending { it.amount }
+        parentId to subBreakdown
+    }.toMap()

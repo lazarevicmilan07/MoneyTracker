@@ -56,7 +56,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.moneytracker.simplebudget.R
 import com.moneytracker.simplebudget.domain.model.CategoryBreakdown
@@ -93,9 +95,9 @@ fun SubcategoryModeSwitcher(
                 label = {
                     Text(
                         text = when (mode) {
-                            SubcategoryDisplayMode.BOTTOM_SHEET -> "Sheet"
-                            SubcategoryDisplayMode.DRILL_DOWN -> "Drill"
-                            SubcategoryDisplayMode.EXPANDABLE_LIST -> "List"
+                            SubcategoryDisplayMode.BOTTOM_SHEET -> stringResource(R.string.stats_mode_sheet)
+                            SubcategoryDisplayMode.DRILL_DOWN -> stringResource(R.string.stats_mode_drill)
+                            SubcategoryDisplayMode.EXPANDABLE_LIST -> stringResource(R.string.stats_mode_list)
                         },
                         style = MaterialTheme.typography.labelSmall
                     )
@@ -173,41 +175,18 @@ private fun BottomSheetModeContent(
     val intPercentages = breakdown.map { it.percentage }.toRoundedPercentages()
     breakdown.forEachIndexed { index, item ->
         val hasSubs = subcategoryBreakdowns.containsKey(item.category?.id)
-        Row(
+        BreakdownItemRow(
+            name = item.category?.name ?: stringResource(R.string.transaction_uncategorized),
+            color = item.category?.color ?: Color.Gray,
+            percentage = "${intPercentages[index]}%",
+            amount = item.amount,
+            currency = currency,
+            symbolAfter = symbolAfter,
             modifier = Modifier
-                .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .then(if (hasSubs) Modifier.clickable { selectedCategory = item } else Modifier)
-                .padding(vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(20.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(item.category?.color ?: Color.Gray)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = item.category?.name ?: stringResource(R.string.transaction_uncategorized),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = "${intPercentages[index]}%",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            CurrencyAmountText(
-                amount = item.amount,
-                currencyCode = currency,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                symbolAfter = symbolAfter
-            )
-        }
+                .padding(vertical = 5.dp)
+        )
     }
 
     if (selectedCategory != null) {
@@ -289,39 +268,15 @@ private fun SubcategoryDetailSheet(
             Spacer(modifier = Modifier.height(8.dp))
             val subIntPercentages = subBreakdown.map { it.percentage }.toRoundedPercentages()
             subBreakdown.forEachIndexed { index, sub ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(4.dp)
-                            .height(16.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(sub.category?.color ?: Color.Gray)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = sub.category?.name ?: stringResource(R.string.transaction_uncategorized),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = "${subIntPercentages[index]}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    CurrencyAmountText(
-                        amount = sub.amount,
-                        currencyCode = currency,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        symbolAfter = symbolAfter
-                    )
-                }
+                BreakdownItemRow(
+                    name = sub.category?.name ?: stringResource(R.string.transaction_uncategorized),
+                    color = sub.category?.color ?: Color.Gray,
+                    percentage = "${subIntPercentages[index]}%",
+                    amount = sub.amount,
+                    currency = currency,
+                    symbolAfter = symbolAfter,
+                    swatchHeight = 16.dp
+                )
             }
         }
     }
@@ -380,41 +335,18 @@ private fun DrillDownModeContent(
                 val intPercentages = breakdown.map { it.percentage }.toRoundedPercentages()
                 breakdown.forEachIndexed { index, item ->
                     val hasSubs = subcategoryBreakdowns.containsKey(item.category?.id)
-                    Row(
+                    BreakdownItemRow(
+                        name = item.category?.name ?: stringResource(R.string.transaction_uncategorized),
+                        color = item.category?.color ?: Color.Gray,
+                        percentage = "${intPercentages[index]}%",
+                        amount = item.amount,
+                        currency = currency,
+                        symbolAfter = symbolAfter,
                         modifier = Modifier
-                            .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
                             .then(if (hasSubs) Modifier.clickable { drillCategory = item } else Modifier)
-                            .padding(vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(4.dp)
-                                .height(20.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(item.category?.color ?: Color.Gray)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = item.category?.name ?: stringResource(R.string.transaction_uncategorized),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = "${intPercentages[index]}%",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        CurrencyAmountText(
-                            amount = item.amount,
-                            currencyCode = currency,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            symbolAfter = symbolAfter
-                        )
-                    }
+                            .padding(vertical = 5.dp)
+                    )
                 }
             }
         } else {
@@ -472,43 +404,71 @@ private fun DrillDownModeContent(
                     Spacer(modifier = Modifier.height(12.dp))
                     val subIntPercentages = subBreakdown.map { it.percentage }.toRoundedPercentages()
                     subBreakdown.forEachIndexed { index, sub ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .width(4.dp)
-                                    .height(20.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(sub.category?.color ?: Color.Gray)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = sub.category?.name ?: stringResource(R.string.transaction_uncategorized),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "${subIntPercentages[index]}%",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            CurrencyAmountText(
-                                amount = sub.amount,
-                                currencyCode = currency,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                symbolAfter = symbolAfter
-                            )
-                        }
+                        BreakdownItemRow(
+                            name = sub.category?.name ?: stringResource(R.string.transaction_uncategorized),
+                            color = sub.category?.color ?: Color.Gray,
+                            percentage = "${subIntPercentages[index]}%",
+                            amount = sub.amount,
+                            currency = currency,
+                            symbolAfter = symbolAfter
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+// ─── Shared row ───────────────────────────────────────────────────────────────
+
+@Composable
+private fun BreakdownItemRow(
+    name: String,
+    color: Color,
+    percentage: String,
+    amount: Double,
+    currency: String,
+    symbolAfter: Boolean,
+    modifier: Modifier = Modifier.padding(vertical = 5.dp),
+    swatchWidth: Dp = 4.dp,
+    swatchHeight: Dp = 20.dp,
+    spacerWidth: Dp = 10.dp,
+    nameStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    nameFontWeight: FontWeight = FontWeight.Normal,
+    amountStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    amountFontWeight: FontWeight = FontWeight.SemiBold
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .width(swatchWidth)
+                .height(swatchHeight)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(spacerWidth))
+        Text(
+            text = name,
+            style = nameStyle,
+            fontWeight = nameFontWeight,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = percentage,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+        )
+        Spacer(modifier = Modifier.width(spacerWidth))
+        CurrencyAmountText(
+            amount = amount,
+            currencyCode = currency,
+            style = amountStyle,
+            fontWeight = amountFontWeight,
+            symbolAfter = symbolAfter
+        )
     }
 }
 
@@ -558,42 +518,19 @@ private fun ExpandableModeContent(
         val isExpanded = expandedStates[parentId] ?: false
 
         Column {
-            Row(
+            BreakdownItemRow(
+                name = item.category?.name ?: stringResource(R.string.transaction_uncategorized),
+                color = item.category?.color ?: Color.Gray,
+                percentage = "${intPercentages[itemIndex]}%",
+                amount = item.amount,
+                currency = currency,
+                symbolAfter = symbolAfter,
+                nameFontWeight = if (isExpanded) FontWeight.SemiBold else FontWeight.Normal,
                 modifier = Modifier
-                    .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .clickable { expandedStates[parentId ?: 0L] = !isExpanded }
-                    .padding(vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(4.dp)
-                        .height(20.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(item.category?.color ?: Color.Gray)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = item.category?.name ?: stringResource(R.string.transaction_uncategorized),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isExpanded) FontWeight.SemiBold else FontWeight.Normal,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "${intPercentages[itemIndex]}%",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                CurrencyAmountText(
-                    amount = item.amount,
-                    currencyCode = currency,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    symbolAfter = symbolAfter
-                )
-            }
+                    .padding(vertical = 5.dp)
+            )
 
             AnimatedVisibility(
                 visible = isExpanded && hasSubs,
@@ -607,39 +544,21 @@ private fun ExpandableModeContent(
                 ) {
                     val subIntPercentages = subBreakdown.map { it.percentage }.toRoundedPercentages()
                     subBreakdown.forEachIndexed { subIndex, sub ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .width(3.dp)
-                                    .height(14.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(sub.category?.color ?: Color.Gray)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = sub.category?.name ?: stringResource(R.string.transaction_uncategorized),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "${subIntPercentages[subIndex]}%",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            CurrencyAmountText(
-                                amount = sub.amount,
-                                currencyCode = currency,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                symbolAfter = symbolAfter
-                            )
-                        }
+                        BreakdownItemRow(
+                            name = sub.category?.name ?: stringResource(R.string.transaction_uncategorized),
+                            color = sub.category?.color ?: Color.Gray,
+                            percentage = "${subIntPercentages[subIndex]}%",
+                            amount = sub.amount,
+                            currency = currency,
+                            symbolAfter = symbolAfter,
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            swatchWidth = 3.dp,
+                            swatchHeight = 14.dp,
+                            spacerWidth = 8.dp,
+                            nameStyle = MaterialTheme.typography.bodySmall,
+                            amountStyle = MaterialTheme.typography.bodySmall,
+                            amountFontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }

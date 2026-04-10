@@ -240,25 +240,12 @@ private fun MonthYearPickerContent(
                 ) {
                     for (col in 0..3) {
                         val monthIndex = row * 4 + col + 1
-                        val isSelected = monthIndex == selectedMonth
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { onMonthChange(monthIndex) },
-                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                                   else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = months[monthIndex - 1],
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                textAlign = TextAlign.Center,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                       else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        }
+                        SelectableCell(
+                            text = months[monthIndex - 1],
+                            isSelected = monthIndex == selectedMonth,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onMonthChange(monthIndex) }
+                        )
                     }
                 }
             }
@@ -282,25 +269,12 @@ private fun YearPickerContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 rowYears.forEach { year ->
-                    val isSelected = year == selectedYear
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { onYearChange(year) },
-                        color = if (isSelected) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = year.toString(),
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            textAlign = TextAlign.Center,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                   else MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                        )
-                    }
+                    SelectableCell(
+                        text = year.toString(),
+                        isSelected = year == selectedYear,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onYearChange(year) }
+                    )
                 }
                 // Fill remaining space if row has fewer than 4 items
                 repeat(4 - rowYears.size) {
@@ -472,25 +446,12 @@ private fun MultiSelectMonthContent(
                 ) {
                     for (col in 0..3) {
                         val monthIndex = row * 4 + col + 1
-                        val isSelected = (navYear to monthIndex) in selectedMonthPairs
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { onToggleMonth(monthIndex) },
-                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = months[monthIndex - 1],
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                textAlign = TextAlign.Center,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        }
+                        SelectableCell(
+                            text = months[monthIndex - 1],
+                            isSelected = (navYear to monthIndex) in selectedMonthPairs,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onToggleMonth(monthIndex) }
+                        )
                     }
                 }
             }
@@ -512,29 +473,42 @@ private fun MultiSelectYearContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 rowYears.forEach { year ->
-                    val isSelected = year in selectedYearSet
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { onToggleYear(year) },
-                        color = if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = year.toString(),
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            textAlign = TextAlign.Center,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                        )
-                    }
+                    SelectableCell(
+                        text = year.toString(),
+                        isSelected = year in selectedYearSet,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onToggleYear(year) }
+                    )
                 }
                 repeat(4 - rowYears.size) { Spacer(modifier = Modifier.weight(1f)) }
             }
         }
+    }
+}
+
+@Composable
+private fun SelectableCell(
+    text: String,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick),
+        color = if (isSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(vertical = 12.dp),
+            textAlign = TextAlign.Center,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+        )
     }
 }
 

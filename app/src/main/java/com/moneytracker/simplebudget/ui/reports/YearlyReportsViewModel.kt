@@ -98,47 +98,8 @@ class YearlyReportsViewModel @Inject constructor(
             )
         }
 
-        val expenseSubcategoryBreakdowns = expenseBreakdown.mapNotNull { parent ->
-            val parentId = parent.category?.id ?: return@mapNotNull null
-            val subExpenses = expenses.filter {
-                it.type == TransactionType.EXPENSE && it.categoryId == parentId && it.subcategoryId != null
-            }
-            if (subExpenses.isEmpty()) return@mapNotNull null
-            val subTotal = subExpenses.sumOf { it.amount }
-            val subBreakdown = subExpenses
-                .groupBy { it.subcategoryId }
-                .map { (subId, exps) ->
-                    val amount = exps.sumOf { it.amount }
-                    CategoryBreakdown(
-                        category = subId?.let { categoriesMap[it] },
-                        amount = amount,
-                        percentage = if (subTotal > 0) (amount / subTotal * 100).toFloat() else 0f
-                    )
-                }
-                .sortedByDescending { it.amount }
-            parentId to subBreakdown
-        }.toMap()
-
-        val incomeSubcategoryBreakdowns = incomeBreakdown.mapNotNull { parent ->
-            val parentId = parent.category?.id ?: return@mapNotNull null
-            val subExpenses = expenses.filter {
-                it.type == TransactionType.INCOME && it.categoryId == parentId && it.subcategoryId != null
-            }
-            if (subExpenses.isEmpty()) return@mapNotNull null
-            val subTotal = subExpenses.sumOf { it.amount }
-            val subBreakdown = subExpenses
-                .groupBy { it.subcategoryId }
-                .map { (subId, exps) ->
-                    val amount = exps.sumOf { it.amount }
-                    CategoryBreakdown(
-                        category = subId?.let { categoriesMap[it] },
-                        amount = amount,
-                        percentage = if (subTotal > 0) (amount / subTotal * 100).toFloat() else 0f
-                    )
-                }
-                .sortedByDescending { it.amount }
-            parentId to subBreakdown
-        }.toMap()
+        val expenseSubcategoryBreakdowns = buildSubcategoryBreakdowns(expenseBreakdown, expenses, TransactionType.EXPENSE, categoriesMap)
+        val incomeSubcategoryBreakdowns = buildSubcategoryBreakdowns(incomeBreakdown, expenses, TransactionType.INCOME, categoriesMap)
 
         YearlyReportsUiState(
             isLoading = false,

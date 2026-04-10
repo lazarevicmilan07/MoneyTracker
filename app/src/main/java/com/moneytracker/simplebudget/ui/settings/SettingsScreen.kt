@@ -378,53 +378,11 @@ fun SettingsScreen(
                 }
 
                 item {
-                    val currentMode = SubcategoryDisplayMode.entries.getOrElse(
-                        userPreferences.subcategoryDisplayModeOrdinal
-                    ) { SubcategoryDisplayMode.BOTTOM_SHEET }
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.setting_stats_mode)) },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.PieChart,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        },
-                        trailingContent = {
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .padding(2.dp)
-                            ) {
-                                SubcategoryDisplayMode.entries.forEach { mode ->
-                                    val isSelected = currentMode == mode
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(
-                                                if (isSelected) MaterialTheme.colorScheme.primary
-                                                else Color.Transparent
-                                            )
-                                            .clickable { viewModel.setSubcategoryDisplayMode(mode) }
-                                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = when (mode) {
-                                                SubcategoryDisplayMode.BOTTOM_SHEET -> stringResource(R.string.stats_mode_sheet)
-                                                SubcategoryDisplayMode.DRILL_DOWN -> stringResource(R.string.stats_mode_drill)
-                                                SubcategoryDisplayMode.EXPANDABLE_LIST -> stringResource(R.string.stats_mode_list)
-                                            },
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                    SubcategoryModeSelectorItem(
+                        currentMode = SubcategoryDisplayMode.entries.getOrElse(
+                            userPreferences.subcategoryDisplayModeOrdinal
+                        ) { SubcategoryDisplayMode.BOTTOM_SHEET },
+                        onModeChange = { viewModel.setSubcategoryDisplayMode(it) }
                     )
                 }
 
@@ -1056,6 +1014,58 @@ fun SettingsSwitch(
             )
         },
         modifier = Modifier.clickable { onCheckedChange(!checked) }
+    )
+}
+
+@Composable
+private fun SubcategoryModeSelectorItem(
+    currentMode: SubcategoryDisplayMode,
+    onModeChange: (SubcategoryDisplayMode) -> Unit
+) {
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.setting_stats_mode)) },
+        leadingContent = {
+            Icon(
+                Icons.Default.PieChart,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        },
+        trailingContent = {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(2.dp)
+            ) {
+                SubcategoryDisplayMode.entries.forEach { mode ->
+                    val isSelected = currentMode == mode
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else Color.Transparent
+                            )
+                            .clickable { onModeChange(mode) }
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = when (mode) {
+                                SubcategoryDisplayMode.BOTTOM_SHEET -> stringResource(R.string.stats_mode_sheet)
+                                SubcategoryDisplayMode.DRILL_DOWN -> stringResource(R.string.stats_mode_drill)
+                                SubcategoryDisplayMode.EXPANDABLE_LIST -> stringResource(R.string.stats_mode_list)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
     )
 }
 
