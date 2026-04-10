@@ -512,8 +512,8 @@ fun TransactionFormFields(
 
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp),
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
         )
 
         // Account / From Field
@@ -529,8 +529,8 @@ fun TransactionFormFields(
 
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp),
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
         )
 
         if (uiState.transactionType == TransactionType.TRANSFER) {
@@ -557,8 +557,8 @@ fun TransactionFormFields(
 
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp),
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
         )
 
         // Note Field - inline editable
@@ -833,7 +833,7 @@ fun AccountSelectionPanel(
     title: String
 ) {
     val filteredAccounts = accounts.filter { it.id != excludeAccountId }
-    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)
+    val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
 
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(
@@ -960,7 +960,7 @@ fun CategorySelectionPanel(
     onClose: () -> Unit,
     onEditCategories: (() -> Unit)? = null
 ) {
-    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)
+    val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
     val typeColor = ExpenseRed
 
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
 import com.moneytracker.simplebudget.data.preferences.UserPreferences
+import com.moneytracker.simplebudget.ui.reports.SubcategoryDisplayMode
 import com.moneytracker.simplebudget.domain.usecase.BackupRestoreUseCase
 import com.moneytracker.simplebudget.domain.usecase.ExportPeriodParams
 import com.moneytracker.simplebudget.domain.usecase.ExportUseCase
@@ -69,6 +70,12 @@ class SettingsViewModel @Inject constructor(
     fun setCurrencySymbolAfter(after: Boolean) {
         viewModelScope.launch {
             preferencesManager.setCurrencySymbolAfter(after)
+        }
+    }
+
+    fun setSubcategoryDisplayMode(mode: SubcategoryDisplayMode) {
+        viewModelScope.launch {
+            preferencesManager.setSubcategoryDisplayModeOrdinal(mode.ordinal)
         }
     }
 

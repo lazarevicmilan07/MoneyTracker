@@ -79,13 +79,57 @@ class MonthlyReportsViewModel @Inject constructor(
             )
         }.sortedByDescending { it.amount }
 
+        val expenseSubcategoryBreakdowns = expenseBreakdown.mapNotNull { parent ->
+            val parentId = parent.category?.id ?: return@mapNotNull null
+            val subExpenses = expenses.filter {
+                it.type == TransactionType.EXPENSE && it.categoryId == parentId && it.subcategoryId != null
+            }
+            if (subExpenses.isEmpty()) return@mapNotNull null
+            val subTotal = subExpenses.sumOf { it.amount }
+            val subBreakdown = subExpenses
+                .groupBy { it.subcategoryId }
+                .map { (subId, exps) ->
+                    val amount = exps.sumOf { it.amount }
+                    CategoryBreakdown(
+                        category = subId?.let { categoriesMap[it] },
+                        amount = amount,
+                        percentage = if (subTotal > 0) (amount / subTotal * 100).toFloat() else 0f
+                    )
+                }
+                .sortedByDescending { it.amount }
+            parentId to subBreakdown
+        }.toMap()
+
+        val incomeSubcategoryBreakdowns = incomeBreakdown.mapNotNull { parent ->
+            val parentId = parent.category?.id ?: return@mapNotNull null
+            val subExpenses = expenses.filter {
+                it.type == TransactionType.INCOME && it.categoryId == parentId && it.subcategoryId != null
+            }
+            if (subExpenses.isEmpty()) return@mapNotNull null
+            val subTotal = subExpenses.sumOf { it.amount }
+            val subBreakdown = subExpenses
+                .groupBy { it.subcategoryId }
+                .map { (subId, exps) ->
+                    val amount = exps.sumOf { it.amount }
+                    CategoryBreakdown(
+                        category = subId?.let { categoriesMap[it] },
+                        amount = amount,
+                        percentage = if (subTotal > 0) (amount / subTotal * 100).toFloat() else 0f
+                    )
+                }
+                .sortedByDescending { it.amount }
+            parentId to subBreakdown
+        }.toMap()
+
         MonthlyReportsUiState(
             isLoading = false,
             totalIncome = totalIncome,
             totalExpense = totalExpense,
             balance = totalIncome - totalExpense,
             expenseBreakdown = expenseBreakdown,
-            incomeBreakdown = incomeBreakdown
+            incomeBreakdown = incomeBreakdown,
+            expenseSubcategoryBreakdowns = expenseSubcategoryBreakdowns,
+            incomeSubcategoryBreakdowns = incomeSubcategoryBreakdowns
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MonthlyReportsUiState())
 
@@ -108,5 +152,7 @@ data class MonthlyReportsUiState(
     val totalExpense: Double = 0.0,
     val balance: Double = 0.0,
     val expenseBreakdown: List<CategoryBreakdown> = emptyList(),
-    val incomeBreakdown: List<CategoryBreakdown> = emptyList()
+    val incomeBreakdown: List<CategoryBreakdown> = emptyList(),
+    val expenseSubcategoryBreakdowns: Map<Long, List<CategoryBreakdown>> = emptyMap(),
+    val incomeSubcategoryBreakdowns: Map<Long, List<CategoryBreakdown>> = emptyMap()
 )

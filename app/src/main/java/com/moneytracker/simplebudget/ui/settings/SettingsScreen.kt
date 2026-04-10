@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.GridOn
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
@@ -50,6 +52,9 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -66,6 +71,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -106,6 +112,7 @@ import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneytracker.simplebudget.data.preferences.LanguagePreferences
 import com.moneytracker.simplebudget.data.preferences.ThemeMode
+import com.moneytracker.simplebudget.ui.reports.SubcategoryDisplayMode
 import com.moneytracker.simplebudget.notifications.MonthlyReminderOption
 import com.moneytracker.simplebudget.notifications.ReminderFrequency
 import com.moneytracker.simplebudget.notifications.ReminderSettings
@@ -266,7 +273,8 @@ fun SettingsScreen(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.settings_back))
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { paddingValues ->
@@ -366,6 +374,57 @@ fun SettingsScreen(
                         title = stringResource(R.string.setting_language),
                         subtitle = currentLanguageName,
                         onClick = { showLanguageDialog = true }
+                    )
+                }
+
+                item {
+                    val currentMode = SubcategoryDisplayMode.entries.getOrElse(
+                        userPreferences.subcategoryDisplayModeOrdinal
+                    ) { SubcategoryDisplayMode.BOTTOM_SHEET }
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.setting_stats_mode)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Default.PieChart,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        trailingContent = {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(2.dp)
+                            ) {
+                                SubcategoryDisplayMode.entries.forEach { mode ->
+                                    val isSelected = currentMode == mode
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(
+                                                if (isSelected) MaterialTheme.colorScheme.primary
+                                                else Color.Transparent
+                                            )
+                                            .clickable { viewModel.setSubcategoryDisplayMode(mode) }
+                                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = when (mode) {
+                                                SubcategoryDisplayMode.BOTTOM_SHEET -> stringResource(R.string.stats_mode_sheet)
+                                                SubcategoryDisplayMode.DRILL_DOWN -> stringResource(R.string.stats_mode_drill)
+                                                SubcategoryDisplayMode.EXPANDABLE_LIST -> stringResource(R.string.stats_mode_list)
+                                            },
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     )
                 }
 
@@ -750,18 +809,18 @@ fun SettingsScreen(
 
     // Language Picker Dialog
     if (showLanguageDialog) {
-        AlertDialog(
+        ModalBottomSheet(
             onDismissRequest = { showLanguageDialog = false },
-            icon = {
-                Icon(
-                    Icons.Default.Language,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text(
+                    text = stringResource(R.string.dialog_language_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-            },
-            title = { Text(stringResource(R.string.dialog_language_title)) },
-            text = {
-                LazyColumn {
+                LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
                     items(LanguagePreferences.supportedLanguages) { lang ->
                         ListItem(
                             headlineContent = { Text(lang.nativeName) },
@@ -777,24 +836,16 @@ fun SettingsScreen(
                             modifier = Modifier.clickable {
                                 showLanguageDialog = false
                                 LanguagePreferences.setLanguage(context, lang.code)
-                                // On some OEM ROMs, LocalContext.current is a ContextWrapper
-                                // (e.g. ContextThemeWrapper) rather than the Activity itself,
-                                // so a direct cast fails and recreate() is never called.
-                                // Traverse the wrapper chain to find the real Activity.
                                 var ctx: android.content.Context = context
                                 while (ctx is android.content.ContextWrapper && ctx !is android.app.Activity) ctx = ctx.baseContext
                                 (ctx as? android.app.Activity)?.recreate()
                             }
                         )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showLanguageDialog = false }) {
-                    Text(stringResource(R.string.button_cancel))
-                }
             }
-        )
+        }
     }
 
     // Reminder Time Picker
@@ -1008,6 +1059,7 @@ fun SettingsSwitch(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencyPickerDialog(
     currentCurrency: String,
@@ -1091,23 +1143,32 @@ fun CurrencyPickerDialog(
         list.sortedBy { (_, name) -> name }
     }
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.dialog_select_currency)) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text(stringResource(R.string.currency_search_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyColumn {
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(modifier = Modifier.fillMaxHeight().padding(horizontal = 16.dp)) {
+            Text(
+                text = stringResource(R.string.dialog_select_currency),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text(stringResource(R.string.currency_search_hint)) },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+            LazyColumn(modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 32.dp)) {
                 items(filteredCurrencies) { (code, name) ->
                     ListItem(
-                        headlineContent = { Text(code) },
+                        headlineContent = {
+                            Text(code, fontWeight = FontWeight.SemiBold)
+                        },
                         supportingContent = { Text(name) },
                         trailingContent = {
                             if (code == currentCurrency) {
@@ -1120,16 +1181,11 @@ fun CurrencyPickerDialog(
                         },
                         modifier = Modifier.clickable { onCurrencySelected(code) }
                     )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 }
             }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
         }
-    )
+    }
 }
 
 @Composable

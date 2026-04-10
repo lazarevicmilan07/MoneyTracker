@@ -24,6 +24,7 @@ enum class ThemeMode(val value: Int) {
     }
 }
 
+
 @Singleton
 class PreferencesManager @Inject constructor(
     @ApplicationContext private val context: Context
@@ -35,7 +36,8 @@ class PreferencesManager @Inject constructor(
             themeMode = resolveThemeMode(preferences),
             currency = preferences[PreferencesKeys.CURRENCY] ?: "USD",
             isPremium = preferences[PreferencesKeys.IS_PREMIUM] ?: false,
-            currencySymbolAfter = preferences[PreferencesKeys.CURRENCY_SYMBOL_AFTER] ?: true
+            currencySymbolAfter = preferences[PreferencesKeys.CURRENCY_SYMBOL_AFTER] ?: true,
+            subcategoryDisplayModeOrdinal = preferences[PreferencesKeys.SUBCATEGORY_DISPLAY_MODE] ?: 0
         )
     }
 
@@ -89,6 +91,12 @@ class PreferencesManager @Inject constructor(
         }
     }
 
+    suspend fun setSubcategoryDisplayModeOrdinal(ordinal: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SUBCATEGORY_DISPLAY_MODE] = ordinal
+        }
+    }
+
     private fun resolveThemeMode(preferences: Preferences): ThemeMode {
         val stored = preferences[PreferencesKeys.THEME_MODE]
         if (stored != null) return ThemeMode.fromValue(stored)
@@ -103,6 +111,7 @@ class PreferencesManager @Inject constructor(
         val IS_PREMIUM = booleanPreferencesKey("is_premium")
         val CURRENCY_SYMBOL_AFTER = booleanPreferencesKey("currency_symbol_after")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        val SUBCATEGORY_DISPLAY_MODE = intPreferencesKey("subcategory_display_mode")
     }
 }
 
@@ -110,5 +119,6 @@ data class UserPreferences(
     val themeMode: ThemeMode = ThemeMode.DARK,
     val currency: String = "USD",
     val isPremium: Boolean = false,
-    val currencySymbolAfter: Boolean = true
+    val currencySymbolAfter: Boolean = true,
+    val subcategoryDisplayModeOrdinal: Int = 0
 )

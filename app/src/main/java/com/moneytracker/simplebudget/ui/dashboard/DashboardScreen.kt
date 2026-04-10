@@ -68,6 +68,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -193,6 +194,7 @@ fun DashboardScreen(
                     if (isMultiSelectMode) Text(stringResource(R.string.dashboard_selected_count, selectedTransactionIds.size))
                     else Text(stringResource(R.string.dashboard_title))
                 },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                 actions = {
                     if (isMultiSelectMode) {
                         IconButton(onClick = { showDeleteConfirmDialog = true }) {
