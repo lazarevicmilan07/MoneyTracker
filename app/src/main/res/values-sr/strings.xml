@@ -257,7 +257,7 @@
     <string name="reports_no_data_year_hint">Dodajte transakcije da vidite godišnje izveštaje</string>
 
     <!-- Stats breakdown modes -->
-    <string name="setting_stats_mode">Prikaz raspodele</string>
+    <string name="setting_stats_mode">Prikaz potkategorija</string>
     <string name="stats_mode_sheet">Kartica</string>
     <string name="stats_mode_drill">Uvid</string>
     <string name="stats_mode_list">Lista</string>
