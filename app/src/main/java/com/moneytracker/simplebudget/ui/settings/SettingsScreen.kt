@@ -247,6 +247,13 @@ fun SettingsScreen(
                 is SettingsEvent.ShowError -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
+                is SettingsEvent.CurrencyConversionSuccess -> {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.message_conversion_success, event.currency),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -654,6 +661,21 @@ fun SettingsScreen(
                 viewModel.hideCurrencyPicker()
             },
             onDismiss = { viewModel.hideCurrencyPicker() }
+        )
+    }
+
+    // Currency Conversion Dialog
+    uiState.conversionState?.let { convState ->
+        CurrencyConversionDialog(
+            fromCurrency = convState.fromCurrency,
+            toCurrency = convState.toCurrency,
+            uiState = convState,
+            onFetchRate = { viewModel.fetchExchangeRate(convState.fromCurrency, convState.toCurrency) },
+            onManualRateChanged = viewModel::onManualRateChanged,
+            onEnterManually = viewModel::switchToManualEntry,
+            onConfirmConvert = viewModel::confirmConvert,
+            onSkip = viewModel::skipConvert,
+            onDismiss = viewModel::dismissConversionDialog
         )
     }
 

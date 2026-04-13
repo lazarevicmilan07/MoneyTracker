@@ -23,6 +23,9 @@
     <string name="button_copy">Копировать</string>
     <string name="button_continue">Продолжить</string>
     <string name="button_restore">Восстановить</string>
+    <string name="button_convert">Конвертировать</string>
+    <string name="button_keep_amounts">Оставить исходные суммы</string>
+    <string name="button_enter_rate_manually">Ввести курс вручную</string>
 
     <!-- Common Labels -->
     <string name="label_amount">Сумма</string>
@@ -97,6 +100,15 @@
     <string name="dialog_select_currency">Выбрать валюту</string>
     <string name="currency_search_hint">Поиск валюты…</string>
     <string name="dialog_language_title">Язык</string>
+    <string name="dialog_convert_currency_title">Конвертировать существующие транзакции?</string>
+    <string name="dialog_convert_currency_body">У вас есть %1$d транзакций в %2$s. Хотите конвертировать все суммы в %3$s?</string>
+    <string name="dialog_convert_rate_fetching">Получение курса валют…</string>
+    <string name="dialog_convert_rate_fetched">Курс получен автоматически. При необходимости вы можете изменить его:</string>
+    <string name="dialog_convert_rate_label">1 %1$s = %2$s %3$s</string>
+    <string name="dialog_convert_rate_failed">Не удалось получить курс. Введите вручную:</string>
+    <string name="dialog_convert_rate_tooltip">Введите, сколько %2$s вы получаете за 1 %1$s. Например, если 1 %1$s = 100 %2$s, введите 100.</string>
+    <string name="dialog_convert_rate_hint">Курс обмена (напр. 0,92)</string>
+    <string name="dialog_convert_rate_retry">Повторить</string>
 
     <!-- Settings Loading States -->
     <string name="loading_exporting">Экспорт…</string>
@@ -107,6 +119,7 @@
     <string name="message_export_success">%s успешно экспортировано</string>
     <string name="message_backup_success">Резервная копия успешно создана</string>
     <string name="message_restore_success">Данные успешно восстановлены</string>
+    <string name="message_conversion_success">Все суммы конвертированы в %s</string>
     <string name="message_premium_activated">Premium активирован! Все функции разблокированы.</string>
 
     <!-- Premium Banner -->

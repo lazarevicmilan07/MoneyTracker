@@ -9,6 +9,7 @@ import com.moneytracker.simplebudget.data.preferences.ThemeMode
 import com.moneytracker.simplebudget.data.preferences.UserPreferences
 import com.moneytracker.simplebudget.ui.reports.SubcategoryDisplayMode
 import com.moneytracker.simplebudget.domain.usecase.BackupRestoreUseCase
+import com.moneytracker.simplebudget.domain.usecase.CurrencyConversionUseCase
 import com.moneytracker.simplebudget.domain.usecase.ExportPeriodParams
 import com.moneytracker.simplebudget.domain.usecase.ExportUseCase
 import java.time.YearMonth
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,7 +39,8 @@ class SettingsViewModel @Inject constructor(
     private val reminderPreferences: ReminderPreferences,
     private val reminderManager: ReminderManager,
     private val backupReminderPreferences: BackupReminderPreferences,
-    private val backupReminderManager: BackupReminderManager
+    private val backupReminderManager: BackupReminderManager,
+    private val currencyConversionUseCase: CurrencyConversionUseCase
 ) : ViewModel() {
 
     val userPreferences: StateFlow<UserPreferences> = preferencesManager.userPreferences
@@ -62,9 +65,89 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setCurrency(currency: String) {
+        val currentCurrency = userPreferences.value.currency
+        if (currency == currentCurrency) return
         viewModelScope.launch {
-            preferencesManager.setCurrency(currency)
+            val count = currencyConversionUseCase.getTransactionCount()
+            if (count == 0) {
+                preferencesManager.setCurrency(currency)
+            } else {
+                _uiState.update {
+                    it.copy(
+                        conversionState = CurrencyConversionUiState(
+                            fromCurrency = currentCurrency,
+                            toCurrency = currency,
+                            transactionCount = count
+                        )
+                    )
+                }
+                fetchExchangeRate(currentCurrency, currency)
+            }
         }
+    }
+
+    fun fetchExchangeRate(from: String, to: String) {
+        viewModelScope.launch {
+            val result = currencyConversionUseCase.fetchRate(from, to)
+            _uiState.update { s ->
+                val newRateState = result.fold(
+                    onSuccess = { RateState.Success(it) },
+                    onFailure = { RateState.Failed }
+                )
+                val prefilled = result.getOrNull()?.let { "%.4f".format(it) }
+                s.copy(
+                    conversionState = s.conversionState?.copy(
+                        rateState = newRateState,
+                        manualRateInput = prefilled ?: s.conversionState.manualRateInput
+                    )
+                )
+            }
+        }
+    }
+
+    fun onManualRateChanged(input: String) {
+        _uiState.update { s ->
+            s.copy(conversionState = s.conversionState?.copy(manualRateInput = input))
+        }
+    }
+
+    fun switchToManualEntry() {
+        _uiState.update { s ->
+            s.copy(conversionState = s.conversionState?.copy(isManualEntry = true))
+        }
+    }
+
+    fun confirmConvert() {
+        val state = _uiState.value.conversionState ?: return
+        val rate = if (state.rateState is RateState.Success && !state.isManualEntry) {
+            state.rateState.rate
+        } else {
+            state.manualRateInput.toDoubleOrNull() ?: return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(conversionState = it.conversionState?.copy(isConverting = true)) }
+            val result = currencyConversionUseCase.convertAllAmounts(rate)
+            if (result.isSuccess) {
+                preferencesManager.setCurrency(state.toCurrency)
+                _uiState.update { it.copy(conversionState = null) }
+                _events.emit(SettingsEvent.CurrencyConversionSuccess(state.toCurrency))
+            } else {
+                _uiState.update { it.copy(conversionState = it.conversionState?.copy(isConverting = false)) }
+                _events.emit(SettingsEvent.ShowError("Conversion failed. Please try again."))
+            }
+        }
+    }
+
+    fun skipConvert() {
+        val toCurrency = _uiState.value.conversionState?.toCurrency ?: return
+        viewModelScope.launch {
+            preferencesManager.setCurrency(toCurrency)
+            _uiState.update { it.copy(conversionState = null) }
+        }
+    }
+
+    fun dismissConversionDialog() {
+        _uiState.update { it.copy(conversionState = null) }
     }
 
     fun setCurrencySymbolAfter(after: Boolean) {
@@ -195,8 +278,25 @@ data class SettingsUiState(
     val isExportingExcel: Boolean = false,
     val isExportingPdf: Boolean = false,
     val isBackingUp: Boolean = false,
-    val isRestoring: Boolean = false
+    val isRestoring: Boolean = false,
+    val conversionState: CurrencyConversionUiState? = null
 )
+
+data class CurrencyConversionUiState(
+    val fromCurrency: String,
+    val toCurrency: String,
+    val transactionCount: Int,
+    val rateState: RateState = RateState.Loading,
+    val manualRateInput: String = "",
+    val isManualEntry: Boolean = false,
+    val isConverting: Boolean = false
+)
+
+sealed class RateState {
+    data object Loading : RateState()
+    data class Success(val rate: Double) : RateState()
+    data object Failed : RateState()
+}
 
 sealed class SettingsEvent {
     data class ExportSuccess(val type: String) : SettingsEvent()
@@ -204,4 +304,5 @@ sealed class SettingsEvent {
     data object RestoreSuccess : SettingsEvent()
     data class ShowPremiumRequired(val feature: String) : SettingsEvent()
     data class ShowError(val message: String) : SettingsEvent()
+    data class CurrencyConversionSuccess(val currency: String) : SettingsEvent()
 }

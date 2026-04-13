@@ -23,6 +23,9 @@
     <string name="button_copy">Copier</string>
     <string name="button_continue">Continuer</string>
     <string name="button_restore">Restaurer</string>
+    <string name="button_convert">Convertir</string>
+    <string name="button_keep_amounts">Conserver les montants originaux</string>
+    <string name="button_enter_rate_manually">Saisir le taux manuellement</string>
 
     <!-- Common Labels -->
     <string name="label_amount">Montant</string>
@@ -97,6 +100,15 @@
     <string name="dialog_select_currency">Sélectionner une devise</string>
     <string name="currency_search_hint">Rechercher une devise…</string>
     <string name="dialog_language_title">Langue</string>
+    <string name="dialog_convert_currency_title">Convertir les transactions existantes ?</string>
+    <string name="dialog_convert_currency_body">Vous avez %1$d transactions en %2$s. Voulez-vous convertir tous les montants en %3$s ?</string>
+    <string name="dialog_convert_rate_fetching">Récupération du taux de change…</string>
+    <string name="dialog_convert_rate_fetched">Taux récupéré automatiquement. Vous pouvez l\'ajuster si besoin :</string>
+    <string name="dialog_convert_rate_label">1 %1$s = %2$s %3$s</string>
+    <string name="dialog_convert_rate_failed">Impossible d\'obtenir le taux. Saisissez-le manuellement :</string>
+    <string name="dialog_convert_rate_tooltip">Indiquez combien de %2$s vous obtenez pour 1 %1$s. Par exemple, si 1 %1$s = 100 %2$s, saisissez 100.</string>
+    <string name="dialog_convert_rate_hint">Taux de change (ex. 0,92)</string>
+    <string name="dialog_convert_rate_retry">Réessayer</string>
 
     <!-- Settings Loading States -->
     <string name="loading_exporting">Exportation…</string>
@@ -107,6 +119,7 @@
     <string name="message_export_success">%s exporté avec succès</string>
     <string name="message_backup_success">Sauvegarde créée avec succès</string>
     <string name="message_restore_success">Données restaurées avec succès</string>
+    <string name="message_conversion_success">Tous les montants convertis en %s</string>
     <string name="message_premium_activated">Premium activé ! Toutes les fonctionnalités débloquées.</string>
 
     <!-- Premium Banner -->

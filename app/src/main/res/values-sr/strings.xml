@@ -23,6 +23,9 @@
     <string name="button_copy">Kopiraj</string>
     <string name="button_continue">Nastavi</string>
     <string name="button_restore">Vrati</string>
+    <string name="button_convert">Konvertuj</string>
+    <string name="button_keep_amounts">Zadrži originalne iznose</string>
+    <string name="button_enter_rate_manually">Unesi kurs ručno</string>
 
     <!-- Common Labels -->
     <string name="label_amount">Iznos</string>
@@ -97,6 +100,15 @@
     <string name="dialog_select_currency">Izaberi valutu</string>
     <string name="currency_search_hint">Pretraži valutu…</string>
     <string name="dialog_language_title">Jezik</string>
+    <string name="dialog_convert_currency_title">Konvertovati postojeće transakcije?</string>
+    <string name="dialog_convert_currency_body">Imate %1$d transakcija u %2$s. Želite li konvertovati sve iznose u %3$s?</string>
+    <string name="dialog_convert_rate_fetching">Preuzimanje kursa valuta…</string>
+    <string name="dialog_convert_rate_fetched">Kurs je automatski preuzet. Možete ga prilagoditi po potrebi:</string>
+    <string name="dialog_convert_rate_label">1 %1$s = %2$s %3$s</string>
+    <string name="dialog_convert_rate_failed">Nije moguće preuzeti kurs. Unesite ručno:</string>
+    <string name="dialog_convert_rate_tooltip">Unesite koliko %2$s dobijate za 1 %1$s. Na primer, ako je 1 %1$s = 100 %2$s, unesite 100.</string>
+    <string name="dialog_convert_rate_hint">Kurs razmene (npr. 0,92)</string>
+    <string name="dialog_convert_rate_retry">Pokušaj ponovo</string>
 
     <!-- Settings Loading States -->
     <string name="loading_exporting">Izvoženje…</string>
@@ -107,6 +119,7 @@
     <string name="message_export_success">%s je uspešno izvežen</string>
     <string name="message_backup_success">Rezervna kopija je uspešno napravljena</string>
     <string name="message_restore_success">Podaci su uspešno vraćeni</string>
+    <string name="message_conversion_success">Svi iznosi su konvertovani u %s</string>
     <string name="message_premium_activated">Premium aktiviran! Sve funkcije su otključane.</string>
 
     <!-- Premium Banner -->

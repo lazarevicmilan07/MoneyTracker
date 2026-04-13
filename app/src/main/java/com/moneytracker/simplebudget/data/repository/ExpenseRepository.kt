@@ -87,6 +87,12 @@ class ExpenseRepository @Inject constructor(
     suspend fun deleteAllExpenses() =
         expenseDao.deleteAllExpenses()
 
+    suspend fun getExpenseCount(): Int =
+        expenseDao.getExpenseCount()
+
+    suspend fun multiplyAllAmounts(rate: Double) =
+        expenseDao.multiplyAllAmounts(rate)
+
     fun getCategoryTotalsFlow(type: TransactionType, year: Int, month: Int): Flow<List<CategoryTotal>> {
         val startDate = LocalDate.of(year, month, 1)
         val endDate = startDate.plusMonths(1).minusDays(1)

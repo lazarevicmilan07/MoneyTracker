@@ -23,6 +23,9 @@
     <string name="button_copy">Kopieren</string>
     <string name="button_continue">Weiter</string>
     <string name="button_restore">Wiederherstellen</string>
+    <string name="button_convert">Konvertieren</string>
+    <string name="button_keep_amounts">Beträge beibehalten</string>
+    <string name="button_enter_rate_manually">Kurs manuell eingeben</string>
 
     <!-- Common Labels -->
     <string name="label_amount">Betrag</string>
@@ -97,6 +100,15 @@
     <string name="dialog_select_currency">Währung auswählen</string>
     <string name="currency_search_hint">Währung suchen…</string>
     <string name="dialog_language_title">Sprache</string>
+    <string name="dialog_convert_currency_title">Bestehende Transaktionen konvertieren?</string>
+    <string name="dialog_convert_currency_body">Du hast %1$d Transaktionen in %2$s. Möchtest du alle Beträge in %3$s umrechnen?</string>
+    <string name="dialog_convert_rate_fetching">Wechselkurs wird abgerufen…</string>
+    <string name="dialog_convert_rate_fetched">Kurs automatisch abgerufen. Du kannst ihn bei Bedarf anpassen:</string>
+    <string name="dialog_convert_rate_label">1 %1$s = %2$s %3$s</string>
+    <string name="dialog_convert_rate_failed">Kurs konnte nicht abgerufen werden. Manuell eingeben:</string>
+    <string name="dialog_convert_rate_tooltip">Gib an, wie viele %2$s du für 1 %1$s bekommst. Beispiel: Wenn 1 %1$s = 100 %2$s, gib 100 ein.</string>
+    <string name="dialog_convert_rate_hint">Wechselkurs (z.B. 0,92)</string>
+    <string name="dialog_convert_rate_retry">Erneut versuchen</string>
 
     <!-- Settings Loading States -->
     <string name="loading_exporting">Exportiere…</string>
@@ -107,6 +119,7 @@
     <string name="message_export_success">%s erfolgreich exportiert</string>
     <string name="message_backup_success">Backup erfolgreich erstellt</string>
     <string name="message_restore_success">Daten erfolgreich wiederhergestellt</string>
+    <string name="message_conversion_success">Alle Beträge wurden in %s umgerechnet</string>
     <string name="message_premium_activated">Premium aktiviert! Alle Funktionen freigeschaltet.</string>
 
     <!-- Premium Banner -->

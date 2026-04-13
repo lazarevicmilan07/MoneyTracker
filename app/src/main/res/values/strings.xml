@@ -23,6 +23,9 @@
     <string name="button_copy">Copy</string>
     <string name="button_continue">Continue</string>
     <string name="button_restore">Restore</string>
+    <string name="button_convert">Convert</string>
+    <string name="button_keep_amounts">Keep original amounts</string>
+    <string name="button_enter_rate_manually">Enter rate manually</string>
 
     <!-- Common Labels -->
     <string name="label_amount">Amount</string>
@@ -103,6 +106,15 @@
     <string name="dialog_select_currency">Select Currency</string>
     <string name="currency_search_hint">Search currency…</string>
     <string name="dialog_language_title">Language</string>
+    <string name="dialog_convert_currency_title">Convert existing transactions?</string>
+    <string name="dialog_convert_currency_body">You have %1$d transactions in %2$s. Would you like to convert all amounts to %3$s?</string>
+    <string name="dialog_convert_rate_fetching">Fetching exchange rate…</string>
+    <string name="dialog_convert_rate_fetched">Rate fetched automatically. You can adjust it if needed:</string>
+    <string name="dialog_convert_rate_label">1 %1$s = %2$s %3$s</string>
+    <string name="dialog_convert_rate_failed">Could not fetch rate. Enter manually:</string>
+    <string name="dialog_convert_rate_tooltip">Enter how many %2$s you get for 1 %1$s. For example, if 1 %1$s = 100 %2$s, enter 100.</string>
+    <string name="dialog_convert_rate_hint">Exchange rate (e.g. 0.92)</string>
+    <string name="dialog_convert_rate_retry">Retry</string>
 
     <!-- Settings Loading States -->
     <string name="loading_exporting">Exporting…</string>
@@ -113,6 +125,7 @@
     <string name="message_export_success">%s exported successfully</string>
     <string name="message_backup_success">Backup created successfully</string>
     <string name="message_restore_success">Data restored successfully</string>
+    <string name="message_conversion_success">All amounts converted to %s</string>
     <string name="message_premium_activated">Premium activated! All features unlocked.</string>
 
     <!-- Premium Banner -->

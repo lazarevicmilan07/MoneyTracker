@@ -73,6 +73,12 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses")
     suspend fun getAllExpensesSync(): List<ExpenseEntity>
+
+    @Query("SELECT COUNT(*) FROM expenses")
+    suspend fun getExpenseCount(): Int
+
+    @Query("UPDATE expenses SET amount = amount * :rate")
+    suspend fun multiplyAllAmounts(rate: Double)
 }
 
 data class CategoryTotal(
