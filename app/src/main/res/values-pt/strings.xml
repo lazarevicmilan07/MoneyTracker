@@ -10,6 +10,7 @@
     <string name="nav_accounts">Contas</string>
     <string name="nav_categories">Categorias</string>
     <string name="nav_settings">Configurações</string>
+    <string name="nav_budget">Orçamento</string>
 
     <!-- Common Buttons -->
     <string name="button_save">Salvar</string>
@@ -276,4 +277,32 @@
     <string name="stats_mode_list">Lista</string>
     <string name="stats_drill_hint">Toque num segmento para ver subcategorias</string>
     <string name="stats_no_subcategory">Sem detalhamento de subcategorias</string>
+    <string name="budget_toast_left">%1$s restante no orçamento</string>
+    <string name="budget_toast_over">Orçamento excedido em %1$s</string>
+    <string name="budget_saved">Orçamento salvo</string>
+    <string name="budget_deleted">Orçamento excluído</string>
+    <string name="budget_copied">Orçamento copiado</string>
+    <string name="budget_copy_title">Copiar orçamento</string>
+    <string name="budget_copy_period_question">Qual período a cópia deve usar?</string>
+    <string name="budget_copy_current">Período atual</string>
+    <string name="budget_copy_original">Período original</string>
+    <string name="budget_error_amount">Por favor, insira um valor maior que zero</string>
+    <string name="budget_error_category">Por favor, selecione uma categoria</string>
+    <string name="budget_error_duplicate">Já existe um orçamento para esta categoria e período</string>
+    <string name="budget_scope_title_create">Criar orçamento para:</string>
+    <string name="budget_scope_title_edit">Aplicar alterações a:</string>
+    <string name="budget_scope_this_month">Apenas este mês</string>
+    <string name="budget_scope_this_year">Apenas este ano</string>
+    <string name="budget_scope_this_and_before_months">Este mês e 12 meses anteriores</string>
+    <string name="budget_scope_this_and_before_years">Este ano e 5 anos anteriores</string>
+    <string name="budget_scope_all_months">Este mês, 12 meses anteriores e 12 meses seguintes</string>
+    <string name="budget_scope_all_years">Este ano, 5 anos anteriores e 5 anos seguintes</string>
+    <string name="budget_scope_this_and_future_months">Este mês e 12 meses futuros</string>
+    <string name="budget_scope_this_and_future_years">Este ano e 5 anos futuros</string>
+    <string name="budget_scope_this_and_3_before_months">Este mês e 3 meses anteriores</string>
+    <string name="budget_scope_this_and_6_before_months">Este mês e 6 meses anteriores</string>
+    <string name="budget_scope_this_and_3_future_months">Este mês e 3 meses futuros</string>
+    <string name="budget_scope_this_and_6_future_months">Este mês e 6 meses futuros</string>
+    <string name="budget_scope_this_and_3_before_years">Este ano e 3 anos anteriores</string>
+    <string name="budget_scope_this_and_3_future_years">Este ano e 3 anos futuros</string>
 </resources>

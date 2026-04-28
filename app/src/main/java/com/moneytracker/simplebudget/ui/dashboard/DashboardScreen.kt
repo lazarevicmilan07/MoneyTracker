@@ -123,8 +123,8 @@ import com.moneytracker.simplebudget.ui.theme.ExpenseRed
 import com.moneytracker.simplebudget.ui.theme.IncomeGreen
 import com.moneytracker.simplebudget.ui.theme.TransferBlue
 import com.moneytracker.simplebudget.ui.transaction.AccountChip
-import com.moneytracker.simplebudget.ui.transaction.CategoryListItem
-import com.moneytracker.simplebudget.ui.transaction.SubcategoryListItem
+import com.moneytracker.simplebudget.ui.components.CategoryListItem
+import com.moneytracker.simplebudget.ui.components.SubcategoryListItem
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

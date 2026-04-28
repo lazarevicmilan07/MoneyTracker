@@ -102,7 +102,28 @@
       "Bash(powershell.exe:*)",
       "Bash(JAVA_HOME=\"/c/Users/MilanLazarevic/.gradle/jdks/microsoft-17-amd64-windows.2\" ./gradlew assembleDebug)",
       "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" ./gradlew assembleDebug)",
-      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" grep:*)"
+      "Bash(JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\" grep:*)",
+      "Bash(claude *)",
+      "Bash(npm update *)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Java\\\\jdk-17\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; cd C:\\\\SideProjects\\\\CashFlow; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 80)",
+      "PowerShell(Get-Command *)",
+      "Bash(adb logcat *)",
+      "Bash(adb devices *)",
+      "Bash($ADB devices *)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; & \".\\\\gradlew.bat\" assembleDebug 2>&1 | Select-Object -Last 50)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; & \".\\\\gradlew.bat\" assembleDebug 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; & \".\\\\gradlew.bat\" assembleDebug 2>&1 | Select-Object -Last 15)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Eclipse Adoptium/jdk-17.0.14.7-hotspot\" ./gradlew assembleDebug)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-17.0.14.7-hotspot\"; .\\\\gradlew assembleDebug 2>&1 | Select-Object -Last 50)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\\\\Eclipse Adoptium\\\\\" -ErrorAction SilentlyContinue | Select-Object Name; Get-ChildItem \"C:\\\\Program Files\\\\Java\\\\\" -ErrorAction SilentlyContinue | Select-Object Name; [System.Environment]::GetEnvironmentVariable\\(\"JAVA_HOME\", \"Machine\"\\))",
+      "Read(//c//**)",
+      "Read(//mnt/**)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; .\\\\gradlew assembleDebug 2>&1 | Select-Object -Last 30)",
+      "Bash(Get-Content \"C:\\\\Users\\\\MilanLazarevic\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--SideProjects-CashFlow\\\\f564248c-d024-423d-9ea7-39a5f31011db\\\\tasks\\\\bjif7qc6b.output\" -Wait)",
+      "Bash(Select-String -Pattern \"BUILD|error:|warning:|FAILED|Exception\" --SimpleMatch)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; cd C:\\\\SideProjects\\\\CashFlow; .\\\\gradlew assembleDebug 2>&1 | Select-String -Pattern \"BUILD|error:|warning:|FAILURE|SUCCESSFUL\" | Select-Object -Last 30)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 50)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 20)"
     ]
   }
 }

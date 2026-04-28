@@ -1,7 +1,12 @@
 package com.moneytracker.simplebudget.ui.transaction
 
+import android.app.Activity
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
+import com.google.android.material.snackbar.Snackbar
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOut
@@ -89,11 +94,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.moneytracker.simplebudget.domain.model.BudgetWithProgress
 import com.moneytracker.simplebudget.domain.model.TransactionType
 import com.moneytracker.simplebudget.domain.model.Account
 import com.moneytracker.simplebudget.domain.model.Category
 import com.moneytracker.simplebudget.ui.components.CategoryIcon
+import com.moneytracker.simplebudget.ui.components.CategorySelectionPanel
 import com.moneytracker.simplebudget.ui.components.formatAmountInput
+import com.moneytracker.simplebudget.ui.components.formatCurrency
 import com.moneytracker.simplebudget.ui.components.formatNumber
 import com.moneytracker.simplebudget.ui.components.getCurrencySymbol
 import com.moneytracker.simplebudget.ui.theme.ExpenseRed
@@ -123,6 +131,7 @@ fun TransactionScreen(
     val availableSubcategories by viewModel.availableSubcategories.collectAsState()
     val allCategories by viewModel.categories.collectAsState()
     val accounts by viewModel.accounts.collectAsState()
+    val budgetHint by viewModel.budgetHint.collectAsState()
     val context = LocalContext.current
 
     val categoryDisplayText = remember(uiState.selectedParentCategoryId, uiState.selectedCategoryId, allCategories) {
@@ -172,6 +181,32 @@ fun TransactionScreen(
                 }
                 is TransactionEvent.ShowError -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
+                is TransactionEvent.BudgetAlert -> {
+                    val msg = if (event.isOver)
+                        context.getString(R.string.budget_toast_over, formatCurrency(-event.remaining, currency, symbolAfter))
+                    else
+                        context.getString(R.string.budget_toast_left, formatCurrency(event.remaining, currency, symbolAfter))
+                    val bgColor = when {
+                        event.isOver -> 0xFFB71C1C.toInt()
+                        event.percentage >= 0.7f -> 0xFFE65100.toInt()
+                        else -> 0xFF1B5E20.toInt()
+                    }
+                    val rootView = (context as? Activity)
+                        ?.window?.decorView?.findViewById<View>(android.R.id.content)
+                    if (rootView != null) {
+                        val snackbar = Snackbar.make(rootView, msg, Snackbar.LENGTH_LONG)
+                        snackbar.setBackgroundTint(bgColor)
+                        snackbar.setTextColor(android.graphics.Color.WHITE)
+                        val params = snackbar.view.layoutParams as? ViewGroup.MarginLayoutParams
+                        if (params != null) {
+                            params.bottomMargin = (80 * context.resources.displayMetrics.density).toInt()
+                            snackbar.view.layoutParams = params
+                        }
+                        snackbar.show()
+                    } else {
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
@@ -244,6 +279,13 @@ fun TransactionScreen(
                     typeColor = typeColor,
                     isActive = uiState.currentField == TransactionField.AMOUNT,
                     onClick = { viewModel.setCurrentField(TransactionField.AMOUNT) },
+                    symbolAfter = symbolAfter
+                )
+
+                // Budget hint
+                BudgetHintRow(
+                    budgetHint = budgetHint,
+                    currency = currency,
                     symbolAfter = symbolAfter
                 )
 
@@ -363,7 +405,7 @@ fun TransactionScreen(
 }
 
 @Composable
-private fun HeroAmountDisplay(
+fun HeroAmountDisplay(
     amount: String,
     currency: String,
     typeColor: Color,
@@ -948,191 +990,6 @@ fun AccountChip(
 }
 
 @Composable
-fun CategorySelectionPanel(
-    categories: List<Category>,
-    allCategories: List<Category>,
-    selectedParentCategoryId: Long?,
-    subcategories: List<Category>,
-    selectedSubcategoryId: Long?,
-    onCategorySelected: (Long) -> Unit,
-    onSubcategorySelected: (Long) -> Unit,
-    onParentSelected: () -> Unit,
-    onClose: () -> Unit,
-    onEditCategories: (() -> Unit)? = null
-) {
-    val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-    val typeColor = ExpenseRed
-
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.label_category),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Row {
-                IconButton(onClick = { onEditCategories?.invoke() }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(20.dp))
-                }
-                IconButton(onClick = onClose) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(20.dp))
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Two-column grid with borders
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, borderColor),
-            color = Color.Transparent
-        ) {
-            val maxRows = maxOf(categories.size, subcategories.size)
-            val contentHeight = (maxRows * 49).dp // 48dp row + 1dp divider
-
-            Row(modifier = Modifier.heightIn(max = 300.dp)) {
-                // Left column - Parent categories with right border
-                Box(modifier = Modifier.weight(1f)) {
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(categories) { category ->
-                            val isSelected = category.id == selectedParentCategoryId
-                            val hasSubcategories = allCategories.any { it.parentCategoryId == category.id }
-
-                            CategoryListItem(
-                                category = category,
-                                isSelected = isSelected,
-                                onClick = {
-                                    if (isSelected) {
-                                        onParentSelected()
-                                    } else {
-                                        onCategorySelected(category.id)
-                                    }
-                                },
-                                showArrow = hasSubcategories,
-                                typeColor = typeColor
-                            )
-                            HorizontalDivider(thickness = 1.dp, color = borderColor)
-                        }
-                    }
-                    // Vertical divider on right edge - only covers content rows
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .width(1.dp)
-                            .height(contentHeight)
-                            .background(borderColor)
-                    )
-                }
-
-                // Right column - Subcategories
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(subcategories) { subcategory ->
-                        SubcategoryListItem(
-                            subcategory = subcategory,
-                            isSelected = subcategory.id == selectedSubcategoryId,
-                            onClick = { onSubcategorySelected(subcategory.id) }
-                        )
-                        HorizontalDivider(thickness = 1.dp, color = borderColor)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CategoryListItem(
-    category: Category,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    showArrow: Boolean = false,
-    typeColor: Color = Color.Transparent
-) {
-    val bgColor by animateColorAsState(
-        targetValue = if (isSelected) typeColor.copy(alpha = 0.1f) else Color.Transparent,
-        label = "cat_bg"
-    )
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(bgColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        CategoryIcon(
-            icon = category.icon,
-            color = category.color,
-            size = 28.dp,
-            iconSize = 16.dp
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = category.name,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) typeColor else MaterialTheme.colorScheme.onSurface
-        )
-        if (showArrow) {
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = if (isSelected) typeColor.copy(alpha = 0.6f)
-                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-            )
-        }
-    }
-}
-
-@Composable
-fun SubcategoryListItem(
-    subcategory: Category,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val bgColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent,
-        label = "subcat_bg"
-    )
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(bgColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        CategoryIcon(
-            icon = subcategory.icon,
-            color = subcategory.color,
-            size = 28.dp,
-            iconSize = 16.dp
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = subcategory.name,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
 fun AmountInputPanel(
     typeColor: Color,
     onDigit: (String) -> Unit,
@@ -1394,5 +1251,56 @@ fun DatePickerDialog(
         }
     ) {
         DatePicker(state = datePickerState)
+    }
+}
+
+@Composable
+private fun BudgetHintRow(
+    budgetHint: BudgetWithProgress?,
+    currency: String,
+    symbolAfter: Boolean
+) {
+    AnimatedVisibility(visible = budgetHint != null) {
+        val hint = budgetHint ?: return@AnimatedVisibility
+        val isOver = hint.remaining < 0
+        val isWarning = !isOver && hint.percentage >= 0.7f
+        val hintColor = when {
+            isOver -> ExpenseRed
+            isWarning -> Color(0xFFFFA726)
+            else -> IncomeGreen
+        }
+
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            shape = RoundedCornerShape(10.dp),
+            color = hintColor.copy(alpha = 0.1f)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val icon = when {
+                    isOver -> "⚠️"
+                    isWarning -> "⚡"
+                    else -> "✓"
+                }
+                Text(icon, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.width(8.dp))
+                val amountText = formatCurrency(
+                    if (isOver) -hint.remaining else hint.remaining,
+                    currency,
+                    symbolAfter
+                )
+                val message = if (isOver) "$amountText over budget" else "$amountText left in budget"
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = hintColor,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }

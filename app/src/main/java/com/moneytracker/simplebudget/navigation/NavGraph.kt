@@ -18,6 +18,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.moneytracker.simplebudget.ui.accounts.AccountsScreen
+import com.moneytracker.simplebudget.ui.budget.BudgetFormScreen
+import com.moneytracker.simplebudget.ui.budget.BudgetScreen
+import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.ui.categories.CategoriesScreen
 import com.moneytracker.simplebudget.ui.dashboard.DashboardScreen
 import com.moneytracker.simplebudget.ui.dashboard.DashboardViewModel
@@ -32,10 +35,11 @@ private fun getNavBarIndex(route: String?): Int {
     return when {
         route == null -> -1
         route == Screen.Dashboard.route -> 0
-        route == Screen.Stats.route -> 1
-        route == Screen.Accounts.route -> 2
-        route == Screen.Categories.route -> 3
-        route == Screen.Settings.route -> 4
+        route == Screen.Budget.route -> 1
+        route == Screen.Stats.route -> 2
+        route == Screen.Accounts.route -> 3
+        route == Screen.Categories.route -> 4
+        route == Screen.Settings.route -> 5
         else -> -1 // Non-nav-bar screens default to -1
     }
 }
@@ -44,6 +48,7 @@ private fun isNavBarRoute(route: String?): Boolean = getNavBarIndex(route) >= 0
 
 sealed class Screen(val route: String) {
     data object Dashboard : Screen("dashboard")
+    data object Budget : Screen("budget")
     data object Stats : Screen("stats")
     data object AddTransaction : Screen("add_transaction")
     data object EditTransaction : Screen("edit_transaction/{expenseId}") {
@@ -61,6 +66,14 @@ sealed class Screen(val route: String) {
     }
     data object AccountsFromTransaction : Screen("accounts_from_transaction")
     data object CategoriesFromTransaction : Screen("categories_from_transaction")
+    data object BudgetForm : Screen("budget_form?budgetId={budgetId}&year={year}&month={month}&period={period}") {
+        fun createRoute(budgetId: Long = 0L, year: Int, month: Int, period: BudgetPeriod) =
+            "budget_form?budgetId=$budgetId&year=$year&month=$month&period=${period.name}"
+    }
+    data object CopyBudgetForm : Screen("copy_budget_form/{copyFromBudgetId}/{useCurrent}?year={year}&month={month}&period={period}") {
+        fun createRoute(copyFromBudgetId: Long, useCurrent: Boolean, year: Int, month: Int, period: BudgetPeriod) =
+            "copy_budget_form/$copyFromBudgetId/$useCurrent?year=$year&month=$month&period=${period.name}"
+    }
 }
 
 @Composable
@@ -229,6 +242,52 @@ fun NavGraph(
             val currency by dashboardViewModel.currency.collectAsState()
             val symbolAfter by dashboardViewModel.currencySymbolAfter.collectAsState()
             StatsScreen(currency = currency, symbolAfter = symbolAfter)
+        }
+
+        composable(Screen.Budget.route) {
+            BudgetScreen(
+                onShowPremium = { navController.navigate(Screen.Premium.route) },
+                onNavigateToForm = { budgetId, year, month, period ->
+                    navController.navigate(Screen.BudgetForm.createRoute(budgetId, year, month, period))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.BudgetForm.route,
+            arguments = listOf(
+                navArgument("budgetId") { type = NavType.LongType; defaultValue = 0L },
+                navArgument("year") { type = NavType.IntType; defaultValue = java.time.YearMonth.now().year },
+                navArgument("month") { type = NavType.IntType; defaultValue = java.time.YearMonth.now().monthValue },
+                navArgument("period") { type = NavType.StringType; defaultValue = BudgetPeriod.MONTHLY.name }
+            )
+        ) { backStackEntry ->
+            val year = backStackEntry.arguments?.getInt("year") ?: java.time.YearMonth.now().year
+            val month = backStackEntry.arguments?.getInt("month") ?: java.time.YearMonth.now().monthValue
+            val period = BudgetPeriod.valueOf(backStackEntry.arguments?.getString("period") ?: BudgetPeriod.MONTHLY.name)
+            BudgetFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onCopyBudget = { copyFromBudgetId, useCurrent ->
+                    navController.navigate(
+                        Screen.CopyBudgetForm.createRoute(copyFromBudgetId, useCurrent, year, month, period)
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = Screen.CopyBudgetForm.route,
+            arguments = listOf(
+                navArgument("copyFromBudgetId") { type = NavType.LongType },
+                navArgument("useCurrent") { type = NavType.BoolType },
+                navArgument("year") { type = NavType.IntType; defaultValue = java.time.YearMonth.now().year },
+                navArgument("month") { type = NavType.IntType; defaultValue = java.time.YearMonth.now().monthValue },
+                navArgument("period") { type = NavType.StringType; defaultValue = BudgetPeriod.MONTHLY.name }
+            )
+        ) {
+            BudgetFormScreen(
+                onNavigateBack = { navController.popBackStack(Screen.Budget.route, inclusive = false) }
+            )
         }
     }
 }

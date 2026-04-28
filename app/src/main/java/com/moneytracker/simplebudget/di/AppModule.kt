@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.moneytracker.simplebudget.data.local.ExpenseDatabase
 import com.moneytracker.simplebudget.data.local.dao.AccountDao
+import com.moneytracker.simplebudget.data.local.dao.BudgetDao
 import com.moneytracker.simplebudget.data.local.dao.CategoryDao
 import com.moneytracker.simplebudget.data.local.dao.ExpenseDao
 import dagger.Module
@@ -33,7 +34,12 @@ object AppModule {
                 ExpenseDatabase.MIGRATION_3_4,
                 ExpenseDatabase.MIGRATION_4_5,
                 ExpenseDatabase.MIGRATION_5_6,
-                ExpenseDatabase.MIGRATION_6_7
+                ExpenseDatabase.MIGRATION_6_7,
+                ExpenseDatabase.MIGRATION_7_8,
+                ExpenseDatabase.MIGRATION_8_9,
+                ExpenseDatabase.MIGRATION_9_10,
+                ExpenseDatabase.MIGRATION_10_11,
+                ExpenseDatabase.MIGRATION_11_12
             )
             .build()
     }
@@ -54,5 +60,11 @@ object AppModule {
     @Singleton
     fun provideAccountDao(database: ExpenseDatabase): AccountDao {
         return database.accountDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBudgetDao(database: ExpenseDatabase): BudgetDao {
+        return database.budgetDao()
     }
 }

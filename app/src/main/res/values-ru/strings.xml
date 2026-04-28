@@ -10,6 +10,7 @@
     <string name="nav_accounts">Счета</string>
     <string name="nav_categories">Категории</string>
     <string name="nav_settings">Настройки</string>
+    <string name="nav_budget">Бюджет</string>
 
     <!-- Common Buttons -->
     <string name="button_save">Сохранить</string>
@@ -276,4 +277,32 @@
     <string name="stats_mode_list">Список</string>
     <string name="stats_drill_hint">Нажмите на сегмент для подкатегорий</string>
     <string name="stats_no_subcategory">Нет данных по подкатегориям</string>
+    <string name="budget_toast_left">%1$s осталось в бюджете</string>
+    <string name="budget_toast_over">Бюджет превышен на %1$s</string>
+    <string name="budget_saved">Бюджет сохранён</string>
+    <string name="budget_deleted">Бюджет удалён</string>
+    <string name="budget_copied">Бюджет скопирован</string>
+    <string name="budget_copy_title">Копировать бюджет</string>
+    <string name="budget_copy_period_question">Какой период использовать для копии?</string>
+    <string name="budget_copy_current">Текущий период</string>
+    <string name="budget_copy_original">Исходный период</string>
+    <string name="budget_error_amount">Пожалуйста, введите сумму больше нуля</string>
+    <string name="budget_error_category">Пожалуйста, выберите категорию</string>
+    <string name="budget_error_duplicate">Бюджет для этой категории и периода уже существует</string>
+    <string name="budget_scope_title_create">Создать бюджет для:</string>
+    <string name="budget_scope_title_edit">Применить изменения к:</string>
+    <string name="budget_scope_this_month">Только этот месяц</string>
+    <string name="budget_scope_this_year">Только этот год</string>
+    <string name="budget_scope_this_and_before_months">Этот месяц и 12 предыдущих месяцев</string>
+    <string name="budget_scope_this_and_before_years">Этот год и 5 предыдущих лет</string>
+    <string name="budget_scope_all_months">Этот месяц, 12 предыдущих и 12 следующих месяцев</string>
+    <string name="budget_scope_all_years">Этот год, 5 предыдущих и 5 следующих лет</string>
+    <string name="budget_scope_this_and_future_months">Этот месяц и 12 будущих месяцев</string>
+    <string name="budget_scope_this_and_future_years">Этот год и 5 будущих лет</string>
+    <string name="budget_scope_this_and_3_before_months">Этот месяц и 3 предыдущих месяца</string>
+    <string name="budget_scope_this_and_6_before_months">Этот месяц и 6 предыдущих месяцев</string>
+    <string name="budget_scope_this_and_3_future_months">Этот месяц и 3 будущих месяца</string>
+    <string name="budget_scope_this_and_6_future_months">Этот месяц и 6 будущих месяцев</string>
+    <string name="budget_scope_this_and_3_before_years">Этот год и 3 предыдущих года</string>
+    <string name="budget_scope_this_and_3_future_years">Этот год и 3 будущих года</string>
 </resources>

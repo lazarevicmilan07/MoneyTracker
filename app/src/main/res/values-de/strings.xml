@@ -10,6 +10,7 @@
     <string name="nav_accounts">Konten</string>
     <string name="nav_categories">Kategorien</string>
     <string name="nav_settings">Einstellungen</string>
+    <string name="nav_budget">Budget</string>
 
     <!-- Common Buttons -->
     <string name="button_save">Speichern</string>
@@ -276,4 +277,32 @@
     <string name="stats_mode_list">Liste</string>
     <string name="stats_drill_hint">Segment antippen für Unterkategorien</string>
     <string name="stats_no_subcategory">Keine Unterkategorien verfügbar</string>
+    <string name="budget_toast_left">%1$s im Budget verbleibend</string>
+    <string name="budget_toast_over">Budget um %1$s überschritten</string>
+    <string name="budget_saved">Budget gespeichert</string>
+    <string name="budget_deleted">Budget gelöscht</string>
+    <string name="budget_copied">Budget kopiert</string>
+    <string name="budget_copy_title">Budget kopieren</string>
+    <string name="budget_copy_period_question">Welchen Zeitraum soll die Kopie verwenden?</string>
+    <string name="budget_copy_current">Aktueller Zeitraum</string>
+    <string name="budget_copy_original">Ursprünglicher Zeitraum</string>
+    <string name="budget_error_amount">Bitte gib einen Betrag größer als null ein</string>
+    <string name="budget_error_category">Bitte wähle eine Kategorie aus</string>
+    <string name="budget_error_duplicate">Für diese Kategorie und diesen Zeitraum existiert bereits ein Budget</string>
+    <string name="budget_scope_title_create">Budget erstellen für:</string>
+    <string name="budget_scope_title_edit">Änderungen anwenden auf:</string>
+    <string name="budget_scope_this_month">Nur diesen Monat</string>
+    <string name="budget_scope_this_year">Nur dieses Jahr</string>
+    <string name="budget_scope_this_and_before_months">Diesen Monat und 12 vorherige Monate</string>
+    <string name="budget_scope_this_and_before_years">Dieses Jahr und 5 vorherige Jahre</string>
+    <string name="budget_scope_all_months">Diesen Monat, 12 vorherige und 12 nachfolgende Monate</string>
+    <string name="budget_scope_all_years">Dieses Jahr, 5 vorherige und 5 nachfolgende Jahre</string>
+    <string name="budget_scope_this_and_future_months">Diesen Monat und 12 zukünftige Monate</string>
+    <string name="budget_scope_this_and_future_years">Dieses Jahr und 5 zukünftige Jahre</string>
+    <string name="budget_scope_this_and_3_before_months">Diesen Monat und 3 Monate davor</string>
+    <string name="budget_scope_this_and_6_before_months">Diesen Monat und 6 Monate davor</string>
+    <string name="budget_scope_this_and_3_future_months">Diesen Monat und 3 zukünftige Monate</string>
+    <string name="budget_scope_this_and_6_future_months">Diesen Monat und 6 zukünftige Monate</string>
+    <string name="budget_scope_this_and_3_before_years">Dieses Jahr und 3 vorherige Jahre</string>
+    <string name="budget_scope_this_and_3_future_years">Dieses Jahr und 3 zukünftige Jahre</string>
 </resources>

@@ -6,9 +6,11 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.moneytracker.simplebudget.data.local.dao.AccountDao
+import com.moneytracker.simplebudget.data.local.dao.BudgetDao
 import com.moneytracker.simplebudget.data.local.dao.CategoryDao
 import com.moneytracker.simplebudget.data.local.dao.ExpenseDao
 import com.moneytracker.simplebudget.data.local.entity.AccountEntity
+import com.moneytracker.simplebudget.data.local.entity.BudgetEntity
 import com.moneytracker.simplebudget.data.local.entity.CategoryEntity
 import com.moneytracker.simplebudget.data.local.entity.ExpenseEntity
 
@@ -16,9 +18,10 @@ import com.moneytracker.simplebudget.data.local.entity.ExpenseEntity
     entities = [
         ExpenseEntity::class,
         CategoryEntity::class,
-        AccountEntity::class
+        AccountEntity::class,
+        BudgetEntity::class
     ],
-    version = 7,
+    version = 12,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -26,6 +29,7 @@ abstract class ExpenseDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
     abstract fun categoryDao(): CategoryDao
     abstract fun accountDao(): AccountDao
+    abstract fun budgetDao(): BudgetDao
 
     companion object {
         const val DATABASE_NAME = "expense_tracker.db"
@@ -114,6 +118,72 @@ abstract class ExpenseDatabase : RoomDatabase() {
                         SELECT id FROM categories WHERE name IN ('Salary','Investment') AND parentCategoryId IS NULL
                     )
                 """)
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS budgets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        categoryId INTEGER,
+                        subcategoryId INTEGER DEFAULT NULL,
+                        amount REAL NOT NULL,
+                        period TEXT NOT NULL DEFAULT 'MONTHLY',
+                        isActive INTEGER NOT NULL DEFAULT 1,
+                        createdAt INTEGER NOT NULL
+                    )
+                """)
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_budgets_categoryId ON budgets(categoryId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_budgets_subcategoryId ON budgets(subcategoryId)")
+            }
+        }
+
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                val currentYear = java.time.LocalDate.now().year
+                val currentMonth = java.time.LocalDate.now().monthValue
+                database.execSQL("ALTER TABLE budgets ADD COLUMN year INTEGER NOT NULL DEFAULT $currentYear")
+                database.execSQL("ALTER TABLE budgets ADD COLUMN month INTEGER DEFAULT NULL")
+                database.execSQL("UPDATE budgets SET month = $currentMonth WHERE period = 'MONTHLY'")
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE budgets ADD COLUMN isRecurring INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE budgets ADD COLUMN groupId TEXT DEFAULT NULL")
+            }
+        }
+
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `budgets_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `categoryId` INTEGER,
+                        `subcategoryId` INTEGER,
+                        `amount` REAL NOT NULL,
+                        `period` TEXT NOT NULL,
+                        `year` INTEGER NOT NULL,
+                        `month` INTEGER,
+                        `isActive` INTEGER NOT NULL,
+                        `createdAt` INTEGER NOT NULL
+                    )
+                """.trimIndent())
+                database.execSQL("""
+                    INSERT INTO `budgets_new` (id, categoryId, subcategoryId, amount, period, year, month, isActive, createdAt)
+                    SELECT id, categoryId, subcategoryId, amount, period, year, month, isActive, createdAt FROM budgets
+                """.trimIndent())
+                database.execSQL("DROP TABLE budgets")
+                database.execSQL("ALTER TABLE budgets_new RENAME TO budgets")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_budgets_categoryId` ON `budgets` (`categoryId`)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS `index_budgets_subcategoryId` ON `budgets` (`subcategoryId`)")
             }
         }
     }

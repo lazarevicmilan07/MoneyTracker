@@ -7,12 +7,15 @@ import com.moneytracker.simplebudget.domain.model.CategoryType
 import com.moneytracker.simplebudget.domain.model.TransactionType
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.repository.AccountRepository
+import com.moneytracker.simplebudget.data.repository.BudgetRepository
 import com.moneytracker.simplebudget.data.repository.CategoryRepository
 import com.moneytracker.simplebudget.data.repository.ExpenseRepository
 import com.moneytracker.simplebudget.domain.model.Account
+import com.moneytracker.simplebudget.domain.model.BudgetWithProgress
 import com.moneytracker.simplebudget.domain.model.Category
 import com.moneytracker.simplebudget.domain.model.Expense
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +25,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -38,11 +43,13 @@ enum class TransactionField {
     NOTE
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
     private val accountRepository: AccountRepository,
+    private val budgetRepository: BudgetRepository,
     preferencesManager: PreferencesManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -95,6 +102,22 @@ class TransactionViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<TransactionEvent>()
     val events = _events.asSharedFlow()
+
+    val budgetHint: StateFlow<BudgetWithProgress?> = _uiState.flatMapLatest { state ->
+        if (state.transactionType != TransactionType.EXPENSE) {
+            flowOf(null)
+        } else {
+            val categoryId = state.selectedParentCategoryId
+            val subcategoryId = state.selectedCategoryId?.takeIf { it != categoryId }
+            val now = LocalDate.now()
+            budgetRepository.getBudgetProgressForCategory(
+                categoryId = categoryId,
+                subcategoryId = subcategoryId,
+                year = now.year,
+                month = now.monthValue
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
         if (copyFromId != null) {
@@ -472,6 +495,18 @@ class TransactionViewModel @Inject constructor(
                 } else {
                     expenseRepository.insertExpense(expense)
                 }
+
+                if (state.transactionType == TransactionType.EXPENSE) {
+                    val categoryId = parentId ?: childId
+                    val subcategoryId = if (hasSubcategory) childId else null
+                    val now = LocalDate.now()
+                    val progress = budgetRepository
+                        .getBudgetProgressForCategory(categoryId, subcategoryId, now.year, now.monthValue)
+                        .first()
+                    if (progress != null) {
+                        _events.emit(TransactionEvent.BudgetAlert(progress.remaining, progress.remaining < 0, progress.percentage))
+                    }
+                }
             }
 
             if (andContinue) {
@@ -526,4 +561,5 @@ sealed class TransactionEvent {
     data object TransactionSavedAndContinue : TransactionEvent()
     data object TransactionDeleted : TransactionEvent()
     data class ShowError(val message: String) : TransactionEvent()
+    data class BudgetAlert(val remaining: Double, val isOver: Boolean, val percentage: Float) : TransactionEvent()
 }

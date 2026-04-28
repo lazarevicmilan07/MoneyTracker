@@ -43,6 +43,13 @@ interface ExpenseDao {
     fun getCategoryTotalsFlow(type: TransactionType, startDate: Long, endDate: Long): Flow<List<CategoryTotal>>
 
     @Query("""
+        SELECT subcategoryId as categoryId, SUM(amount) as total FROM expenses
+        WHERE type = :type AND subcategoryId IS NOT NULL AND date BETWEEN :startDate AND :endDate
+        GROUP BY subcategoryId
+    """)
+    fun getSubcategoryTotalsFlow(type: TransactionType, startDate: Long, endDate: Long): Flow<List<CategoryTotal>>
+
+    @Query("""
         SELECT strftime('%m', date / 1000, 'unixepoch', 'localtime') as month,
                type,
                SUM(amount) as total

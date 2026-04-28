@@ -3,10 +3,13 @@ package com.moneytracker.simplebudget.data.mapper
 import androidx.compose.ui.graphics.Color
 import com.moneytracker.simplebudget.data.local.entity.AccountEntity
 import com.moneytracker.simplebudget.data.local.entity.AccountWithBalanceEntity
+import com.moneytracker.simplebudget.data.local.entity.BudgetEntity
 import com.moneytracker.simplebudget.data.local.entity.CategoryEntity
 import com.moneytracker.simplebudget.data.local.entity.ExpenseEntity
 import com.moneytracker.simplebudget.domain.model.Account
 import com.moneytracker.simplebudget.domain.model.AccountWithBalance
+import com.moneytracker.simplebudget.domain.model.Budget
+import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.domain.model.Category
 import com.moneytracker.simplebudget.domain.model.CategoryType
 import com.moneytracker.simplebudget.domain.model.Expense
@@ -89,4 +92,30 @@ fun Account.toEntity(): AccountEntity = AccountEntity(
 fun AccountWithBalanceEntity.toDomain(): AccountWithBalance = AccountWithBalance(
     account = account.toDomain(),
     currentBalance = currentBalance
+)
+
+fun BudgetEntity.toDomain(): Budget = Budget(
+    id = id,
+    categoryId = categoryId,
+    subcategoryId = subcategoryId,
+    amount = amount,
+    period = BudgetPeriod.valueOf(period),
+    year = year,
+    month = month,
+    isActive = isActive,
+    createdAt = createdAt,
+    groupId = groupId
+)
+
+fun Budget.toEntity(): BudgetEntity = BudgetEntity(
+    id = id,
+    categoryId = categoryId,
+    subcategoryId = subcategoryId,
+    amount = amount,
+    period = period.name,
+    year = year,
+    month = month,
+    isActive = isActive,
+    createdAt = createdAt,
+    groupId = groupId
 )

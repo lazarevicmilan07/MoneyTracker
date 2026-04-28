@@ -10,6 +10,7 @@
     <string name="nav_accounts">Računi</string>
     <string name="nav_categories">Kategorije</string>
     <string name="nav_settings">Podešavanja</string>
+    <string name="nav_budget">Budžet</string>
 
     <!-- Common Buttons -->
     <string name="button_save">Sačuvaj</string>
@@ -276,4 +277,34 @@
     <string name="stats_mode_list">Lista</string>
     <string name="stats_drill_hint">Tapnite deo za prikaz potkategorija</string>
     <string name="stats_no_subcategory">Nema podataka po potkategorijama</string>
+    <string name="budget_toast_left">%1$s preostalo u budžetu</string>
+    <string name="budget_toast_over">Budžet prekoračen za %1$s</string>
+    <string name="budget_saved">Budžet sačuvan</string>
+    <string name="budget_deleted">Budžet obrisan</string>
+    <string name="budget_copied">Budžet kopiran</string>
+    <string name="budget_copy_title">Kopiraj budžet</string>
+    <string name="budget_copy_period_question">Koji period treba da koristi kopija?</string>
+    <string name="budget_copy_current">Trenutni period</string>
+    <string name="budget_copy_original">Originalni period</string>
+    <string name="budget_error_amount">Molimo unesite iznos veći od nule</string>
+    <string name="budget_error_category">Molimo izaberite kategoriju</string>
+    <string name="budget_error_duplicate">Budžet za ovu kategoriju i period već postoji</string>
+    <string name="budget_scope_title_create">Kreiraj budžet za:</string>
+    <string name="budget_scope_title_edit">Primeni izmene na:</string>
+    <string name="budget_scope_this_month">Samo ovaj mesec</string>
+    <string name="budget_scope_this_year">Samo ovu godinu</string>
+    <string name="budget_scope_this_and_before_months">Ovaj mesec i 12 prethodnih meseci</string>
+    <string name="budget_scope_this_and_before_years">Ovu godinu i 5 prethodnih godina</string>
+    <string name="budget_scope_all_months">Ovaj mesec, 12 prethodnih i 12 narednih meseci</string>
+    <string name="budget_scope_all_years">Ovu godinu, 5 prethodnih i 5 narednih godina</string>
+    <string name="budget_scope_this_and_future_months">Ovaj mesec i 12 budućih meseci</string>
+    <string name="budget_scope_this_and_future_years">Ovu godinu i 5 budućih godina</string>
+    <string name="budget_scope_this_and_3_before_months">Ovaj mesec i 3 prethodna meseca</string>
+    <string name="budget_scope_this_and_6_before_months">Ovaj mesec i 6 prethodnih meseci</string>
+    <string name="budget_scope_this_and_3_future_months">Ovaj mesec i 3 buduća meseca</string>
+    <string name="budget_scope_this_and_6_future_months">Ovaj mesec i 6 budućih meseci</string>
+    <string name="budget_scope_this_and_3_before_years">Ovu godinu i 3 prethodne godine</string>
+    <string name="budget_scope_this_and_3_future_years">Ovu godinu i 3 buduće godine</string>
+    <string name="label_period">Period</string>
+    <string name="budget_add_period">Dodaj</string>
 </resources>

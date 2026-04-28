@@ -34,11 +34,13 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ripple
@@ -113,6 +115,12 @@ sealed class BottomNavItem(
         Icons.Filled.Receipt,
         Icons.Outlined.Receipt,
         Screen.Dashboard.route
+    )
+    data object Budget : BottomNavItem(
+        R.string.nav_budget,
+        Icons.Filled.Savings,
+        Icons.Outlined.Savings,
+        Screen.Budget.route
     )
     data object Stats : BottomNavItem(
         R.string.nav_stats,
@@ -349,6 +357,7 @@ class MainActivity : ComponentActivity() {
 
                     val bottomNavItems = listOf(
                         BottomNavItem.Records,
+                        BottomNavItem.Budget,
                         BottomNavItem.Stats,
                         BottomNavItem.Accounts,
                         BottomNavItem.Categories,
@@ -358,6 +367,7 @@ class MainActivity : ComponentActivity() {
                     // Main nav destinations where bottom nav should be visible
                     val mainNavRoutes = listOf(
                         Screen.Dashboard.route,
+                        Screen.Budget.route,
                         Screen.Stats.route,
                         Screen.Accounts.route,
                         Screen.Categories.route,
