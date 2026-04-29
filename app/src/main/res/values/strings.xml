@@ -244,9 +244,12 @@
     <string name="onboarding_page3_title">Stay Organized</string>
     <string name="onboarding_page3_subtitle">Accounts &amp; categories</string>
     <string name="onboarding_page3_description">Create multiple accounts and custom categories to organize your finances your way. Tag every transaction for a clear financial picture.</string>
-    <string name="onboarding_page4_title">Your Data, Safe</string>
-    <string name="onboarding_page4_subtitle">Export &amp; backup</string>
-    <string name="onboarding_page4_description">Export your records as Excel or PDF. Backup and restore your data anytime so you never lose track of your financial history.</string>
+    <string name="onboarding_page4_title">Stay on Budget</string>
+    <string name="onboarding_page4_subtitle">Smart spending limits</string>
+    <string name="onboarding_page4_description">Set monthly or yearly budgets for individual categories or your overall spending. Track progress in real time and know exactly where you stand before the month ends.</string>
+    <string name="onboarding_page5_title">Your Data, Safe</string>
+    <string name="onboarding_page5_subtitle">Export &amp; backup</string>
+    <string name="onboarding_page5_description">Export your records as Excel or PDF. Backup and restore your data anytime so you never lose track of your financial history.</string>
 
     <!-- Premium Screen -->
     <string name="premium_title">Unlock Premium</string>
@@ -318,6 +321,10 @@
     <string name="budget_error_amount">Please enter an amount greater than zero</string>
     <string name="budget_error_category">Please select a category</string>
     <string name="budget_error_duplicate">A budget for this category and period already exists</string>
+    <string name="budget_conflict_title">Overwrite existing budget?</string>
+    <string name="budget_conflict_message_single">An existing budget of %1$s for %2$s will be replaced with %3$s.</string>
+    <string name="budget_conflict_message_multiple">%1$d existing budgets will be replaced with %2$s:</string>
+    <string name="budget_conflict_confirm">Overwrite</string>
     <string name="budget_scope_title_create">Create budget for:</string>
     <string name="budget_scope_title_edit">Apply changes to:</string>
     <string name="budget_scope_this_month">Only this month</string>

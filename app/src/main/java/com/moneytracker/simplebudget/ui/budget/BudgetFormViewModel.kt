@@ -31,14 +31,14 @@ sealed class BudgetFormEvent {
     data object Saved : BudgetFormEvent()
     data object SavedAndContinue : BudgetFormEvent()
     data object Deleted : BudgetFormEvent()
-    data object Copied : BudgetFormEvent()
     data class ValidationError(val messageResId: Int) : BudgetFormEvent()
 }
 
 data class BudgetFormUiState(
     val amountText: String = "",
     val currentField: BudgetFormField = BudgetFormField.NONE,
-    val selectedScope: BudgetScope = BudgetScope.THIS_PERIOD_ONLY
+    val selectedScope: BudgetScope = BudgetScope.THIS_PERIOD_ONLY,
+    val pendingConflicts: List<Budget>? = null
 )
 
 @HiltViewModel
@@ -55,10 +55,6 @@ class BudgetFormViewModel @Inject constructor(
     val initialPeriod: BudgetPeriod = BudgetPeriod.valueOf(
         savedStateHandle.get<String>("period") ?: BudgetPeriod.MONTHLY.name
     )
-
-    private val copyFromId: Long? = savedStateHandle.get<Long>("copyFromBudgetId")?.takeIf { it != -1L }
-    val useCurrentPeriod: Boolean = savedStateHandle.get<Boolean>("useCurrent") ?: false
-    val isCopy: Boolean = copyFromId != null
 
     private val _existingBudget = MutableStateFlow<Budget?>(null)
     val existingBudget: StateFlow<Budget?> = _existingBudget.asStateFlow()
@@ -84,10 +80,12 @@ class BudgetFormViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private var shouldClearAmount = false
+    private var pendingBudget: Budget? = null
+    private var pendingScope: BudgetScope? = null
+    private var pendingAndContinue: Boolean = false
 
     init {
         when {
-            copyFromId != null -> loadCopy(copyFromId)
             budgetId != 0L -> viewModelScope.launch {
                 val budget = budgetRepository.getBudgetById(budgetId)
                 _existingBudget.value = budget
@@ -98,19 +96,6 @@ class BudgetFormViewModel @Inject constructor(
                 }
             }
             else -> _uiState.value = _uiState.value.copy(currentField = BudgetFormField.CATEGORY)
-        }
-    }
-
-    private fun loadCopy(id: Long) {
-        viewModelScope.launch {
-            val budget = budgetRepository.getBudgetById(id)
-            if (budget != null) {
-                _existingBudget.value = budget
-                _uiState.value = _uiState.value.copy(
-                    amountText = String.format(Locale.ROOT, "%.2f", budget.amount),
-                    currentField = BudgetFormField.NONE
-                )
-            }
         }
     }
 
@@ -196,13 +181,44 @@ class BudgetFormViewModel @Inject constructor(
                     month = month
                 )
             }
-            budgetRepository.saveBudgetForScope(budget, scope)
-            if (andContinue) {
-                _uiState.value = BudgetFormUiState(currentField = BudgetFormField.CATEGORY)
-                _events.send(BudgetFormEvent.SavedAndContinue)
+            val conflicts = budgetRepository.findConflictsForScope(budget, scope, excludeId = budgetId)
+            if (conflicts.isEmpty()) {
+                budgetRepository.saveBudgetForScope(budget, scope)
+                emitSaveEvent(andContinue)
             } else {
-                _events.send(BudgetFormEvent.Saved)
+                pendingBudget = budget
+                pendingScope = scope
+                pendingAndContinue = andContinue
+                _uiState.value = _uiState.value.copy(pendingConflicts = conflicts)
             }
+        }
+    }
+
+    fun confirmAndSave() {
+        val budget = pendingBudget ?: return
+        val scope = pendingScope ?: return
+        val andContinue = pendingAndContinue
+        _uiState.value = _uiState.value.copy(pendingConflicts = null)
+        pendingBudget = null
+        pendingScope = null
+        viewModelScope.launch {
+            budgetRepository.saveBudgetForScope(budget, scope)
+            emitSaveEvent(andContinue)
+        }
+    }
+
+    fun cancelSave() {
+        pendingBudget = null
+        pendingScope = null
+        _uiState.value = _uiState.value.copy(pendingConflicts = null)
+    }
+
+    private suspend fun emitSaveEvent(andContinue: Boolean) {
+        if (andContinue) {
+            _uiState.value = BudgetFormUiState(currentField = BudgetFormField.CATEGORY)
+            _events.send(BudgetFormEvent.SavedAndContinue)
+        } else {
+            _events.send(BudgetFormEvent.Saved)
         }
     }
 

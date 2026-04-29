@@ -64,7 +64,12 @@ import com.moneytracker.simplebudget.R
 import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.domain.model.BudgetScope
 import com.moneytracker.simplebudget.domain.model.Category
+import com.moneytracker.simplebudget.domain.model.Budget
 import com.moneytracker.simplebudget.ui.components.CategorySelectionPanel
+import com.moneytracker.simplebudget.ui.components.formatCurrency
+import java.time.Month
+import java.time.format.TextStyle
+import java.util.Locale
 import com.moneytracker.simplebudget.ui.transaction.AmountInputPanel
 import com.moneytracker.simplebudget.ui.transaction.FormFieldRow
 import com.moneytracker.simplebudget.ui.transaction.HeroAmountDisplay
@@ -76,7 +81,6 @@ import kotlin.math.roundToInt
 @Composable
 fun BudgetFormScreen(
     onNavigateBack: () -> Unit,
-    onCopyBudget: ((copyFromBudgetId: Long, useCurrent: Boolean) -> Unit)? = null,
     viewModel: BudgetFormViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -100,7 +104,6 @@ fun BudgetFormScreen(
     var selectedPeriod by remember { mutableStateOf(viewModel.initialPeriod) }
     var selectedYearMonth by remember { mutableStateOf(initialYearMonth) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    var showCopyDialog by remember { mutableStateOf(false) }
     var initialised by remember { mutableStateOf(false) }
     var formResetKey by remember { mutableIntStateOf(0) }
 
@@ -123,13 +126,9 @@ fun BudgetFormScreen(
             isOverallBudget = budget.categoryId == null
             selectedParentCategoryId = budget.categoryId
             selectedSubcategoryId = budget.subcategoryId
-            if (viewModel.isCopy && viewModel.useCurrentPeriod) {
-                // Keep selectedPeriod and selectedYearMonth from nav params
-            } else {
-                selectedPeriod = budget.period
-                selectedYearMonth = if (budget.month != null) YearMonth.of(budget.year, budget.month)
-                                    else YearMonth.of(budget.year, 1)
-            }
+            selectedPeriod = budget.period
+            selectedYearMonth = if (budget.month != null) YearMonth.of(budget.year, budget.month)
+                                else YearMonth.of(budget.year, 1)
         }
     }
 
@@ -152,7 +151,6 @@ fun BudgetFormScreen(
                     Toast.makeText(context, context.getString(R.string.budget_deleted), Toast.LENGTH_SHORT).show()
                     onNavigateBack()
                 }
-                BudgetFormEvent.Copied -> onNavigateBack()
                 is BudgetFormEvent.ValidationError -> {
                     Toast.makeText(context, context.getString(event.messageResId), Toast.LENGTH_SHORT).show()
                 }
@@ -202,9 +200,6 @@ fun BudgetFormScreen(
     val onContinue: () -> Unit = {
         viewModel.saveAndContinue(selectedParentCategoryId, selectedSubcategoryId, selectedPeriod, selectedYearMonth, isOverallBudget)
     }
-    val onCopy: (() -> Unit)? = if (isEditing && onCopyBudget != null) {
-        { showCopyDialog = true }
-    } else null
     val onDelete: (() -> Unit)? = if (isEditing && existingBudget != null) {
         { showDeleteConfirm = true }
     } else null
@@ -230,12 +225,24 @@ fun BudgetFormScreen(
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                Text(
-                    text = if (isEditing) stringResource(R.string.budget_edit_budget)
-                           else stringResource(R.string.budget_set_budget),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Column {
+                    Text(
+                        text = if (isEditing) stringResource(R.string.budget_edit_budget)
+                               else stringResource(R.string.budget_set_budget),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    val periodLabel = if (selectedPeriod == BudgetPeriod.MONTHLY)
+                        "${Month.of(selectedYearMonth.monthValue).getDisplayName(TextStyle.FULL, Locale.getDefault())} ${selectedYearMonth.year}"
+                    else
+                        selectedYearMonth.year.toString()
+                    Text(
+                        text = periodLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = typeColor,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Column(
@@ -322,7 +329,6 @@ fun BudgetFormScreen(
                                 onSave = onSave,
                                 onContinue = onContinue,
                                 isEditing = isEditing,
-                                onCopy = onCopy,
                                 onDelete = onDelete
                             )
                         }
@@ -364,7 +370,6 @@ fun BudgetFormScreen(
                                 onSave = onSave,
                                 onContinue = onContinue,
                                 isEditing = isEditing,
-                                onCopy = onCopy,
                                 onDelete = onDelete
                             )
                         }
@@ -384,7 +389,6 @@ fun BudgetFormScreen(
                                 onSave = onSave,
                                 onContinue = onContinue,
                                 isEditing = isEditing,
-                                onCopy = onCopy,
                                 onDelete = onDelete
                             )
                         }
@@ -393,7 +397,6 @@ fun BudgetFormScreen(
                                 onSave = onSave,
                                 onContinue = onContinue,
                                 isEditing = isEditing,
-                                onCopy = onCopy,
                                 onDelete = onDelete
                             )
                         }
@@ -401,27 +404,6 @@ fun BudgetFormScreen(
                 }
             }
         }
-    }
-
-    if (showCopyDialog && onCopyBudget != null) {
-        AlertDialog(
-            onDismissRequest = { showCopyDialog = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text(stringResource(R.string.budget_copy_title)) },
-            text = { Text(stringResource(R.string.budget_copy_period_question)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showCopyDialog = false
-                    onCopyBudget(viewModel.budgetId, true)
-                }) { Text(stringResource(R.string.budget_copy_current)) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showCopyDialog = false
-                    onCopyBudget(viewModel.budgetId, false)
-                }) { Text(stringResource(R.string.budget_copy_original)) }
-            }
-        )
     }
 
     if (showDeleteConfirm) {
@@ -448,6 +430,71 @@ fun BudgetFormScreen(
             )
         }
     }
+
+    val pendingConflicts = uiState.pendingConflicts
+    if (pendingConflicts != null) {
+        BudgetConflictDialog(
+            conflicts = pendingConflicts,
+            newAmount = uiState.amountText.toDoubleOrNull() ?: 0.0,
+            currency = currency,
+            currencySymbolAfter = currencySymbolAfter,
+            onConfirm = { viewModel.confirmAndSave() },
+            onDismiss = { viewModel.cancelSave() }
+        )
+    }
+}
+
+@Composable
+private fun BudgetConflictDialog(
+    conflicts: List<Budget>,
+    newAmount: Double,
+    currency: String,
+    currencySymbolAfter: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val newAmountFormatted = formatCurrency(newAmount, currency, currencySymbolAfter)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(stringResource(R.string.budget_conflict_title)) },
+        text = {
+            Column {
+                if (conflicts.size == 1) {
+                    val conflict = conflicts.first()
+                    val existingFormatted = formatCurrency(conflict.amount, currency, currencySymbolAfter)
+                    val periodLabel = conflict.month?.let { m ->
+                        "${Month.of(m).getDisplayName(TextStyle.FULL, Locale.getDefault())} ${conflict.year}"
+                    } ?: conflict.year.toString()
+                    Text(stringResource(R.string.budget_conflict_message_single, existingFormatted, periodLabel, newAmountFormatted))
+                } else {
+                    Text(stringResource(R.string.budget_conflict_message_multiple, conflicts.size, newAmountFormatted))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    conflicts.forEach { conflict ->
+                        val existingFormatted = formatCurrency(conflict.amount, currency, currencySymbolAfter)
+                        val periodLabel = conflict.month?.let { m ->
+                            "${Month.of(m).getDisplayName(TextStyle.FULL, Locale.getDefault())} ${conflict.year}"
+                        } ?: conflict.year.toString()
+                        Text(
+                            text = "• $periodLabel: $existingFormatted",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.budget_conflict_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.button_cancel))
+            }
+        }
+    )
 }
 
 @Composable

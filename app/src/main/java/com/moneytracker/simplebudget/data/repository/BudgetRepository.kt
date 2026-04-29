@@ -131,6 +131,10 @@ class BudgetRepository @Inject constructor(
         }
     }
 
+    suspend fun getAllBudgetsSync(): List<Budget> = budgetDao.getAllBudgets().map { it.toDomain() }
+
+    suspend fun deleteAllBudgets() = budgetDao.deleteAll()
+
     suspend fun getBudgetById(id: Long): Budget? = budgetDao.getBudgetById(id)?.toDomain()
 
 
@@ -218,6 +222,21 @@ class BudgetRepository @Inject constructor(
                     BudgetScope.THIS_AND_FUTURE -> (0..5).map { (year + it) to null }
                 }
             }
+        }
+    }
+
+    suspend fun findConflictsForScope(
+        budget: Budget,
+        scope: BudgetScope,
+        excludeId: Long = 0L
+    ): List<Budget> {
+        val periods = generatePeriodsForScope(scope, budget.period, budget.year, budget.month)
+        return periods.mapNotNull { (periodYear, periodMonth) ->
+            val entity = budgetDao.findBudgetForPeriod(
+                budget.categoryId, budget.subcategoryId,
+                budget.period.name, periodYear, periodMonth
+            )
+            if (entity != null && entity.id != excludeId) entity.toDomain() else null
         }
     }
 

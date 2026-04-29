@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -78,7 +79,10 @@ private fun rememberOnboardingPages(): List<OnboardingPage> {
     val page4Title = stringResource(R.string.onboarding_page4_title)
     val page4Subtitle = stringResource(R.string.onboarding_page4_subtitle)
     val page4Description = stringResource(R.string.onboarding_page4_description)
-    return remember(page1Title, page2Title, page3Title, page4Title) {
+    val page5Title = stringResource(R.string.onboarding_page5_title)
+    val page5Subtitle = stringResource(R.string.onboarding_page5_subtitle)
+    val page5Description = stringResource(R.string.onboarding_page5_description)
+    return remember(page1Title, page2Title, page3Title, page4Title, page5Title) {
         listOf(
             OnboardingPage(
                 icon = Icons.Filled.Receipt,
@@ -105,10 +109,18 @@ private fun rememberOnboardingPages(): List<OnboardingPage> {
                 secondaryColor = Color(0xFFFFCC02)
             ),
             OnboardingPage(
-                icon = Icons.Filled.CloudUpload,
+                icon = Icons.Filled.Savings,
                 title = page4Title,
                 subtitle = page4Subtitle,
                 description = page4Description,
+                accentColor = Color(0xFF00897B),
+                secondaryColor = Color(0xFF4DB6AC)
+            ),
+            OnboardingPage(
+                icon = Icons.Filled.CloudUpload,
+                title = page5Title,
+                subtitle = page5Subtitle,
+                description = page5Description,
                 accentColor = Color(0xFF9C27B0),
                 secondaryColor = Color(0xFFCE93D8)
             )

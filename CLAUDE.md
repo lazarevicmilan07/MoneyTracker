@@ -38,9 +38,20 @@ Android expense tracker using **Clean MVVM** with Jetpack Compose and Hilt DI.
 **Key patterns:**
 - All DI wiring is in `di/AppModule.kt` (singleton-scoped database, DAOs, repositories)
 - Navigation defined in `navigation/NavGraph.kt` using sealed class `Screen` routes
-- Bottom nav has 3 tabs: Transactions (dashboard), Monthly Reports, Yearly Reports
-- Room database (`ExpenseDatabase`) is at version 3 with migrations for accounts (v2) and subcategories (v3)
+- Bottom nav has 6 destinations: Records (Dashboard), Budget, Stats, Accounts, Categories, Settings
+- Room database (`ExpenseDatabase`) is at version 12; migrations: v1→2 (accounts table), v2→3 (subcategories), v3→12 (budget feature and other additions)
 - Entity↔Domain mapping in `data/mapper/Mappers.kt`
+
+**Budget feature** (`ui/budget/`):
+- Domain models: `Budget` (`categoryId=null` means all-categories), `BudgetWithProgress`, `BudgetPeriod` (MONTHLY/YEARLY), `BudgetScope` (8 options: THIS_PERIOD_ONLY → ALL_PERIODS)
+- `Budget.groupId: String?` links budgets created together via a bulk scope save
+- `BudgetRepository` handles scope-based saves (`saveBudgetForScope`) and conflict detection (`findConflictsForScope`) — conflicts prompt user before overwriting
+- `BudgetFormField` enum (NONE, AMOUNT, CATEGORY, SCOPE) drives which bottom panel is shown in `BudgetFormScreen`
+- Nav routes: `Screen.Budget` (list), `Screen.BudgetForm` (create/edit with budgetId/year/month/period args)
+
+**Shared form composables** (in `ui/transaction/`, used by both `TransactionScreen` and `BudgetFormScreen`): `SaveButtonsPanel`, `AmountInputPanel`, `FormFieldRow`, `HeroAmountDisplay`
+
+**`CategorySelectionPanel`** lives in `ui/components/` — shared between transaction and budget forms
 
 **Monetization:**
 - AdMob banner ads (test IDs in debug, production in release build variants defined in `build.gradle.kts`)

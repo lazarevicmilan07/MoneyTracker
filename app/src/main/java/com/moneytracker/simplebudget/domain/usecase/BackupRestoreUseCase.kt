@@ -7,9 +7,12 @@ import com.moneytracker.simplebudget.domain.model.AccountType
 import com.moneytracker.simplebudget.domain.model.TransactionType
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.repository.AccountRepository
+import com.moneytracker.simplebudget.data.repository.BudgetRepository
 import com.moneytracker.simplebudget.data.repository.CategoryRepository
 import com.moneytracker.simplebudget.data.repository.ExpenseRepository
 import com.moneytracker.simplebudget.domain.model.Account
+import com.moneytracker.simplebudget.domain.model.Budget
+import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.domain.model.Category
 import com.moneytracker.simplebudget.domain.model.CategoryType
 import com.moneytracker.simplebudget.domain.model.Expense
@@ -30,6 +33,7 @@ class BackupRestoreUseCase @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val categoryRepository: CategoryRepository,
     private val accountRepository: AccountRepository,
+    private val budgetRepository: BudgetRepository,
     private val preferencesManager: PreferencesManager
 ) {
 
@@ -55,6 +59,7 @@ class BackupRestoreUseCase @Inject constructor(
         }
         val categories = categoryRepository.getAllCategoriesSync()
         val accounts = accountRepository.getAllAccountsSync()
+        val budgets = budgetRepository.getAllBudgetsSync()
         val prefs = preferencesManager.userPreferences.first()
 
         val backupData = BackupData(
@@ -65,7 +70,8 @@ class BackupRestoreUseCase @Inject constructor(
             currencySymbolAfter = prefs.currencySymbolAfter,
             expenses = expenses.map { it.toBackupExpense() },
             categories = categories.map { it.toBackupCategory() },
-            accounts = accounts.map { it.toBackupAccount() }
+            accounts = accounts.map { it.toBackupAccount() },
+            budgets = budgets.map { it.toBackupBudget() }
         )
 
         context.contentResolver.openOutputStream(uri)?.use { outputStream ->
@@ -83,7 +89,8 @@ class BackupRestoreUseCase @Inject constructor(
             }
         } ?: throw IllegalStateException("Could not read backup file")
 
-        // Clear ALL existing data (expenses first due to foreign key-like references)
+        // Clear ALL existing data; budgets before categories due to FK dependency
+        budgetRepository.deleteAllBudgets()
         expenseRepository.deleteAllExpenses()
         categoryRepository.deleteAllCategories()
         accountRepository.deleteAllAccounts()
@@ -147,13 +154,23 @@ class BackupRestoreUseCase @Inject constructor(
         }
         expenseRepository.insertExpenses(expenses)
 
+        // Restore budgets with remapped category IDs
+        backupData.budgets.forEach { backupBudget ->
+            val budget = backupBudget.toBudget().copy(
+                id = 0,
+                categoryId = backupBudget.categoryId?.let { categoryIdMapping[it] },
+                subcategoryId = backupBudget.subcategoryId?.let { categoryIdMapping[it] }
+            )
+            budgetRepository.insertBudget(budget)
+        }
+
         // Restore currency settings if present in backup
         backupData.currency?.let { preferencesManager.setCurrency(it) }
         backupData.currencySymbolAfter?.let { preferencesManager.setCurrencySymbolAfter(it) }
     }
 
     companion object {
-        private const val BACKUP_VERSION = 2
+        private const val BACKUP_VERSION = 3
     }
 }
 
@@ -166,7 +183,8 @@ data class BackupData(
     val currencySymbolAfter: Boolean? = null,
     val expenses: List<BackupExpense>,
     val categories: List<BackupCategory>,
-    val accounts: List<BackupAccount> = emptyList()
+    val accounts: List<BackupAccount> = emptyList(),
+    val budgets: List<BackupBudget> = emptyList()
 )
 
 @Serializable
@@ -205,6 +223,20 @@ data class BackupAccount(
     val initialBalance: Double = 0.0,
     val isDefault: Boolean = false,
     val createdAt: Long
+)
+
+@Serializable
+data class BackupBudget(
+    val id: Long,
+    val categoryId: Long?,
+    val subcategoryId: Long? = null,
+    val amount: Double,
+    val period: String,
+    val year: Int,
+    val month: Int? = null,
+    val isActive: Boolean = true,
+    val createdAt: Long,
+    val groupId: String? = null
 )
 
 private fun Expense.toBackupExpense() = BackupExpense(
@@ -288,4 +320,30 @@ private fun BackupAccount.toAccount() = Account(
     initialBalance = initialBalance,
     isDefault = isDefault,
     createdAt = createdAt
+)
+
+private fun Budget.toBackupBudget() = BackupBudget(
+    id = id,
+    categoryId = categoryId,
+    subcategoryId = subcategoryId,
+    amount = amount,
+    period = period.name,
+    year = year,
+    month = month,
+    isActive = isActive,
+    createdAt = createdAt,
+    groupId = groupId
+)
+
+private fun BackupBudget.toBudget() = Budget(
+    id = id,
+    categoryId = categoryId,
+    subcategoryId = subcategoryId,
+    amount = amount,
+    period = BudgetPeriod.valueOf(period),
+    year = year,
+    month = month,
+    isActive = isActive,
+    createdAt = createdAt,
+    groupId = groupId
 )

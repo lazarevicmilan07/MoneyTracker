@@ -70,10 +70,7 @@ sealed class Screen(val route: String) {
         fun createRoute(budgetId: Long = 0L, year: Int, month: Int, period: BudgetPeriod) =
             "budget_form?budgetId=$budgetId&year=$year&month=$month&period=${period.name}"
     }
-    data object CopyBudgetForm : Screen("copy_budget_form/{copyFromBudgetId}/{useCurrent}?year={year}&month={month}&period={period}") {
-        fun createRoute(copyFromBudgetId: Long, useCurrent: Boolean, year: Int, month: Int, period: BudgetPeriod) =
-            "copy_budget_form/$copyFromBudgetId/$useCurrent?year=$year&month=$month&period=${period.name}"
-    }
+
 }
 
 @Composable
@@ -266,27 +263,7 @@ fun NavGraph(
             val month = backStackEntry.arguments?.getInt("month") ?: java.time.YearMonth.now().monthValue
             val period = BudgetPeriod.valueOf(backStackEntry.arguments?.getString("period") ?: BudgetPeriod.MONTHLY.name)
             BudgetFormScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onCopyBudget = { copyFromBudgetId, useCurrent ->
-                    navController.navigate(
-                        Screen.CopyBudgetForm.createRoute(copyFromBudgetId, useCurrent, year, month, period)
-                    )
-                }
-            )
-        }
-
-        composable(
-            route = Screen.CopyBudgetForm.route,
-            arguments = listOf(
-                navArgument("copyFromBudgetId") { type = NavType.LongType },
-                navArgument("useCurrent") { type = NavType.BoolType },
-                navArgument("year") { type = NavType.IntType; defaultValue = java.time.YearMonth.now().year },
-                navArgument("month") { type = NavType.IntType; defaultValue = java.time.YearMonth.now().monthValue },
-                navArgument("period") { type = NavType.StringType; defaultValue = BudgetPeriod.MONTHLY.name }
-            )
-        ) {
-            BudgetFormScreen(
-                onNavigateBack = { navController.popBackStack(Screen.Budget.route, inclusive = false) }
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

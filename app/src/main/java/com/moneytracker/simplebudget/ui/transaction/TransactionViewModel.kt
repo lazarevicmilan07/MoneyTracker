@@ -11,12 +11,14 @@ import com.moneytracker.simplebudget.data.repository.BudgetRepository
 import com.moneytracker.simplebudget.data.repository.CategoryRepository
 import com.moneytracker.simplebudget.data.repository.ExpenseRepository
 import com.moneytracker.simplebudget.domain.model.Account
+import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.domain.model.BudgetWithProgress
 import com.moneytracker.simplebudget.domain.model.Category
 import com.moneytracker.simplebudget.domain.model.Expense
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -103,20 +106,50 @@ class TransactionViewModel @Inject constructor(
     private val _events = MutableSharedFlow<TransactionEvent>()
     val events = _events.asSharedFlow()
 
-    val budgetHint: StateFlow<BudgetWithProgress?> = _uiState.flatMapLatest { state ->
-        if (state.transactionType != TransactionType.EXPENSE) {
-            flowOf(null)
-        } else {
-            val categoryId = state.selectedParentCategoryId
-            val subcategoryId = state.selectedCategoryId?.takeIf { it != categoryId }
-            val now = LocalDate.now()
-            budgetRepository.getBudgetProgressForCategory(
-                categoryId = categoryId,
-                subcategoryId = subcategoryId,
-                year = now.year,
-                month = now.monthValue
+    private var originalExpenseAmount: Double = 0.0
+    private var originalExpenseDate: LocalDate = LocalDate.now()
+
+    private val _baseBudgetHint: Flow<BudgetWithProgress?> = _uiState
+        .distinctUntilChangedBy { state ->
+            listOf(
+                state.transactionType,
+                state.selectedParentCategoryId,
+                state.selectedCategoryId,
+                state.selectedDate.year,
+                state.selectedDate.monthValue
             )
         }
+        .flatMapLatest { state ->
+            if (state.transactionType != TransactionType.EXPENSE) {
+                flowOf(null)
+            } else {
+                val categoryId = state.selectedParentCategoryId
+                val subcategoryId = state.selectedCategoryId?.takeIf { it != categoryId }
+                budgetRepository.getBudgetProgressForCategory(
+                    categoryId = categoryId,
+                    subcategoryId = subcategoryId,
+                    year = state.selectedDate.year,
+                    month = state.selectedDate.monthValue
+                )
+            }
+        }
+
+    val budgetHint: StateFlow<BudgetWithProgress?> = combine(
+        _baseBudgetHint,
+        _uiState
+    ) { hint, state ->
+        hint ?: return@combine null
+        val typedAmount = state.amount.toDoubleOrNull() ?: 0.0
+        val isOriginalPeriod = when (hint.budget.period) {
+            BudgetPeriod.YEARLY -> hint.budget.year == originalExpenseDate.year
+            BudgetPeriod.MONTHLY -> hint.budget.year == originalExpenseDate.year &&
+                hint.budget.month == originalExpenseDate.monthValue
+        }
+        val baseRemaining = hint.remaining + if (state.isEditing && isOriginalPeriod) originalExpenseAmount else 0.0
+        val newRemaining = baseRemaining - typedAmount
+        val newSpent = hint.budget.amount - newRemaining
+        val newPercentage = if (hint.budget.amount > 0) (newSpent / hint.budget.amount).toFloat() else 0f
+        hint.copy(spent = newSpent, remaining = newRemaining, percentage = newPercentage.coerceAtLeast(0f))
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
@@ -142,6 +175,8 @@ class TransactionViewModel @Inject constructor(
     private fun loadExpense(id: Long) {
         viewModelScope.launch {
             expenseRepository.getExpenseById(id)?.let { expense ->
+                originalExpenseAmount = expense.amount
+                originalExpenseDate = expense.date
                 _uiState.value = _uiState.value.copy(
                     amount = String.format("%.2f", expense.amount),
                     note = expense.note,
@@ -499,9 +534,8 @@ class TransactionViewModel @Inject constructor(
                 if (state.transactionType == TransactionType.EXPENSE) {
                     val categoryId = parentId ?: childId
                     val subcategoryId = if (hasSubcategory) childId else null
-                    val now = LocalDate.now()
                     val progress = budgetRepository
-                        .getBudgetProgressForCategory(categoryId, subcategoryId, now.year, now.monthValue)
+                        .getBudgetProgressForCategory(categoryId, subcategoryId, state.selectedDate.year, state.selectedDate.monthValue)
                         .first()
                     if (progress != null) {
                         _events.emit(TransactionEvent.BudgetAlert(progress.remaining, progress.remaining < 0, progress.percentage))
