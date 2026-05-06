@@ -10,7 +10,6 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -493,18 +492,11 @@ fun BudgetCard(
         tonalElevation = if (cardTint == MaterialTheme.colorScheme.surface) 1.dp else 0.dp,
         shadowElevation = 1.dp
     ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(progressColor)
-            )
-
+        Box(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 12.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -519,33 +511,14 @@ fun BudgetCard(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                     }
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = displayName,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(50))
-                                    .background(progressColor.copy(alpha = 0.12f))
-                                    .padding(horizontal = 7.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "$percentInt%",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = progressColor
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = displayName,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 48.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -587,6 +560,22 @@ fun BudgetCard(
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = if (isOverBudget) FontWeight.SemiBold else FontWeight.Normal,
                     color = if (isOverBudget) ExpenseRed else IncomeGreen
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 14.dp, end = 16.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(progressColor.copy(alpha = 0.12f))
+                    .padding(horizontal = 7.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = "$percentInt%",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = progressColor
                 )
             }
         }
@@ -661,14 +650,6 @@ private fun BudgetProgressBar(
                     ),
                     size = Size(fillW, h * 0.55f)
                 )
-                if (fillW > h) {
-                    drawCircle(
-                        color = color,
-                        radius = h * 1.15f,
-                        center = Offset(fillW, h / 2f),
-                        alpha = 0.30f
-                    )
-                }
             }
         }
     }

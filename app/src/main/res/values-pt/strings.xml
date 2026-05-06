@@ -277,8 +277,6 @@
     <string name="stats_mode_list">Lista</string>
     <string name="stats_drill_hint">Toque num segmento para ver subcategorias</string>
     <string name="stats_no_subcategory">Sem detalhamento de subcategorias</string>
-    <string name="budget_toast_left">%1$s restante no orçamento</string>
-    <string name="budget_toast_over">Orçamento excedido em %1$s</string>
     <string name="budget_saved">Orçamento salvo</string>
     <string name="budget_deleted">Orçamento excluído</string>
     <string name="budget_copied">Orçamento copiado</string>

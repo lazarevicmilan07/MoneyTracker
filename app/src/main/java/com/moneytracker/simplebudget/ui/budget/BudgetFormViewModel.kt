@@ -27,10 +27,13 @@ import javax.inject.Inject
 
 enum class BudgetFormField { NONE, AMOUNT, CATEGORY, SCOPE }
 
+private const val FREE_BUDGET_LIMIT = 3
+
 sealed class BudgetFormEvent {
     data object Saved : BudgetFormEvent()
     data object SavedAndContinue : BudgetFormEvent()
     data object Deleted : BudgetFormEvent()
+    data object PremiumRequired : BudgetFormEvent()
     data class ValidationError(val messageResId: Int) : BudgetFormEvent()
 }
 
@@ -72,6 +75,9 @@ class BudgetFormViewModel @Inject constructor(
     val allCategories: StateFlow<List<Category>> =
         categoryRepository.getAllCategories()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val isPremium: StateFlow<Boolean> = preferencesManager.isPremium
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val currency: StateFlow<String> = preferencesManager.currency
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "USD")
@@ -147,7 +153,13 @@ class BudgetFormViewModel @Inject constructor(
 
     fun saveAndContinue(categoryId: Long?, subcategoryId: Long?, period: BudgetPeriod, yearMonth: YearMonth, isOverall: Boolean = false) {
         if (!validate(categoryId, isOverall)) return
-        doSave(categoryId, subcategoryId, period, yearMonth, andContinue = true)
+        viewModelScope.launch {
+            if (!isPremium.value && budgetRepository.getActiveBudgetCount() >= FREE_BUDGET_LIMIT) {
+                _events.send(BudgetFormEvent.PremiumRequired)
+                return@launch
+            }
+            doSave(categoryId, subcategoryId, period, yearMonth, andContinue = true)
+        }
     }
 
     private fun doSave(
@@ -157,7 +169,7 @@ class BudgetFormViewModel @Inject constructor(
         yearMonth: YearMonth,
         andContinue: Boolean
     ) {
-        val scope = _uiState.value.selectedScope
+        val scope = if (isPremium.value) _uiState.value.selectedScope else BudgetScope.THIS_PERIOD_ONLY
         val amount = _uiState.value.amountText.toDoubleOrNull()?.takeIf { it > 0 } ?: return
         val month = if (period == BudgetPeriod.MONTHLY) yearMonth.monthValue else null
         viewModelScope.launch {

@@ -277,8 +277,6 @@
     <string name="stats_mode_list">Список</string>
     <string name="stats_drill_hint">Нажмите на сегмент для подкатегорий</string>
     <string name="stats_no_subcategory">Нет данных по подкатегориям</string>
-    <string name="budget_toast_left">%1$s осталось в бюджете</string>
-    <string name="budget_toast_over">Бюджет превышен на %1$s</string>
     <string name="budget_saved">Бюджет сохранён</string>
     <string name="budget_deleted">Бюджет удалён</string>
     <string name="budget_copied">Бюджет скопирован</string>

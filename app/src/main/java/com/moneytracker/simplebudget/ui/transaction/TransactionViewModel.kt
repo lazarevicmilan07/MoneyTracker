@@ -526,21 +526,12 @@ class TransactionViewModel @Inject constructor(
                 )
 
                 if (expenseId != null) {
+                    originalExpenseAmount = amount
                     expenseRepository.updateExpense(expense)
                 } else {
                     expenseRepository.insertExpense(expense)
                 }
 
-                if (state.transactionType == TransactionType.EXPENSE) {
-                    val categoryId = parentId ?: childId
-                    val subcategoryId = if (hasSubcategory) childId else null
-                    val progress = budgetRepository
-                        .getBudgetProgressForCategory(categoryId, subcategoryId, state.selectedDate.year, state.selectedDate.monthValue)
-                        .first()
-                    if (progress != null) {
-                        _events.emit(TransactionEvent.BudgetAlert(progress.remaining, progress.remaining < 0, progress.percentage))
-                    }
-                }
             }
 
             if (andContinue) {
@@ -595,5 +586,4 @@ sealed class TransactionEvent {
     data object TransactionSavedAndContinue : TransactionEvent()
     data object TransactionDeleted : TransactionEvent()
     data class ShowError(val message: String) : TransactionEvent()
-    data class BudgetAlert(val remaining: Double, val isOver: Boolean, val percentage: Float) : TransactionEvent()
 }

@@ -264,6 +264,7 @@ fun NavGraph(
             val period = BudgetPeriod.valueOf(backStackEntry.arguments?.getString("period") ?: BudgetPeriod.MONTHLY.name)
             BudgetFormScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onShowPremium = { navController.navigate(Screen.Premium.route) },
                 onNavigateToCategories = { navController.navigate(Screen.CategoriesFromTransaction.route) }
             )
         }

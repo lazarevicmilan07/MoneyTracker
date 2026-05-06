@@ -277,8 +277,6 @@
     <string name="stats_mode_list">Liste</string>
     <string name="stats_drill_hint">Appuyez sur une tranche pour les sous-catégories</string>
     <string name="stats_no_subcategory">Pas de répartition des sous-catégories</string>
-    <string name="budget_toast_left">%1$s restant dans le budget</string>
-    <string name="budget_toast_over">Budget dépassé de %1$s</string>
     <string name="budget_saved">Budget enregistré</string>
     <string name="budget_deleted">Budget supprimé</string>
     <string name="budget_copied">Budget copié</string>

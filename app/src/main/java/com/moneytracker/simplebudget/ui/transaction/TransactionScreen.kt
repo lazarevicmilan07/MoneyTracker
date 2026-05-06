@@ -1,10 +1,6 @@
 package com.moneytracker.simplebudget.ui.transaction
 
-import android.app.Activity
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
-import com.google.android.material.snackbar.Snackbar
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -44,6 +40,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
@@ -181,32 +178,6 @@ fun TransactionScreen(
                 }
                 is TransactionEvent.ShowError -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                }
-                is TransactionEvent.BudgetAlert -> {
-                    val msg = if (event.isOver)
-                        context.getString(R.string.budget_toast_over, formatCurrency(-event.remaining, currency, symbolAfter))
-                    else
-                        context.getString(R.string.budget_toast_left, formatCurrency(event.remaining, currency, symbolAfter))
-                    val bgColor = when {
-                        event.isOver || event.percentage >= 0.9f -> 0xFFB71C1C.toInt()
-                        event.percentage >= 0.65f -> 0xFFE65100.toInt()
-                        else -> 0xFF1B5E20.toInt()
-                    }
-                    val rootView = (context as? Activity)
-                        ?.window?.decorView?.findViewById<View>(android.R.id.content)
-                    if (rootView != null) {
-                        val snackbar = Snackbar.make(rootView, msg, Snackbar.LENGTH_LONG)
-                        snackbar.setBackgroundTint(bgColor)
-                        snackbar.setTextColor(android.graphics.Color.WHITE)
-                        val params = snackbar.view.layoutParams as? ViewGroup.MarginLayoutParams
-                        if (params != null) {
-                            params.bottomMargin = (80 * context.resources.displayMetrics.density).toInt()
-                            snackbar.view.layoutParams = params
-                        }
-                        snackbar.show()
-                    } else {
-                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                    }
                 }
             }
         }
@@ -692,7 +663,8 @@ fun FormFieldRow(
     isActive: Boolean = false,
     typeColor: Color = Color.Transparent,
     iconName: String? = null,
-    iconColor: Color? = null
+    iconColor: Color? = null,
+    locked: Boolean = false
 ) {
     val bgColor by animateColorAsState(
         targetValue = if (isActive) typeColor.copy(alpha = 0.05f) else Color.Transparent,
@@ -736,11 +708,14 @@ fun FormFieldRow(
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
-                Icons.Default.ChevronRight,
+                if (locked) Icons.Default.Lock else Icons.Default.ChevronRight,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = if (isActive) typeColor.copy(alpha = 0.4f)
-                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                tint = when {
+                    locked -> MaterialTheme.colorScheme.primary
+                    isActive -> typeColor.copy(alpha = 0.4f)
+                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                }
             )
         }
     }

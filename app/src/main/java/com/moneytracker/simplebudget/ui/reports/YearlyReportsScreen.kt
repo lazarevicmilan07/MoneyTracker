@@ -1,6 +1,7 @@
 package com.moneytracker.simplebudget.ui.reports
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -393,6 +394,13 @@ fun MonthlyBreakdownCard(
 ) {
     val maxAmount = monthlyData.maxOfOrNull { maxOf(it.income, it.expense) } ?: 1.0
 
+    val animProgress = remember(monthlyData) { Animatable(0f) }
+    LaunchedEffect(monthlyData) {
+        animProgress.snapTo(0f)
+        animProgress.animateTo(1f, animationSpec = tween(700, easing = FastOutSlowInEasing))
+    }
+    val barScale = animProgress.value
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -411,8 +419,8 @@ fun MonthlyBreakdownCard(
                     val monthName = Month.of(index + 1).getDisplayName(TextStyle.SHORT, Locale.getDefault())
                         .replaceFirstChar { it.titlecase(Locale.getDefault()) }
                     val balance = data.income - data.expense
-                    val incomeFraction = if (maxAmount > 0) (data.income / maxAmount).toFloat() else 0f
-                    val expenseFraction = if (maxAmount > 0) (data.expense / maxAmount).toFloat() else 0f
+                    val incomeFraction = (if (maxAmount > 0) (data.income / maxAmount).toFloat() else 0f) * barScale
+                    val expenseFraction = (if (maxAmount > 0) (data.expense / maxAmount).toFloat() else 0f) * barScale
 
                     Column(
                         modifier = Modifier
@@ -455,7 +463,7 @@ fun MonthlyBreakdownCard(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxHeight()
-                                        .fillMaxWidth(incomeFraction.coerceAtLeast(0.02f))
+                                        .fillMaxWidth(incomeFraction.coerceIn(0f, 1f))
                                         .clip(RoundedCornerShape(4.dp))
                                         .background(IncomeGreen)
                                 )
@@ -492,7 +500,7 @@ fun MonthlyBreakdownCard(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxHeight()
-                                        .fillMaxWidth(expenseFraction.coerceAtLeast(0.02f))
+                                        .fillMaxWidth(expenseFraction.coerceIn(0f, 1f))
                                         .clip(RoundedCornerShape(4.dp))
                                         .background(ExpenseRed)
                                 )

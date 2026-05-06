@@ -1,11 +1,15 @@
 package com.moneytracker.simplebudget.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -37,6 +41,13 @@ fun MonthlyBarChart(
     val maxValue = monthlyData.maxOfOrNull { maxOf(it.income, it.expense) } ?: 1.0
     val monthLabels = listOf("J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D")
     var selectedMonth by remember { mutableIntStateOf(-1) }
+
+    val animProgress = remember(monthlyData) { Animatable(0f) }
+    LaunchedEffect(monthlyData) {
+        animProgress.snapTo(0f)
+        animProgress.animateTo(1f, animationSpec = tween(700, easing = FastOutSlowInEasing))
+    }
+    val barScale = animProgress.value
 
     Column(modifier = modifier) {
         Canvas(
@@ -84,7 +95,8 @@ fun MonthlyBarChart(
                 val baseAlpha = if (selectedMonth == -1) 1f else 0.35f
 
                 // Income bar
-                val incomeHeight = if (maxValue > 0) (data.income / maxValue * chartHeight).toFloat().coerceAtLeast(if (data.income > 0) 3.dp.toPx() else 0f) else 0f
+                val incomeHeight = (if (maxValue > 0) (data.income / maxValue * chartHeight).toFloat()
+                    .coerceAtLeast(if (data.income > 0) 3.dp.toPx() else 0f) else 0f) * barScale
                 if (incomeHeight > 0f) {
                     drawRoundRect(
                         color = if (isSelected) IncomeGreen else IncomeGreen.copy(alpha = baseAlpha),
@@ -98,7 +110,8 @@ fun MonthlyBarChart(
                 }
 
                 // Expense bar
-                val expenseHeight = if (maxValue > 0) (data.expense / maxValue * chartHeight).toFloat().coerceAtLeast(if (data.expense > 0) 3.dp.toPx() else 0f) else 0f
+                val expenseHeight = (if (maxValue > 0) (data.expense / maxValue * chartHeight).toFloat()
+                    .coerceAtLeast(if (data.expense > 0) 3.dp.toPx() else 0f) else 0f) * barScale
                 if (expenseHeight > 0f) {
                     drawRoundRect(
                         color = if (isSelected) ExpenseRed else ExpenseRed.copy(alpha = baseAlpha),

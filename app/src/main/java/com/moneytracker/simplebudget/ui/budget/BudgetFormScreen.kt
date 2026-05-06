@@ -81,6 +81,7 @@ import kotlin.math.roundToInt
 @Composable
 fun BudgetFormScreen(
     onNavigateBack: () -> Unit,
+    onShowPremium: () -> Unit,
     onNavigateToCategories: (() -> Unit)? = null,
     viewModel: BudgetFormViewModel = hiltViewModel()
 ) {
@@ -91,6 +92,7 @@ fun BudgetFormScreen(
     val allCategories by viewModel.allCategories.collectAsState()
     val currency by viewModel.currency.collectAsState()
     val currencySymbolAfter by viewModel.currencySymbolAfter.collectAsState()
+    val isPremium by viewModel.isPremium.collectAsState()
     val isEditing = viewModel.budgetId != 0L
 
     val initialYearMonth = YearMonth.of(viewModel.initialYear, viewModel.initialMonth)
@@ -152,6 +154,7 @@ fun BudgetFormScreen(
                     Toast.makeText(context, context.getString(R.string.budget_deleted), Toast.LENGTH_SHORT).show()
                     onNavigateBack()
                 }
+                BudgetFormEvent.PremiumRequired -> onShowPremium()
                 is BudgetFormEvent.ValidationError -> {
                     Toast.makeText(context, context.getString(event.messageResId), Toast.LENGTH_SHORT).show()
                 }
@@ -297,10 +300,14 @@ fun BudgetFormScreen(
                         )
                         FormFieldRow(
                             label = stringResource(R.string.label_period),
-                            value = scopeDisplayText,
-                            onClick = { viewModel.setCurrentField(BudgetFormField.SCOPE) },
-                            isActive = uiState.currentField == BudgetFormField.SCOPE,
-                            typeColor = typeColor
+                            value = if (isPremium) scopeDisplayText else stringResource(R.string.label_premium_feature),
+                            onClick = {
+                                if (isPremium) viewModel.setCurrentField(BudgetFormField.SCOPE)
+                                else onShowPremium()
+                            },
+                            isActive = isPremium && uiState.currentField == BudgetFormField.SCOPE,
+                            typeColor = typeColor,
+                            locked = !isPremium
                         )
                     }
                 }
