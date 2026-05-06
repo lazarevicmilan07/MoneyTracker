@@ -64,6 +64,9 @@ interface BudgetDao {
     @Query("SELECT * FROM budgets")
     suspend fun getAllBudgets(): List<BudgetEntity>
 
+    @Query("UPDATE budgets SET amount = amount * :rate")
+    suspend fun multiplyAllAmounts(rate: Double)
+
     @Query("DELETE FROM budgets")
     suspend fun deleteAll()
 

@@ -129,7 +129,10 @@
       "Bash(./gradlew :app:compileDebugKotlin)",
       "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-17\" ./gradlew :app:compileDebugKotlin)",
       "PowerShell(Get-ChildItem *)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin\\\\java.exe\" -version 2>&1)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin\\\\java.exe\" -version 2>&1)",
+      "Bash(Get-ChildItem -Recurse \"C:\\\\SideProjects\\\\CashFlow\\\\app\\\\src\\\\main\\\\java\" -Filter \"*.kt\")",
+      "Bash(Select-String -Pattern \"currency|Currency\" -List)",
+      "Bash(Select-Object -ExpandProperty Path)"
     ]
   }
 }

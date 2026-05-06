@@ -131,6 +131,8 @@ class BudgetRepository @Inject constructor(
         }
     }
 
+    suspend fun multiplyAllAmounts(rate: Double) = budgetDao.multiplyAllAmounts(rate)
+
     suspend fun getAllBudgetsSync(): List<Budget> = budgetDao.getAllBudgets().map { it.toDomain() }
 
     suspend fun deleteAllBudgets() = budgetDao.deleteAll()
