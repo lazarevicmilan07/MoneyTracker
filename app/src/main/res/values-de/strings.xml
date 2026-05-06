@@ -23,6 +23,7 @@
     <string name="button_apply">Anwenden</string>
     <string name="button_copy">Kopieren</string>
     <string name="button_continue">Weiter</string>
+    <string name="button_upgrade">Upgrade</string>
     <string name="button_restore">Wiederherstellen</string>
     <string name="button_convert">Konvertieren</string>
     <string name="button_keep_amounts">Beträge beibehalten</string>
@@ -303,4 +304,35 @@
     <string name="budget_scope_this_and_6_future_months">Diesen Monat und 6 zukünftige Monate</string>
     <string name="budget_scope_this_and_3_before_years">Dieses Jahr und 3 vorherige Jahre</string>
     <string name="budget_scope_this_and_3_future_years">Dieses Jahr und 3 zukünftige Jahre</string>
+
+    <string name="budget_title">Budget</string>
+    <string name="budget_empty_title">Keine Budgets festgelegt</string>
+    <string name="budget_empty_subtitle">Erstelle Ausgabenlimits für deine Kategorien</string>
+    <string name="budget_add">Budget hinzufügen</string>
+    <string name="budget_set_budget">Budget festlegen</string>
+    <string name="budget_edit_budget">Budget bearbeiten</string>
+    <string name="budget_period_monthly">Monatlich</string>
+    <string name="budget_period_yearly">Jährlich</string>
+    <string name="budget_over_budget">Über Budget</string>
+    <string name="budget_days_left">%d Tage verbleibend</string>
+    <string name="budget_months_left">%d Monate verbleibend</string>
+    <string name="budget_of">von</string>
+    <string name="budget_remaining">verbleibend</string>
+    <string name="budget_spent">ausgegeben</string>
+    <string name="budget_overall">Gesamt</string>
+    <string name="budget_all_categories">Alle Kategorien</string>
+    <string name="budget_subcategory_all">Gesamte Kategorie</string>
+    <string name="budget_delete_confirm_title">Budget löschen?</string>
+    <string name="budget_delete_confirm_message">Dieses Ausgabenlimit wird entfernt.</string>
+    <string name="budget_limit_reached_title">Budgetlimit erreicht</string>
+    <string name="budget_limit_reached_message">Kostenlose Nutzer können bis zu 3 Budgets festlegen. Upgrade auf Premium für unbegrenzte Budgets.</string>
+    <string name="budget_hint_left">verbleibend</string>
+    <string name="budget_hint_over">über Budget</string>
+    <string name="budget_total_budget">Gesamtbudget</string>
+    <string name="budget_no_budget_set">Kein Limit festgelegt</string>
+    <string name="budget_conflict_title">Bestehendes Budget überschreiben?</string>
+    <string name="budget_conflict_message_single">Ein bestehendes Budget von %1$s für %2$s wird durch %3$s ersetzt.</string>
+    <string name="budget_conflict_message_multiple">%1$d bestehende Budgets werden durch %2$s ersetzt:</string>
+    <string name="budget_conflict_confirm">Überschreiben</string>
+    <string name="budget_add_period">Hinzufügen</string>
 </resources>

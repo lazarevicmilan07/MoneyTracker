@@ -132,7 +132,12 @@
       "PowerShell(& \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin\\\\java.exe\" -version 2>&1)",
       "Bash(Get-ChildItem -Recurse \"C:\\\\SideProjects\\\\CashFlow\\\\app\\\\src\\\\main\\\\java\" -Filter \"*.kt\")",
       "Bash(Select-String -Pattern \"currency|Currency\" -List)",
-      "Bash(Select-Object -ExpandProperty Path)"
+      "Bash(Select-Object -ExpandProperty Path)",
+      "Bash(xargs cat)",
+      "Bash(Get-Content app\\\\src\\\\main\\\\java\\\\com\\\\moneytracker\\\\simplebudget\\\\ui\\\\budget\\\\BudgetFormScreen.kt)",
+      "Bash(Select-String 'Text\\\\s*\\\\\\(' -All)",
+      "Bash(Select-String '\"')",
+      "Bash(Select-String -NotMatch 'stringResource')"
     ]
   }
 }

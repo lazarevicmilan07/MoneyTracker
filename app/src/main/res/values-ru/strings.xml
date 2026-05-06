@@ -23,6 +23,7 @@
     <string name="button_apply">Применить</string>
     <string name="button_copy">Копировать</string>
     <string name="button_continue">Продолжить</string>
+    <string name="button_upgrade">Улучшить</string>
     <string name="button_restore">Восстановить</string>
     <string name="button_convert">Конвертировать</string>
     <string name="button_keep_amounts">Оставить исходные суммы</string>
@@ -303,4 +304,35 @@
     <string name="budget_scope_this_and_6_future_months">Этот месяц и 6 будущих месяцев</string>
     <string name="budget_scope_this_and_3_before_years">Этот год и 3 предыдущих года</string>
     <string name="budget_scope_this_and_3_future_years">Этот год и 3 будущих года</string>
+
+    <string name="budget_title">Бюджет</string>
+    <string name="budget_empty_title">Бюджеты не заданы</string>
+    <string name="budget_empty_subtitle">Создайте лимиты расходов для отслеживания категорий</string>
+    <string name="budget_add">Добавить бюджет</string>
+    <string name="budget_set_budget">Задать бюджет</string>
+    <string name="budget_edit_budget">Изменить бюджет</string>
+    <string name="budget_period_monthly">Ежемесячно</string>
+    <string name="budget_period_yearly">Ежегодно</string>
+    <string name="budget_over_budget">Превышение бюджета</string>
+    <string name="budget_days_left">Осталось %d дней</string>
+    <string name="budget_months_left">Осталось %d месяцев</string>
+    <string name="budget_of">из</string>
+    <string name="budget_remaining">осталось</string>
+    <string name="budget_spent">потрачено</string>
+    <string name="budget_overall">Общий</string>
+    <string name="budget_all_categories">Все категории</string>
+    <string name="budget_subcategory_all">Вся категория</string>
+    <string name="budget_delete_confirm_title">Удалить бюджет?</string>
+    <string name="budget_delete_confirm_message">Этот лимит расходов будет удалён.</string>
+    <string name="budget_limit_reached_title">Достигнут лимит бюджетов</string>
+    <string name="budget_limit_reached_message">Бесплатные пользователи могут создать до 3 бюджетов. Улучшите до Premium для неограниченного количества.</string>
+    <string name="budget_hint_left">осталось в бюджете</string>
+    <string name="budget_hint_over">превышение бюджета</string>
+    <string name="budget_total_budget">Общий бюджет</string>
+    <string name="budget_no_budget_set">Лимит не задан</string>
+    <string name="budget_conflict_title">Перезаписать существующий бюджет?</string>
+    <string name="budget_conflict_message_single">Существующий бюджет %1$s для %2$s будет заменён на %3$s.</string>
+    <string name="budget_conflict_message_multiple">%1$d существующих бюджетов будут заменены на %2$s:</string>
+    <string name="budget_conflict_confirm">Перезаписать</string>
+    <string name="budget_add_period">Добавить</string>
 </resources>

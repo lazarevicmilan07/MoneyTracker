@@ -553,7 +553,7 @@ private fun ScopeSelectionPanel(
                 fontWeight = FontWeight.SemiBold
             )
             IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.button_close), modifier = Modifier.size(20.dp))
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -681,7 +681,7 @@ private fun BudgetPeriodToggle(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (isMonthly) "Monthly" else "Yearly",
+                        text = stringResource(if (isMonthly) R.string.budget_period_monthly else R.string.budget_period_yearly),
                         style = MaterialTheme.typography.titleSmall,
                         color = textColor,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium

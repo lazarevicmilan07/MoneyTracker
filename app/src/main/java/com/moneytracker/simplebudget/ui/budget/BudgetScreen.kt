@@ -108,24 +108,33 @@ fun BudgetScreen(
         LocalConfiguration.current.screenWidthDp.dp.toPx()
     }
     val lazyListState = rememberLazyListState()
+    var isAnimating by remember { mutableStateOf(false) }
     LaunchedEffect(selectedMonth) { lazyListState.scrollToItem(0) }
 
     val animateToPrevious: () -> Unit = {
-        coroutineScope.launch {
-            dragOffset.animateTo(screenWidthPx, tween(150))
-            if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectPreviousMonth()
-            else viewModel.selectPreviousYear()
-            dragOffset.snapTo(-screenWidthPx)
-            dragOffset.animateTo(0f, tween(200))
+        if (!isAnimating) {
+            isAnimating = true
+            coroutineScope.launch {
+                dragOffset.animateTo(screenWidthPx, tween(150))
+                if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectPreviousMonth()
+                else viewModel.selectPreviousYear()
+                dragOffset.snapTo(-screenWidthPx)
+                dragOffset.animateTo(0f, tween(200))
+                isAnimating = false
+            }
         }
     }
     val animateToNext: () -> Unit = {
-        coroutineScope.launch {
-            dragOffset.animateTo(-screenWidthPx, tween(150))
-            if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectNextMonth()
-            else viewModel.selectNextYear()
-            dragOffset.snapTo(screenWidthPx)
-            dragOffset.animateTo(0f, tween(200))
+        if (!isAnimating) {
+            isAnimating = true
+            coroutineScope.launch {
+                dragOffset.animateTo(-screenWidthPx, tween(150))
+                if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectNextMonth()
+                else viewModel.selectNextYear()
+                dragOffset.snapTo(screenWidthPx)
+                dragOffset.animateTo(0f, tween(200))
+                isAnimating = false
+            }
         }
     }
 
@@ -205,30 +214,38 @@ fun BudgetScreen(
                     .pointerInput(selectedMonth, selectedPeriodFilter) {
                         detectHorizontalDragGestures(
                             onDragEnd = {
-                                coroutineScope.launch {
-                                    val offset = dragOffset.value
-                                    when {
-                                        offset > swipeThreshold -> {
-                                            dragOffset.animateTo(screenWidthPx, tween(150))
-                                            if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectPreviousMonth()
-                                            else viewModel.selectPreviousYear()
-                                            dragOffset.snapTo(-screenWidthPx)
-                                            dragOffset.animateTo(0f, tween(200))
+                                if (!isAnimating) {
+                                    coroutineScope.launch {
+                                        val offset = dragOffset.value
+                                        when {
+                                            offset > swipeThreshold -> {
+                                                isAnimating = true
+                                                dragOffset.animateTo(screenWidthPx, tween(150))
+                                                if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectPreviousMonth()
+                                                else viewModel.selectPreviousYear()
+                                                dragOffset.snapTo(-screenWidthPx)
+                                                dragOffset.animateTo(0f, tween(200))
+                                                isAnimating = false
+                                            }
+                                            offset < -swipeThreshold -> {
+                                                isAnimating = true
+                                                dragOffset.animateTo(-screenWidthPx, tween(150))
+                                                if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectNextMonth()
+                                                else viewModel.selectNextYear()
+                                                dragOffset.snapTo(screenWidthPx)
+                                                dragOffset.animateTo(0f, tween(200))
+                                                isAnimating = false
+                                            }
+                                            else -> dragOffset.animateTo(0f, tween(200))
                                         }
-                                        offset < -swipeThreshold -> {
-                                            dragOffset.animateTo(-screenWidthPx, tween(150))
-                                            if (selectedPeriodFilter == BudgetPeriod.MONTHLY) viewModel.selectNextMonth()
-                                            else viewModel.selectNextYear()
-                                            dragOffset.snapTo(screenWidthPx)
-                                            dragOffset.animateTo(0f, tween(200))
-                                        }
-                                        else -> dragOffset.animateTo(0f, tween(200))
                                     }
+                                } else {
+                                    coroutineScope.launch { dragOffset.animateTo(0f, tween(200)) }
                                 }
                             },
                             onDragCancel = { coroutineScope.launch { dragOffset.animateTo(0f, tween(200)) } },
                             onHorizontalDrag = { _, amount ->
-                                coroutineScope.launch { dragOffset.snapTo(dragOffset.value + amount) }
+                                if (!isAnimating) coroutineScope.launch { dragOffset.snapTo(dragOffset.value + amount) }
                             }
                         )
                     },
@@ -324,7 +341,7 @@ fun BudgetScreen(
                 TextButton(onClick = {
                     showPremiumLimitDialog = false
                     onShowPremium()
-                }) { Text("Upgrade") }
+                }) { Text(stringResource(R.string.button_upgrade)) }
             },
             dismissButton = {
                 TextButton(onClick = { showPremiumLimitDialog = false }) {
@@ -616,9 +633,8 @@ private fun BudgetProgressBar(
     modifier: Modifier = Modifier,
     trackAlpha: Float = 0.18f
 ) {
-    val animatedProgress = remember(progress) { Animatable(0f) }
+    val animatedProgress = remember { Animatable(0f) }
     LaunchedEffect(progress) {
-        animatedProgress.snapTo(0f)
         animatedProgress.animateTo(
             targetValue = progress.coerceIn(0f, 1f),
             animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing)

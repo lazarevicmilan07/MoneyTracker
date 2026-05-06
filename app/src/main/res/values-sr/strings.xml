@@ -23,6 +23,7 @@
     <string name="button_apply">Primeni</string>
     <string name="button_copy">Kopiraj</string>
     <string name="button_continue">Nastavi</string>
+    <string name="button_upgrade">Nadogradi</string>
     <string name="button_restore">Vrati</string>
     <string name="button_convert">Konvertuj</string>
     <string name="button_keep_amounts">Zadrži originalne iznose</string>
@@ -305,4 +306,34 @@
     <string name="budget_scope_this_and_3_future_years">Ovu godinu i 3 buduće godine</string>
     <string name="label_period">Period</string>
     <string name="budget_add_period">Dodaj</string>
+
+    <string name="budget_title">Budžet</string>
+    <string name="budget_empty_title">Nema postavljenih budžeta</string>
+    <string name="budget_empty_subtitle">Kreirajte limite potrošnje za praćenje kategorija</string>
+    <string name="budget_add">Dodaj budžet</string>
+    <string name="budget_set_budget">Postavi budžet</string>
+    <string name="budget_edit_budget">Uredi budžet</string>
+    <string name="budget_period_monthly">Mesečno</string>
+    <string name="budget_period_yearly">Godišnje</string>
+    <string name="budget_over_budget">Prekoračen budžet</string>
+    <string name="budget_days_left">%d dana preostalo</string>
+    <string name="budget_months_left">%d meseci preostalo</string>
+    <string name="budget_of">od</string>
+    <string name="budget_remaining">preostalo</string>
+    <string name="budget_spent">potrošeno</string>
+    <string name="budget_overall">Ukupno</string>
+    <string name="budget_all_categories">Sve kategorije</string>
+    <string name="budget_subcategory_all">Cela kategorija</string>
+    <string name="budget_delete_confirm_title">Obriši budžet?</string>
+    <string name="budget_delete_confirm_message">Ovaj limit potrošnje će biti uklonjen.</string>
+    <string name="budget_limit_reached_title">Dostignut limit budžeta</string>
+    <string name="budget_limit_reached_message">Besplatni korisnici mogu postaviti do 3 budžeta. Nadogradi na premium za neograničene budžete.</string>
+    <string name="budget_hint_left">preostalo u budžetu</string>
+    <string name="budget_hint_over">prekoračenje budžeta</string>
+    <string name="budget_total_budget">Ukupan budžet</string>
+    <string name="budget_no_budget_set">Nema postavljenog limita</string>
+    <string name="budget_conflict_title">Prepisati postojeći budžet?</string>
+    <string name="budget_conflict_message_single">Postojeći budžet od %1$s za %2$s biće zamenjen sa %3$s.</string>
+    <string name="budget_conflict_message_multiple">%1$d postojećih budžeta biće zamenjeno sa %2$s:</string>
+    <string name="budget_conflict_confirm">Prepiši</string>
 </resources>

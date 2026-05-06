@@ -155,6 +155,9 @@ class BudgetRepository @Inject constructor(
 
         val periods = generatePeriodsForScope(scope, budget.period, budget.year, budget.month)
 
+        val toInsert = mutableListOf<com.moneytracker.simplebudget.data.local.entity.BudgetEntity>()
+        val toUpdate = mutableListOf<com.moneytracker.simplebudget.data.local.entity.BudgetEntity>()
+
         for ((periodYear, periodMonth) in periods) {
             val isPrimary = periodYear == budget.year && periodMonth == budget.month
             val existing = budgetDao.findBudgetForPeriod(
@@ -164,15 +167,22 @@ class BudgetRepository @Inject constructor(
             if (isPrimary) {
                 val toSave = budget.copy(year = periodYear, month = periodMonth, groupId = groupId)
                 if (existing != null) {
-                    budgetDao.update(toSave.copy(id = existing.id).toEntity())
+                    toUpdate.add(toSave.copy(id = existing.id).toEntity())
                 } else {
-                    budgetDao.insert(toSave.copy(id = 0L).toEntity())
+                    toInsert.add(toSave.copy(id = 0L).toEntity())
                 }
             } else {
                 if (existing != null) {
-                    budgetDao.update(existing.copy(amount = budget.amount, groupId = groupId))
+                    toUpdate.add(
+                        existing.copy(
+                            amount = budget.amount,
+                            categoryId = budget.categoryId,
+                            subcategoryId = budget.subcategoryId,
+                            groupId = groupId
+                        )
+                    )
                 } else {
-                    budgetDao.insert(
+                    toInsert.add(
                         budget.copy(
                             id = 0L,
                             groupId = groupId,
@@ -183,6 +193,8 @@ class BudgetRepository @Inject constructor(
                 }
             }
         }
+
+        budgetDao.upsertBudgets(toInsert, toUpdate)
     }
 
     private fun generatePeriodsForScope(
@@ -216,11 +228,11 @@ class BudgetRepository @Inject constructor(
                 when (scope) {
                     BudgetScope.THIS_PERIOD_ONLY -> listOf(year to null)
                     BudgetScope.THIS_AND_3_BEFORE -> (0..3).map { (year - it) to null }
-                    BudgetScope.THIS_AND_6_BEFORE -> (0..5).map { (year - it) to null }
+                    BudgetScope.THIS_AND_6_BEFORE -> (0..6).map { (year - it) to null }
                     BudgetScope.THIS_AND_ALL_BEFORE -> (0..5).map { (year - it) to null }
                     BudgetScope.ALL_PERIODS -> (-5..5).map { (year + it) to null }
                     BudgetScope.THIS_AND_3_FUTURE -> (0..3).map { (year + it) to null }
-                    BudgetScope.THIS_AND_6_FUTURE -> (0..5).map { (year + it) to null }
+                    BudgetScope.THIS_AND_6_FUTURE -> (0..6).map { (year + it) to null }
                     BudgetScope.THIS_AND_FUTURE -> (0..5).map { (year + it) to null }
                 }
             }

@@ -4,12 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.repository.BudgetRepository
-import com.moneytracker.simplebudget.data.repository.CategoryRepository
-import com.moneytracker.simplebudget.domain.model.Budget
 import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.domain.model.BudgetWithProgress
-import com.moneytracker.simplebudget.domain.model.Category
-import com.moneytracker.simplebudget.domain.model.CategoryType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +24,6 @@ private const val FREE_BUDGET_LIMIT = 3
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
-    private val categoryRepository: CategoryRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
@@ -53,12 +48,6 @@ class BudgetViewModel @Inject constructor(
             .flatMapLatest { (month, period) ->
                 budgetRepository.getBudgetsWithProgress(month.year, month.monthValue, period)
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val rootExpenseCategories: StateFlow<List<Category>> = categoryRepository.getRootCategoriesByType(CategoryType.EXPENSE)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val allCategories: StateFlow<List<Category>> = categoryRepository.getAllCategories()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun selectPreviousMonth() {
         _selectedMonth.value = _selectedMonth.value.minusMonths(1)
@@ -96,38 +85,4 @@ class BudgetViewModel @Inject constructor(
         }
     }
 
-    fun saveBudget(
-        categoryId: Long?,
-        subcategoryId: Long?,
-        amount: Double,
-        period: BudgetPeriod,
-        existingId: Long = 0
-    ) {
-        viewModelScope.launch {
-            val selected = _selectedMonth.value
-            val budget = Budget(
-                id = existingId,
-                categoryId = categoryId,
-                subcategoryId = subcategoryId,
-                amount = amount,
-                period = period,
-                year = selected.year,
-                month = if (period == BudgetPeriod.MONTHLY) selected.monthValue else null
-            )
-            if (existingId == 0L) {
-                budgetRepository.insertBudget(budget)
-            } else {
-                budgetRepository.updateBudget(budget)
-            }
-        }
-    }
-
-    fun deleteBudget(budget: Budget) {
-        viewModelScope.launch {
-            budgetRepository.deleteBudget(budget)
-        }
-    }
-
-    suspend fun hasSubcategories(categoryId: Long): Boolean =
-        categoryRepository.hasSubcategories(categoryId)
 }

@@ -23,6 +23,7 @@
     <string name="button_apply">Aplicar</string>
     <string name="button_copy">Copiar</string>
     <string name="button_continue">Continuar</string>
+    <string name="button_upgrade">Melhorar</string>
     <string name="button_restore">Restaurar</string>
     <string name="button_convert">Converter</string>
     <string name="button_keep_amounts">Manter valores originais</string>
@@ -303,4 +304,35 @@
     <string name="budget_scope_this_and_6_future_months">Este mês e 6 meses futuros</string>
     <string name="budget_scope_this_and_3_before_years">Este ano e 3 anos anteriores</string>
     <string name="budget_scope_this_and_3_future_years">Este ano e 3 anos futuros</string>
+
+    <string name="budget_title">Orçamento</string>
+    <string name="budget_empty_title">Nenhum orçamento definido</string>
+    <string name="budget_empty_subtitle">Crie limites de gastos para controlar suas categorias</string>
+    <string name="budget_add">Adicionar orçamento</string>
+    <string name="budget_set_budget">Definir orçamento</string>
+    <string name="budget_edit_budget">Editar orçamento</string>
+    <string name="budget_period_monthly">Mensal</string>
+    <string name="budget_period_yearly">Anual</string>
+    <string name="budget_over_budget">Acima do orçamento</string>
+    <string name="budget_days_left">%d dias restantes</string>
+    <string name="budget_months_left">%d meses restantes</string>
+    <string name="budget_of">de</string>
+    <string name="budget_remaining">restante</string>
+    <string name="budget_spent">gasto</string>
+    <string name="budget_overall">Geral</string>
+    <string name="budget_all_categories">Todas as categorias</string>
+    <string name="budget_subcategory_all">Categoria inteira</string>
+    <string name="budget_delete_confirm_title">Excluir orçamento?</string>
+    <string name="budget_delete_confirm_message">Este limite de gastos será removido.</string>
+    <string name="budget_limit_reached_title">Limite de orçamento atingido</string>
+    <string name="budget_limit_reached_message">Usuários gratuitos podem definir até 3 orçamentos. Melhore para premium para orçamentos ilimitados.</string>
+    <string name="budget_hint_left">restante no orçamento</string>
+    <string name="budget_hint_over">acima do orçamento</string>
+    <string name="budget_total_budget">Orçamento total</string>
+    <string name="budget_no_budget_set">Nenhum limite definido</string>
+    <string name="budget_conflict_title">Substituir orçamento existente?</string>
+    <string name="budget_conflict_message_single">Um orçamento existente de %1$s para %2$s será substituído por %3$s.</string>
+    <string name="budget_conflict_message_multiple">%1$d orçamentos existentes serão substituídos por %2$s:</string>
+    <string name="budget_conflict_confirm">Substituir</string>
+    <string name="budget_add_period">Adicionar</string>
 </resources>

@@ -22,6 +22,7 @@
     <string name="button_apply">Apply</string>
     <string name="button_copy">Copy</string>
     <string name="button_continue">Continue</string>
+    <string name="button_upgrade">Upgrade</string>
     <string name="button_restore">Restore</string>
     <string name="button_convert">Convert</string>
     <string name="button_keep_amounts">Keep original amounts</string>

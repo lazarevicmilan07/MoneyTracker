@@ -78,4 +78,10 @@ interface BudgetDao {
 
     @Delete
     suspend fun delete(budget: BudgetEntity)
+
+    @androidx.room.Transaction
+    suspend fun upsertBudgets(toInsert: List<BudgetEntity>, toUpdate: List<BudgetEntity>) {
+        toInsert.forEach { insert(it) }
+        toUpdate.forEach { update(it) }
+    }
 }
