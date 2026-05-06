@@ -15,8 +15,8 @@ android {
         applicationId = "com.moneytracker.simplebudget"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "3.2.7"
+        versionCode = 17
+        versionName = "3.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

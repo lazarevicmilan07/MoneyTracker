@@ -357,8 +357,8 @@ class MainActivity : ComponentActivity() {
 
                     val bottomNavItems = listOf(
                         BottomNavItem.Records,
-                        BottomNavItem.Budget,
                         BottomNavItem.Stats,
+                        BottomNavItem.Budget,
                         BottomNavItem.Accounts,
                         BottomNavItem.Categories,
                         BottomNavItem.Settings

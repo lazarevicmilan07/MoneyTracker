@@ -38,7 +38,7 @@ Android expense tracker using **Clean MVVM** with Jetpack Compose and Hilt DI.
 **Key patterns:**
 - All DI wiring is in `di/AppModule.kt` (singleton-scoped database, DAOs, repositories)
 - Navigation defined in `navigation/NavGraph.kt` using sealed class `Screen` routes
-- Bottom nav has 6 destinations: Records (Dashboard), Budget, Stats, Accounts, Categories, Settings
+- Bottom nav has 6 destinations: Records (Dashboard), Stats, Budget, Accounts, Categories, Settings
 - Room database (`ExpenseDatabase`) is at version 12; migrations: v1→2 (accounts table), v2→3 (subcategories), v3→12 (budget feature and other additions)
 - Entity↔Domain mapping in `data/mapper/Mappers.kt`
 
@@ -62,7 +62,7 @@ Android expense tracker using **Clean MVVM** with Jetpack Compose and Hilt DI.
 
 ## Key Conventions
 
-- Min SDK 26 (Android 8.0), Target/Compile SDK 34
+- Min SDK 26 (Android 8.0), Target/Compile SDK 35
 - Compose BOM 2024.02.00 with Material 3
 - KSP for Room and Hilt annotation processing (not kapt)
 - `LocalDate` used for dates (type converter in `data/local/Converters.kt`)

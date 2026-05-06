@@ -35,8 +35,8 @@ private fun getNavBarIndex(route: String?): Int {
     return when {
         route == null -> -1
         route == Screen.Dashboard.route -> 0
-        route == Screen.Budget.route -> 1
-        route == Screen.Stats.route -> 2
+        route == Screen.Stats.route -> 1
+        route == Screen.Budget.route -> 2
         route == Screen.Accounts.route -> 3
         route == Screen.Categories.route -> 4
         route == Screen.Settings.route -> 5
