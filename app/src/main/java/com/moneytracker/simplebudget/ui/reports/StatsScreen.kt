@@ -2,7 +2,9 @@ package com.moneytracker.simplebudget.ui.reports
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -391,10 +393,14 @@ private fun YearlyStatsContent(
                     modifier = Modifier.offset { IntOffset(dragOffset.value.roundToInt(), 0) },
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    val isDark = isSystemInDarkTheme()
                     if (uiState.monthlyData.isNotEmpty()) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isDark) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDark) 0.06f else 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(

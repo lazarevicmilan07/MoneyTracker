@@ -41,7 +41,10 @@ data class BudgetFormUiState(
     val amountText: String = "",
     val currentField: BudgetFormField = BudgetFormField.NONE,
     val selectedScope: BudgetScope = BudgetScope.THIS_PERIOD_ONLY,
-    val pendingConflicts: List<Budget>? = null
+    val pendingConflicts: List<Budget>? = null,
+    val selectedParentCategoryId: Long? = null,
+    val selectedSubcategoryId: Long? = null,
+    val isOverallBudget: Boolean = false
 )
 
 @HiltViewModel
@@ -97,7 +100,10 @@ class BudgetFormViewModel @Inject constructor(
                 _existingBudget.value = budget
                 if (budget != null) {
                     _uiState.value = _uiState.value.copy(
-                        amountText = String.format(Locale.ROOT, "%.2f", budget.amount)
+                        amountText = String.format(Locale.ROOT, "%.2f", budget.amount),
+                        selectedParentCategoryId = budget.categoryId,
+                        selectedSubcategoryId = budget.subcategoryId,
+                        isOverallBudget = budget.categoryId == null
                     )
                 }
             }
@@ -146,9 +152,39 @@ class BudgetFormViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selectedScope = scope)
     }
 
+    fun selectCategory(categoryId: Long) {
+        _uiState.value = _uiState.value.copy(
+            selectedParentCategoryId = categoryId,
+            selectedSubcategoryId = null,
+            isOverallBudget = false
+        )
+    }
+
+    fun selectSubcategory(subcategoryId: Long) {
+        _uiState.value = _uiState.value.copy(selectedSubcategoryId = subcategoryId, isOverallBudget = false)
+    }
+
+    fun clearSubcategorySelection() {
+        _uiState.value = _uiState.value.copy(selectedSubcategoryId = null, isOverallBudget = false)
+    }
+
+    fun selectOverallBudget() {
+        _uiState.value = _uiState.value.copy(
+            selectedParentCategoryId = null,
+            selectedSubcategoryId = null,
+            isOverallBudget = true
+        )
+    }
+
     fun save(categoryId: Long?, subcategoryId: Long?, period: BudgetPeriod, yearMonth: YearMonth, isOverall: Boolean = false) {
         if (!validate(categoryId, isOverall)) return
-        doSave(categoryId, subcategoryId, period, yearMonth, andContinue = false)
+        viewModelScope.launch {
+            if (budgetId == 0L && !isPremium.value && budgetRepository.getActiveBudgetCount() >= FREE_BUDGET_LIMIT) {
+                _events.send(BudgetFormEvent.PremiumRequired)
+                return@launch
+            }
+            doSave(categoryId, subcategoryId, period, yearMonth, andContinue = false)
+        }
     }
 
     fun saveAndContinue(categoryId: Long?, subcategoryId: Long?, period: BudgetPeriod, yearMonth: YearMonth, isOverall: Boolean = false) {
@@ -162,7 +198,7 @@ class BudgetFormViewModel @Inject constructor(
         }
     }
 
-    private fun doSave(
+    private suspend fun doSave(
         categoryId: Long?,
         subcategoryId: Long?,
         period: BudgetPeriod,
@@ -172,37 +208,35 @@ class BudgetFormViewModel @Inject constructor(
         val scope = if (isPremium.value) _uiState.value.selectedScope else BudgetScope.THIS_PERIOD_ONLY
         val amount = _uiState.value.amountText.toDoubleOrNull()?.takeIf { it > 0 } ?: return
         val month = if (period == BudgetPeriod.MONTHLY) yearMonth.monthValue else null
-        viewModelScope.launch {
-            val budget = if (budgetId != 0L) {
-                (_existingBudget.value ?: return@launch).copy(
-                    categoryId = categoryId,
-                    subcategoryId = subcategoryId,
-                    amount = amount,
-                    period = period,
-                    year = yearMonth.year,
-                    month = month
-                )
-            } else {
-                Budget(
-                    id = 0L,
-                    categoryId = categoryId,
-                    subcategoryId = subcategoryId,
-                    amount = amount,
-                    period = period,
-                    year = yearMonth.year,
-                    month = month
-                )
-            }
-            val conflicts = budgetRepository.findConflictsForScope(budget, scope, excludeId = budgetId)
-            if (conflicts.isEmpty()) {
-                budgetRepository.saveBudgetForScope(budget, scope)
-                emitSaveEvent(andContinue)
-            } else {
-                pendingBudget = budget
-                pendingScope = scope
-                pendingAndContinue = andContinue
-                _uiState.value = _uiState.value.copy(pendingConflicts = conflicts)
-            }
+        val budget = if (budgetId != 0L) {
+            (_existingBudget.value ?: return).copy(
+                categoryId = categoryId,
+                subcategoryId = subcategoryId,
+                amount = amount,
+                period = period,
+                year = yearMonth.year,
+                month = month
+            )
+        } else {
+            Budget(
+                id = 0L,
+                categoryId = categoryId,
+                subcategoryId = subcategoryId,
+                amount = amount,
+                period = period,
+                year = yearMonth.year,
+                month = month
+            )
+        }
+        val conflicts = budgetRepository.findConflictsForScope(budget, scope, excludeId = budgetId)
+        if (conflicts.isEmpty()) {
+            budgetRepository.saveBudgetForScope(budget, scope)
+            emitSaveEvent(andContinue)
+        } else {
+            pendingBudget = budget
+            pendingScope = scope
+            pendingAndContinue = andContinue
+            _uiState.value = _uiState.value.copy(pendingConflicts = conflicts)
         }
     }
 

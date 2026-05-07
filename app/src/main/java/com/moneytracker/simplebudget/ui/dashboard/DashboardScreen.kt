@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -755,6 +756,7 @@ fun CompactTransactionItem(
 ) {
     val isExpense = transaction.expense.type == TransactionType.EXPENSE
     val isTransfer = transaction.expense.type == TransactionType.TRANSFER
+    val isDark = isSystemInDarkTheme()
     val amountColor by animateColorAsState(
         targetValue = when (transaction.expense.type) {
             TransactionType.EXPENSE -> ExpenseRed
@@ -763,11 +765,13 @@ fun CompactTransactionItem(
         },
         label = "amount_color"
     )
+    val idleBackground = if (isDark) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                      else MaterialTheme.colorScheme.surface,
+                      else idleBackground,
         label = "item_bg"
     )
+    val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDark) 0.06f else 0.1f)
     val hasSubcategory = transaction.subcategory != null
     val hasNote = transaction.expense.note.isNotBlank()
     val accountName = transaction.account?.name
@@ -778,7 +782,8 @@ fun CompactTransactionItem(
             .fillMaxWidth()
             .combinedClickable(onClick = onClick, onLongClick = onLongPress),
         color = backgroundColor,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Row(
             modifier = Modifier

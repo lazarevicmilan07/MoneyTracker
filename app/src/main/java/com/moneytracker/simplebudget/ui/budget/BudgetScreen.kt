@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -27,6 +28,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -60,6 +62,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -81,7 +84,7 @@ import kotlin.math.roundToInt
 
 private val BudgetAmber = Color(0xFFFFA726)
 private val BudgetAmberLight = Color(0xFFFFF3E0)
-private val BudgetGreenLight = Color(0xFFE8F5E9)
+private val BudgetGreenLight = Color(0xFFDCEEDD)
 private val BudgetRedLight = Color(0xFFFFEBEE)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -393,9 +396,9 @@ private fun BudgetSummaryCard(
                         modifier = Modifier.size(88.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        val trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                         Canvas(modifier = Modifier.size(88.dp)) {
-                            val strokeWidth = 10.dp.toPx()
+                            val strokeWidth = 13.dp.toPx()
                             val inset = strokeWidth / 2f
                             val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
                             drawArc(
@@ -487,7 +490,7 @@ fun BudgetCard(
     val cardTint = when {
         isOverBudget || percentage >= 0.9f -> if (isDark) Color(0xFF2A1515) else BudgetRedLight
         percentage >= 0.65f -> if (isDark) Color(0xFF2A1F0D) else BudgetAmberLight
-        else -> MaterialTheme.colorScheme.surface
+        else -> if (isDark) MaterialTheme.colorScheme.surface else BudgetGreenLight
     }
 
     val category = budgetWithProgress.category
@@ -506,14 +509,15 @@ fun BudgetCard(
         shape = RoundedCornerShape(16.dp),
         color = cardTint,
         onClick = onClick,
-        tonalElevation = if (cardTint == MaterialTheme.colorScheme.surface) 1.dp else 0.dp,
+        border = BorderStroke(1.dp, progressColor.copy(alpha = if (isDark) 0.2f else 0.25f)),
+        tonalElevation = 0.dp,
         shadowElevation = 1.dp
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
+                    .padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 10.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -523,32 +527,32 @@ fun BudgetCard(
                         CategoryIcon(
                             icon = iconCategory.icon,
                             color = iconCategory.color,
-                            size = 44.dp,
-                            iconSize = 24.dp
+                            size = 36.dp,
+                            iconSize = 18.dp
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                     }
                     Text(
                         text = displayName,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .weight(1f)
-                            .padding(end = 48.dp)
+                            .padding(end = 44.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 BudgetProgressBar(
                     progress = displayPercentage,
                     color = progressColor,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(10.dp)
+                        .height(6.dp)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -556,7 +560,7 @@ fun BudgetCard(
                 ) {
                     Text(
                         text = formatCurrency(budgetWithProgress.spent, currency, symbolAfter),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                         color = if (isOverBudget) ExpenseRed else MaterialTheme.colorScheme.onSurface
                     )
@@ -567,7 +571,7 @@ fun BudgetCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(1.dp))
 
                 Text(
                     text = if (isOverBudget)
@@ -583,7 +587,7 @@ fun BudgetCard(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 14.dp, end = 16.dp)
+                    .padding(top = 10.dp, end = 14.dp)
                     .clip(RoundedCornerShape(50))
                     .background(progressColor.copy(alpha = 0.12f))
                     .padding(horizontal = 7.dp, vertical = 2.dp)
@@ -607,9 +611,11 @@ private fun EmptyBudgetState() {
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "💰",
-            style = MaterialTheme.typography.displayMedium
+        Icon(
+            imageVector = Icons.Default.Savings,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
@@ -621,7 +627,8 @@ private fun EmptyBudgetState() {
         Text(
             text = stringResource(R.string.budget_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
     }
 }

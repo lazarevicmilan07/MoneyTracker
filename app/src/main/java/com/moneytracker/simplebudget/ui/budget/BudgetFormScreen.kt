@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -97,17 +98,13 @@ fun BudgetFormScreen(
 
     val initialYearMonth = YearMonth.of(viewModel.initialYear, viewModel.initialMonth)
 
-    var isOverallBudget by remember { mutableStateOf(false) }
-    var selectedParentCategoryId by remember { mutableStateOf<Long?>(null) }
-    var selectedSubcategoryId by remember { mutableStateOf<Long?>(null) }
-    val subcategories = remember(selectedParentCategoryId, allCategories) {
-        val catId = selectedParentCategoryId ?: return@remember emptyList<Category>()
+    val subcategories = remember(uiState.selectedParentCategoryId, allCategories) {
+        val catId = uiState.selectedParentCategoryId ?: return@remember emptyList<Category>()
         allCategories.filter { it.parentCategoryId == catId }
     }
     var selectedPeriod by remember { mutableStateOf(viewModel.initialPeriod) }
     var selectedYearMonth by remember { mutableStateOf(initialYearMonth) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    var initialised by remember { mutableStateOf(false) }
     var formResetKey by remember { mutableIntStateOf(0) }
 
     val formAlpha = remember { Animatable(1f) }
@@ -124,15 +121,9 @@ fun BudgetFormScreen(
 
     LaunchedEffect(existingBudget) {
         val budget = existingBudget ?: return@LaunchedEffect
-        if (!initialised) {
-            initialised = true
-            isOverallBudget = budget.categoryId == null
-            selectedParentCategoryId = budget.categoryId
-            selectedSubcategoryId = budget.subcategoryId
-            selectedPeriod = budget.period
-            selectedYearMonth = if (budget.month != null) YearMonth.of(budget.year, budget.month)
-                                else YearMonth.of(budget.year, 1)
-        }
+        selectedPeriod = budget.period
+        selectedYearMonth = if (budget.month != null) YearMonth.of(budget.year, budget.month)
+                            else YearMonth.of(budget.year, 1)
     }
 
     LaunchedEffect(Unit) {
@@ -144,9 +135,6 @@ fun BudgetFormScreen(
                 }
                 BudgetFormEvent.SavedAndContinue -> {
                     Toast.makeText(context, context.getString(R.string.budget_saved), Toast.LENGTH_SHORT).show()
-                    isOverallBudget = false
-                    selectedParentCategoryId = null
-                    selectedSubcategoryId = null
                     selectedYearMonth = initialYearMonth
                     formResetKey++
                 }
@@ -166,11 +154,11 @@ fun BudgetFormScreen(
         viewModel.setCurrentField(BudgetFormField.NONE)
     }
 
-    val selectedCategory = selectedParentCategoryId?.let { id -> allCategories.find { it.id == id } }
-    val selectedSubcategory = selectedSubcategoryId?.let { id -> allCategories.find { it.id == id } }
-    val displayedCategoryForRow: Category? = if (isOverallBudget) null else (selectedSubcategory ?: selectedCategory)
+    val selectedCategory = uiState.selectedParentCategoryId?.let { id -> allCategories.find { it.id == id } }
+    val selectedSubcategory = uiState.selectedSubcategoryId?.let { id -> allCategories.find { it.id == id } }
+    val displayedCategoryForRow: Category? = if (uiState.isOverallBudget) null else (selectedSubcategory ?: selectedCategory)
     val categoryDisplayText = when {
-        isOverallBudget -> stringResource(R.string.budget_all_categories)
+        uiState.isOverallBudget -> stringResource(R.string.budget_all_categories)
         selectedSubcategory != null -> "${selectedCategory?.name ?: ""} › ${selectedSubcategory.name}"
         selectedCategory != null -> selectedCategory.name
         else -> ""
@@ -199,10 +187,10 @@ fun BudgetFormScreen(
     val typeColor = MaterialTheme.colorScheme.primary
 
     val onSave: () -> Unit = {
-        viewModel.save(selectedParentCategoryId, selectedSubcategoryId, selectedPeriod, selectedYearMonth, isOverallBudget)
+        viewModel.save(uiState.selectedParentCategoryId, uiState.selectedSubcategoryId, selectedPeriod, selectedYearMonth, uiState.isOverallBudget)
     }
     val onContinue: () -> Unit = {
-        viewModel.saveAndContinue(selectedParentCategoryId, selectedSubcategoryId, selectedPeriod, selectedYearMonth, isOverallBudget)
+        viewModel.saveAndContinue(uiState.selectedParentCategoryId, uiState.selectedSubcategoryId, selectedPeriod, selectedYearMonth, uiState.isOverallBudget)
     }
     val onDelete: (() -> Unit)? = if (isEditing && existingBudget != null) {
         { showDeleteConfirm = true }
@@ -300,14 +288,10 @@ fun BudgetFormScreen(
                         )
                         FormFieldRow(
                             label = stringResource(R.string.label_period),
-                            value = if (isPremium) scopeDisplayText else stringResource(R.string.label_premium_feature),
-                            onClick = {
-                                if (isPremium) viewModel.setCurrentField(BudgetFormField.SCOPE)
-                                else onShowPremium()
-                            },
-                            isActive = isPremium && uiState.currentField == BudgetFormField.SCOPE,
-                            typeColor = typeColor,
-                            locked = !isPremium
+                            value = scopeDisplayText,
+                            onClick = { viewModel.setCurrentField(BudgetFormField.SCOPE) },
+                            isActive = uiState.currentField == BudgetFormField.SCOPE,
+                            typeColor = typeColor
                         )
                     }
                 }
@@ -344,35 +328,29 @@ fun BudgetFormScreen(
                             CategorySelectionPanel(
                                 categories = rootCategories,
                                 allCategories = allCategories,
-                                selectedParentCategoryId = selectedParentCategoryId,
+                                selectedParentCategoryId = uiState.selectedParentCategoryId,
                                 subcategories = subcategories,
-                                selectedSubcategoryId = selectedSubcategoryId,
+                                selectedSubcategoryId = uiState.selectedSubcategoryId,
                                 onCategorySelected = { id ->
-                                    isOverallBudget = false
-                                    selectedParentCategoryId = id
-                                    selectedSubcategoryId = null
+                                    viewModel.selectCategory(id)
                                     val hasSubs = allCategories.any { it.parentCategoryId == id }
                                     if (!hasSubs) viewModel.setCurrentField(BudgetFormField.SCOPE)
                                 },
                                 onSubcategorySelected = { id ->
-                                    isOverallBudget = false
-                                    selectedSubcategoryId = id
+                                    viewModel.selectSubcategory(id)
                                     viewModel.setCurrentField(BudgetFormField.SCOPE)
                                 },
                                 onParentSelected = {
-                                    isOverallBudget = false
-                                    selectedSubcategoryId = null
+                                    viewModel.clearSubcategorySelection()
                                     viewModel.setCurrentField(BudgetFormField.SCOPE)
                                 },
                                 onClose = { viewModel.setCurrentField(BudgetFormField.NONE) },
                                 onEditCategories = onNavigateToCategories,
                                 onOverallSelected = {
-                                    isOverallBudget = true
-                                    selectedParentCategoryId = null
-                                    selectedSubcategoryId = null
+                                    viewModel.selectOverallBudget()
                                     viewModel.setCurrentField(BudgetFormField.SCOPE)
                                 },
-                                isOverallSelected = isOverallBudget
+                                isOverallSelected = uiState.isOverallBudget
                             )
                             SaveButtonsPanel(
                                 onSave = onSave,
@@ -387,10 +365,12 @@ fun BudgetFormScreen(
                                 period = selectedPeriod,
                                 selectedScope = uiState.selectedScope,
                                 typeColor = typeColor,
+                                isPremium = isPremium,
                                 onScopeSelected = { scope ->
                                     viewModel.setScope(scope)
                                     viewModel.setCurrentField(BudgetFormField.AMOUNT)
                                 },
+                                onShowPremium = onShowPremium,
                                 onClose = { viewModel.setCurrentField(BudgetFormField.NONE) }
                             )
                             SaveButtonsPanel(
@@ -511,7 +491,9 @@ private fun ScopeSelectionPanel(
     period: BudgetPeriod,
     selectedScope: BudgetScope,
     typeColor: Color,
+    isPremium: Boolean,
     onScopeSelected: (BudgetScope) -> Unit,
+    onShowPremium: () -> Unit,
     onClose: () -> Unit
 ) {
     val isMonthly = period == BudgetPeriod.MONTHLY
@@ -579,7 +561,8 @@ private fun ScopeSelectionPanel(
                                 label = stringResource(labelRes),
                                 isSelected = scope == selectedScope,
                                 typeColor = typeColor,
-                                onClick = { onScopeSelected(scope) }
+                                locked = !isPremium,
+                                onClick = { if (isPremium) onScopeSelected(scope) else onShowPremium() }
                             )
                             if (i < beforeOptions.lastIndex) HorizontalDivider(thickness = 1.dp, color = borderColor)
                         }
@@ -596,7 +579,8 @@ private fun ScopeSelectionPanel(
                                 label = stringResource(labelRes),
                                 isSelected = scope == selectedScope,
                                 typeColor = typeColor,
-                                onClick = { onScopeSelected(scope) }
+                                locked = !isPremium,
+                                onClick = { if (isPremium) onScopeSelected(scope) else onShowPremium() }
                             )
                             if (i < futureOptions.lastIndex) HorizontalDivider(thickness = 1.dp, color = borderColor)
                         }
@@ -607,7 +591,8 @@ private fun ScopeSelectionPanel(
                     label = stringResource(bottomOption.second),
                     isSelected = bottomOption.first == selectedScope,
                     typeColor = typeColor,
-                    onClick = { onScopeSelected(bottomOption.first) },
+                    locked = !isPremium,
+                    onClick = { if (isPremium) onScopeSelected(bottomOption.first) else onShowPremium() },
                     centered = true
                 )
             }
@@ -621,7 +606,8 @@ private fun ScopeChip(
     isSelected: Boolean,
     typeColor: Color,
     onClick: () -> Unit,
-    centered: Boolean = false
+    centered: Boolean = false,
+    locked: Boolean = false
 ) {
     val bgColor by animateColorAsState(
         targetValue = if (isSelected) typeColor.copy(alpha = 0.1f) else Color.Transparent,
@@ -635,7 +621,7 @@ private fun ScopeChip(
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (centered) Arrangement.Center else Arrangement.Start
+        horizontalArrangement = if (centered && !locked) Arrangement.Center else Arrangement.Start
     ) {
         Text(
             text = label,
@@ -644,8 +630,18 @@ private fun ScopeChip(
             color = if (isSelected) typeColor else MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            textAlign = if (centered) TextAlign.Center else TextAlign.Start
+            textAlign = if (centered && !locked) TextAlign.Center else TextAlign.Start,
+            modifier = if (locked) Modifier.weight(1f) else Modifier
         )
+        if (locked) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                Icons.Default.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 

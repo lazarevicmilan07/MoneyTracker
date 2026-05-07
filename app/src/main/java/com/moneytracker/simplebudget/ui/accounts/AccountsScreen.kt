@@ -2,8 +2,10 @@ package com.moneytracker.simplebudget.ui.accounts
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -267,10 +269,12 @@ fun TotalBalanceCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Wallet accent pill
+        val isDark = isSystemInDarkTheme()
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = if (isDark) 0.2f else 0.25f)),
             tonalElevation = 0.dp
         ) {
             Row(
@@ -313,13 +317,15 @@ fun AccountListItem(
     val account = accountWithBalance.account
     val currentBalance = accountWithBalance.currentBalance
 
+    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
+        color = if (isDark) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDark) 0.06f else 0.1f)),
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier

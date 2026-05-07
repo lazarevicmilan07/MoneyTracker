@@ -1,5 +1,7 @@
 package com.moneytracker.simplebudget.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -124,6 +126,7 @@ fun CollapsibleSummaryCard(
         Spacer(modifier = Modifier.height(spacerAfterBalance))
 
         // Income & Expense side by side
+        val isDark = isSystemInDarkTheme()
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -133,6 +136,7 @@ fun CollapsibleSummaryCard(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
                 color = IncomeGreen.copy(alpha = 0.1f),
+                border = BorderStroke(1.dp, IncomeGreen.copy(alpha = if (isDark) 0.2f else 0.25f)),
                 tonalElevation = 0.dp
             ) {
                 Row(
@@ -182,6 +186,7 @@ fun CollapsibleSummaryCard(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
                 color = ExpenseRed.copy(alpha = 0.1f),
+                border = BorderStroke(1.dp, ExpenseRed.copy(alpha = if (isDark) 0.2f else 0.25f)),
                 tonalElevation = 0.dp
             ) {
                 Row(

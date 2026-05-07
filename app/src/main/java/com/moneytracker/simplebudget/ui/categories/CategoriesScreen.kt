@@ -2,8 +2,10 @@ package com.moneytracker.simplebudget.ui.categories
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -307,13 +309,15 @@ fun CategoryListItem(
     dragHandleModifier: Modifier = Modifier,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
+        color = if (isDark) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDark) 0.06f else 0.1f)),
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -387,13 +391,15 @@ fun SubcategoryListItem(
     dragHandleModifier: Modifier = Modifier,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(start = 32.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface
+        color = if (isDark) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDark) 0.06f else 0.1f))
     ) {
         Row(
             modifier = Modifier
