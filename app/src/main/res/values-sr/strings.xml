@@ -328,6 +328,7 @@
     <string name="budget_delete_confirm_message">Ovaj limit potrošnje će biti uklonjen.</string>
     <string name="budget_limit_reached_title">Dostignut limit budžeta</string>
     <string name="budget_limit_reached_message">Besplatni korisnici mogu postaviti do 3 budžeta. Nadogradi na premium za neograničene budžete.</string>
+    <string name="budget_limit_reached_existing">Vaši postojeći budžeti:</string>
     <string name="budget_hint_left">preostalo u budžetu</string>
     <string name="budget_hint_over">prekoračenje budžeta</string>
     <string name="budget_total_budget">Ukupan budžet</string>

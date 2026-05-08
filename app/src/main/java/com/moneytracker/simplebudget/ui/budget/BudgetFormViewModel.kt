@@ -33,7 +33,7 @@ sealed class BudgetFormEvent {
     data object Saved : BudgetFormEvent()
     data object SavedAndContinue : BudgetFormEvent()
     data object Deleted : BudgetFormEvent()
-    data object PremiumRequired : BudgetFormEvent()
+    data class PremiumRequired(val existingBudgets: List<Budget>) : BudgetFormEvent()
     data class ValidationError(val messageResId: Int) : BudgetFormEvent()
 }
 
@@ -180,7 +180,7 @@ class BudgetFormViewModel @Inject constructor(
         if (!validate(categoryId, isOverall)) return
         viewModelScope.launch {
             if (budgetId == 0L && !isPremium.value && budgetRepository.getActiveBudgetCount() >= FREE_BUDGET_LIMIT) {
-                _events.send(BudgetFormEvent.PremiumRequired)
+                _events.send(BudgetFormEvent.PremiumRequired(budgetRepository.getActiveBudgetsSync()))
                 return@launch
             }
             doSave(categoryId, subcategoryId, period, yearMonth, andContinue = false)
@@ -191,7 +191,7 @@ class BudgetFormViewModel @Inject constructor(
         if (!validate(categoryId, isOverall)) return
         viewModelScope.launch {
             if (!isPremium.value && budgetRepository.getActiveBudgetCount() >= FREE_BUDGET_LIMIT) {
-                _events.send(BudgetFormEvent.PremiumRequired)
+                _events.send(BudgetFormEvent.PremiumRequired(budgetRepository.getActiveBudgetsSync()))
                 return@launch
             }
             doSave(categoryId, subcategoryId, period, yearMonth, andContinue = true)

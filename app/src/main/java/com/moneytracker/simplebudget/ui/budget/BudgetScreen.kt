@@ -67,8 +67,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.moneytracker.simplebudget.R
+import com.moneytracker.simplebudget.domain.model.Budget
 import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.domain.model.BudgetWithProgress
+import java.time.Month
+import java.time.format.TextStyle
+import java.util.Locale
 import com.moneytracker.simplebudget.ui.components.CategoryIcon
 import com.moneytracker.simplebudget.ui.components.MonthSelector
 import com.moneytracker.simplebudget.ui.components.MonthYearPickerDialog
@@ -99,10 +103,12 @@ fun BudgetScreen(
     val budgets by viewModel.budgets.collectAsState()
     val currency by viewModel.currency.collectAsState()
     val symbolAfter by viewModel.currencySymbolAfter.collectAsState()
+    val allCategories by viewModel.allCategories.collectAsState()
 
     var showMonthPicker by remember { mutableStateOf(false) }
     var showYearPicker by remember { mutableStateOf(false) }
     var showPremiumLimitDialog by remember { mutableStateOf(false) }
+    var premiumLimitBudgets by remember { mutableStateOf<List<Budget>>(emptyList()) }
 
     val swipeThreshold = 100f
     val dragOffset = remember { Animatable(0f) }
@@ -169,7 +175,10 @@ fun BudgetScreen(
                 FloatingActionButton(
                     onClick = {
                         viewModel.canAddBudget(
-                            onBlocked = { showPremiumLimitDialog = true },
+                            onBlocked = { budgets ->
+                                premiumLimitBudgets = budgets
+                                showPremiumLimitDialog = true
+                            },
                             onAllowed = {
                                 onNavigateToForm(
                                     0L,
@@ -342,7 +351,40 @@ fun BudgetScreen(
             onDismissRequest = { showPremiumLimitDialog = false },
             containerColor = MaterialTheme.colorScheme.surface,
             title = { Text(stringResource(R.string.budget_limit_reached_title)) },
-            text = { Text(stringResource(R.string.budget_limit_reached_message)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.budget_limit_reached_message))
+                    if (premiumLimitBudgets.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.budget_limit_reached_existing),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        premiumLimitBudgets.forEach { budget ->
+                            val categoryName = when {
+                                budget.categoryId == null -> stringResource(R.string.budget_all_categories)
+                                budget.subcategoryId != null -> {
+                                    val parent = allCategories.find { it.id == budget.categoryId }
+                                    val sub = allCategories.find { it.id == budget.subcategoryId }
+                                    "${parent?.name ?: ""} › ${sub?.name ?: ""}"
+                                }
+                                else -> allCategories.find { it.id == budget.categoryId }?.name ?: ""
+                            }
+                            val periodLabel = if (budget.period == BudgetPeriod.MONTHLY && budget.month != null) {
+                                "${Month.of(budget.month).getDisplayName(TextStyle.FULL, Locale.getDefault()).replaceFirstChar { it.titlecase(Locale.getDefault()) }} ${budget.year}"
+                            } else {
+                                budget.year.toString()
+                            }
+                            Text(
+                                text = "• $categoryName · $periodLabel",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                }
+            },
             confirmButton = {
                 TextButton(onClick = {
                     showPremiumLimitDialog = false

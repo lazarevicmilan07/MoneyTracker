@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moneytracker.simplebudget.data.preferences.PreferencesManager
 import com.moneytracker.simplebudget.data.repository.BudgetRepository
+import com.moneytracker.simplebudget.data.repository.CategoryRepository
+import com.moneytracker.simplebudget.domain.model.Budget
 import com.moneytracker.simplebudget.domain.model.BudgetPeriod
 import com.moneytracker.simplebudget.domain.model.BudgetWithProgress
+import com.moneytracker.simplebudget.domain.model.Category
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +27,7 @@ private const val FREE_BUDGET_LIMIT = 3
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
+    private val categoryRepository: CategoryRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
@@ -41,6 +45,10 @@ class BudgetViewModel @Inject constructor(
 
     val isPremium: StateFlow<Boolean> = preferencesManager.isPremium
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val allCategories: StateFlow<List<Category>> =
+        categoryRepository.getAllCategories()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val budgets: StateFlow<List<BudgetWithProgress>?> =
@@ -73,12 +81,12 @@ class BudgetViewModel @Inject constructor(
         _selectedPeriodFilter.value = period
     }
 
-    fun canAddBudget(onBlocked: () -> Unit, onAllowed: () -> Unit) {
+    fun canAddBudget(onBlocked: (List<Budget>) -> Unit, onAllowed: () -> Unit) {
         viewModelScope.launch {
             val isPremiumUser = preferencesManager.isPremium.stateIn(viewModelScope).value
             val count = budgetRepository.getActiveBudgetCount()
             if (!isPremiumUser && count >= FREE_BUDGET_LIMIT) {
-                onBlocked()
+                onBlocked(budgetRepository.getActiveBudgetsSync())
             } else {
                 onAllowed()
             }

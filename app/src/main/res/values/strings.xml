@@ -306,6 +306,7 @@
     <string name="budget_delete_confirm_message">This spending limit will be removed.</string>
     <string name="budget_limit_reached_title">Budget limit reached</string>
     <string name="budget_limit_reached_message">Free users can set up to 3 budgets. Upgrade to premium for unlimited budgets.</string>
+    <string name="budget_limit_reached_existing">Your existing budgets:</string>
     <string name="budget_hint_left">left in budget</string>
     <string name="budget_hint_over">over budget</string>
     <string name="budget_total_budget">Total budget</string>

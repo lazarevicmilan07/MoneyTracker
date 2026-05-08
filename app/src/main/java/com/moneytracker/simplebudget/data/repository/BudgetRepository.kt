@@ -135,6 +135,8 @@ class BudgetRepository @Inject constructor(
 
     suspend fun getAllBudgetsSync(): List<Budget> = budgetDao.getAllBudgets().map { it.toDomain() }
 
+    suspend fun getActiveBudgetsSync(): List<Budget> = budgetDao.getActiveBudgets().map { it.toDomain() }
+
     suspend fun deleteAllBudgets() = budgetDao.deleteAll()
 
     suspend fun getBudgetById(id: Long): Budget? = budgetDao.getBudgetById(id)?.toDomain()

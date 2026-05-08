@@ -64,6 +64,9 @@ interface BudgetDao {
     @Query("SELECT * FROM budgets")
     suspend fun getAllBudgets(): List<BudgetEntity>
 
+    @Query("SELECT * FROM budgets WHERE isActive = 1 ORDER BY createdAt ASC")
+    suspend fun getActiveBudgets(): List<BudgetEntity>
+
     @Query("UPDATE budgets SET amount = amount * :rate")
     suspend fun multiplyAllAmounts(rate: Double)
 

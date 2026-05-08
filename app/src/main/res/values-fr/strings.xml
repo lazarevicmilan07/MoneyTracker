@@ -326,6 +326,7 @@
     <string name="budget_delete_confirm_message">Cette limite de dépenses sera supprimée.</string>
     <string name="budget_limit_reached_title">Limite de budget atteinte</string>
     <string name="budget_limit_reached_message">Les utilisateurs gratuits peuvent définir jusqu\'à 3 budgets. Améliorez pour des budgets illimités.</string>
+    <string name="budget_limit_reached_existing">Vos budgets existants :</string>
     <string name="budget_hint_left">restant dans le budget</string>
     <string name="budget_hint_over">dépassement</string>
     <string name="budget_total_budget">Budget total</string>

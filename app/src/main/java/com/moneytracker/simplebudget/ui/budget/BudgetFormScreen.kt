@@ -105,6 +105,8 @@ fun BudgetFormScreen(
     var selectedPeriod by remember { mutableStateOf(viewModel.initialPeriod) }
     var selectedYearMonth by remember { mutableStateOf(initialYearMonth) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showPremiumLimitDialog by remember { mutableStateOf(false) }
+    var premiumLimitBudgets by remember { mutableStateOf<List<Budget>>(emptyList()) }
     var formResetKey by remember { mutableIntStateOf(0) }
 
     val formAlpha = remember { Animatable(1f) }
@@ -142,7 +144,10 @@ fun BudgetFormScreen(
                     Toast.makeText(context, context.getString(R.string.budget_deleted), Toast.LENGTH_SHORT).show()
                     onNavigateBack()
                 }
-                BudgetFormEvent.PremiumRequired -> onShowPremium()
+                is BudgetFormEvent.PremiumRequired -> {
+                    premiumLimitBudgets = event.existingBudgets
+                    showPremiumLimitDialog = true
+                }
                 is BudgetFormEvent.ValidationError -> {
                     Toast.makeText(context, context.getString(event.messageResId), Toast.LENGTH_SHORT).show()
                 }
@@ -417,6 +422,59 @@ fun BudgetFormScreen(
                 }
             )
         }
+    }
+
+    if (showPremiumLimitDialog) {
+        AlertDialog(
+            onDismissRequest = { showPremiumLimitDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(stringResource(R.string.budget_limit_reached_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.budget_limit_reached_message))
+                    if (premiumLimitBudgets.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.budget_limit_reached_existing),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        premiumLimitBudgets.forEach { budget ->
+                            val categoryName = when {
+                                budget.categoryId == null -> stringResource(R.string.budget_all_categories)
+                                budget.subcategoryId != null -> {
+                                    val parent = allCategories.find { it.id == budget.categoryId }
+                                    val sub = allCategories.find { it.id == budget.subcategoryId }
+                                    "${parent?.name ?: ""} › ${sub?.name ?: ""}"
+                                }
+                                else -> allCategories.find { it.id == budget.categoryId }?.name ?: ""
+                            }
+                            val periodLabel = if (budget.period == BudgetPeriod.MONTHLY && budget.month != null) {
+                                "${Month.of(budget.month).getDisplayName(TextStyle.FULL, Locale.getDefault()).replaceFirstChar { it.titlecase(Locale.getDefault()) }} ${budget.year}"
+                            } else {
+                                budget.year.toString()
+                            }
+                            Text(
+                                text = "• $categoryName · $periodLabel",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPremiumLimitDialog = false
+                    onShowPremium()
+                }) { Text(stringResource(R.string.button_upgrade)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPremiumLimitDialog = false }) {
+                    Text(stringResource(R.string.button_cancel))
+                }
+            }
+        )
     }
 
     val pendingConflicts = uiState.pendingConflicts

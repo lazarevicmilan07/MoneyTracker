@@ -326,6 +326,7 @@
     <string name="budget_delete_confirm_message">Этот лимит расходов будет удалён.</string>
     <string name="budget_limit_reached_title">Достигнут лимит бюджетов</string>
     <string name="budget_limit_reached_message">Бесплатные пользователи могут создать до 3 бюджетов. Улучшите до Premium для неограниченного количества.</string>
+    <string name="budget_limit_reached_existing">Ваши существующие бюджеты:</string>
     <string name="budget_hint_left">осталось в бюджете</string>
     <string name="budget_hint_over">превышение бюджета</string>
     <string name="budget_total_budget">Общий бюджет</string>
