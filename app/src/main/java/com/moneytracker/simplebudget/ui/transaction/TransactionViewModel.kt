@@ -134,10 +134,13 @@ class TransactionViewModel @Inject constructor(
             }
         }
 
+    private var lastBudgetHint: BudgetWithProgress? = null
+
     val budgetHint: StateFlow<BudgetWithProgress?> = combine(
         _baseBudgetHint,
         _uiState
     ) { hint, state ->
+        if (state.isSubmitting) return@combine lastBudgetHint
         hint ?: return@combine null
         val typedAmount = state.amount.toDoubleOrNull() ?: 0.0
         val isOriginalPeriod = when (hint.budget.period) {
@@ -150,6 +153,7 @@ class TransactionViewModel @Inject constructor(
         val newSpent = hint.budget.amount - newRemaining
         val newPercentage = if (hint.budget.amount > 0) (newSpent / hint.budget.amount).toFloat() else 0f
         hint.copy(spent = newSpent, remaining = newRemaining, percentage = newPercentage.coerceAtLeast(0f))
+            .also { lastBudgetHint = it }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
@@ -472,6 +476,10 @@ class TransactionViewModel @Inject constructor(
                 return@launch
             }
 
+            // Freeze budget hint immediately — prevents flash from Room emitting a new
+            // remaining value between the DB write and navigation.
+            _uiState.value = _uiState.value.copy(isSubmitting = true)
+
             if (state.transactionType == TransactionType.TRANSFER) {
                 // Validate transfer
                 if (state.toAccountId == null) {
@@ -578,7 +586,8 @@ data class TransactionUiState(
     val selectedDate: LocalDate = LocalDate.now(),
     val isEditing: Boolean = false,
     val showSubcategorySelector: Boolean = false,
-    val currentField: TransactionField = TransactionField.ACCOUNT
+    val currentField: TransactionField = TransactionField.ACCOUNT,
+    val isSubmitting: Boolean = false
 )
 
 sealed class TransactionEvent {

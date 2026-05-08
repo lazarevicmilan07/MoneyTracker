@@ -43,11 +43,11 @@ class BudgetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val budgets: StateFlow<List<BudgetWithProgress>> =
+    val budgets: StateFlow<List<BudgetWithProgress>?> =
         combine(_selectedMonth, _selectedPeriodFilter) { month, period -> month to period }
             .flatMapLatest { (month, period) ->
                 budgetRepository.getBudgetsWithProgress(month.year, month.monthValue, period)
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun selectPreviousMonth() {
         _selectedMonth.value = _selectedMonth.value.minusMonths(1)

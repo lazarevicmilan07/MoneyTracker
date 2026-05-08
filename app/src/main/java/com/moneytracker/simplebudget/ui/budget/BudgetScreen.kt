@@ -261,19 +261,22 @@ fun BudgetScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Spacer(modifier = Modifier.height(4.dp))
-                        if (budgets.isEmpty()) {
+                        val currentBudgets = budgets
+                        if (currentBudgets == null) {
+                            // Loading — show nothing to avoid empty state flash
+                        } else if (currentBudgets.isEmpty()) {
                             Spacer(modifier = Modifier.height(80.dp))
                             EmptyBudgetState()
                         } else {
-                            val totalBudget = budgets.sumOf { it.budget.amount }
-                            val totalSpent = budgets.sumOf { it.spent }
+                            val totalBudget = currentBudgets.sumOf { it.budget.amount }
+                            val totalSpent = currentBudgets.sumOf { it.spent }
                             BudgetSummaryCard(
                                 totalBudget = totalBudget,
                                 totalSpent = totalSpent,
                                 currency = currency,
                                 symbolAfter = symbolAfter
                             )
-                            budgets.forEach { budgetProgress ->
+                            currentBudgets.forEach { budgetProgress ->
                                 BudgetCard(
                                     budgetWithProgress = budgetProgress,
                                     currency = currency,
