@@ -170,8 +170,7 @@ fun PremiumScreen(
                     PremiumFeatureItem(
                         icon = Icons.Default.AutoAwesome,
                         title = "Budget Tracking",
-                        description = "Set limits and control your spending",
-                        comingSoon = true
+                        description = "Set limits and control your spending"
                     )
                     PremiumFeatureItem(
                         icon = Icons.Default.ShowChart,
